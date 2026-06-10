@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  name           String
+  companyName    String
+  passwordHash   String
+  encryptionKey  String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deals          Deal[]
+  contacts       Contact[]
+}
+
+model Contact {
+  id                String   @id @default(uuid())
+  userId            String
+  encryptedName     String
+  encryptedEmail    String?
+  encryptedPhone    String?
+  encryptedWhatsApp String?
+  tags              String   @default("")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dealRecipients    DealRecipient[]
+
+  @@index([userId])
+}
+
+model Deal {
+  id          String          @id @default(uuid())
+  userId      String
+  title       String
+  metalType   String
+  description String
+  quantity    String
+  unit        String          @default("lbs")
+  askingPrice Float?
+  priceUnit   String          @default("per lb")
+  location    String?
+  status      String          @default("draft")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  expiresAt   DateTime?
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  images      DealImage[]
+  recipients  DealRecipient[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model DealImage {
+  id        String   @id @default(uuid())
+  dealId    String
+  url       String
+  filename  String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  deal      Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId])
+}
+
+model DealRecipient {
+  id          String    @id @default(uuid())
+  dealId      String
+  contactId   String?
+  accessToken String    @unique
+  channel     String
+  sentAt      DateTime?
+  viewedAt    DateTime?
+  status      String    @default("pending")
+  createdAt   DateTime  @default(now())
+  deal        Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  contact     Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  messages    Message[]
+
+  @@index([dealId])
+  @@index([accessToken])
+}
+
+model Message {
+  id              String        @id @default(uuid())
+  dealRecipientId String
+  senderType      String
+  senderName      String
+  content         String
+  createdAt       DateTime      @default(now())
+  dealRecipient   DealRecipient @relation(fields: [dealRecipientId], references: [id], onDelete: Cascade)
+
+  @@index([dealRecipientId])
+}
