@@ -20,8 +20,18 @@ export type MessageModel = runtime.Types.Result.DefaultSelection<Prisma.$Message
 
 export type AggregateMessage = {
   _count: MessageCountAggregateOutputType | null
+  _avg: MessageAvgAggregateOutputType | null
+  _sum: MessageSumAggregateOutputType | null
   _min: MessageMinAggregateOutputType | null
   _max: MessageMaxAggregateOutputType | null
+}
+
+export type MessageAvgAggregateOutputType = {
+  bidAmount: number | null
+}
+
+export type MessageSumAggregateOutputType = {
+  bidAmount: number | null
 }
 
 export type MessageMinAggregateOutputType = {
@@ -29,7 +39,10 @@ export type MessageMinAggregateOutputType = {
   dealRecipientId: string | null
   senderType: string | null
   senderName: string | null
+  type: string | null
   content: string | null
+  bidAmount: number | null
+  bidUnit: string | null
   createdAt: Date | null
 }
 
@@ -38,7 +51,10 @@ export type MessageMaxAggregateOutputType = {
   dealRecipientId: string | null
   senderType: string | null
   senderName: string | null
+  type: string | null
   content: string | null
+  bidAmount: number | null
+  bidUnit: string | null
   createdAt: Date | null
 }
 
@@ -47,18 +63,32 @@ export type MessageCountAggregateOutputType = {
   dealRecipientId: number
   senderType: number
   senderName: number
+  type: number
   content: number
+  bidAmount: number
+  bidUnit: number
   createdAt: number
   _all: number
 }
 
+
+export type MessageAvgAggregateInputType = {
+  bidAmount?: true
+}
+
+export type MessageSumAggregateInputType = {
+  bidAmount?: true
+}
 
 export type MessageMinAggregateInputType = {
   id?: true
   dealRecipientId?: true
   senderType?: true
   senderName?: true
+  type?: true
   content?: true
+  bidAmount?: true
+  bidUnit?: true
   createdAt?: true
 }
 
@@ -67,7 +97,10 @@ export type MessageMaxAggregateInputType = {
   dealRecipientId?: true
   senderType?: true
   senderName?: true
+  type?: true
   content?: true
+  bidAmount?: true
+  bidUnit?: true
   createdAt?: true
 }
 
@@ -76,7 +109,10 @@ export type MessageCountAggregateInputType = {
   dealRecipientId?: true
   senderType?: true
   senderName?: true
+  type?: true
   content?: true
+  bidAmount?: true
+  bidUnit?: true
   createdAt?: true
   _all?: true
 }
@@ -119,6 +155,18 @@ export type MessageAggregateArgs<ExtArgs extends runtime.Types.Extensions.Intern
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: MessageAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: MessageSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: MessageMinAggregateInputType
@@ -149,6 +197,8 @@ export type MessageGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   _count?: MessageCountAggregateInputType | true
+  _avg?: MessageAvgAggregateInputType
+  _sum?: MessageSumAggregateInputType
   _min?: MessageMinAggregateInputType
   _max?: MessageMaxAggregateInputType
 }
@@ -158,9 +208,14 @@ export type MessageGroupByOutputType = {
   dealRecipientId: string
   senderType: string
   senderName: string
+  type: string
   content: string
+  bidAmount: number | null
+  bidUnit: string | null
   createdAt: Date
   _count: MessageCountAggregateOutputType | null
+  _avg: MessageAvgAggregateOutputType | null
+  _sum: MessageSumAggregateOutputType | null
   _min: MessageMinAggregateOutputType | null
   _max: MessageMaxAggregateOutputType | null
 }
@@ -188,7 +243,10 @@ export type MessageWhereInput = {
   dealRecipientId?: Prisma.StringFilter<"Message"> | string
   senderType?: Prisma.StringFilter<"Message"> | string
   senderName?: Prisma.StringFilter<"Message"> | string
+  type?: Prisma.StringFilter<"Message"> | string
   content?: Prisma.StringFilter<"Message"> | string
+  bidAmount?: Prisma.FloatNullableFilter<"Message"> | number | null
+  bidUnit?: Prisma.StringNullableFilter<"Message"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Message"> | Date | string
   dealRecipient?: Prisma.XOR<Prisma.DealRecipientScalarRelationFilter, Prisma.DealRecipientWhereInput>
 }
@@ -198,7 +256,10 @@ export type MessageOrderByWithRelationInput = {
   dealRecipientId?: Prisma.SortOrder
   senderType?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  bidAmount?: Prisma.SortOrderInput | Prisma.SortOrder
+  bidUnit?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   dealRecipient?: Prisma.DealRecipientOrderByWithRelationInput
 }
@@ -211,7 +272,10 @@ export type MessageWhereUniqueInput = Prisma.AtLeast<{
   dealRecipientId?: Prisma.StringFilter<"Message"> | string
   senderType?: Prisma.StringFilter<"Message"> | string
   senderName?: Prisma.StringFilter<"Message"> | string
+  type?: Prisma.StringFilter<"Message"> | string
   content?: Prisma.StringFilter<"Message"> | string
+  bidAmount?: Prisma.FloatNullableFilter<"Message"> | number | null
+  bidUnit?: Prisma.StringNullableFilter<"Message"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Message"> | Date | string
   dealRecipient?: Prisma.XOR<Prisma.DealRecipientScalarRelationFilter, Prisma.DealRecipientWhereInput>
 }, "id">
@@ -221,11 +285,16 @@ export type MessageOrderByWithAggregationInput = {
   dealRecipientId?: Prisma.SortOrder
   senderType?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  bidAmount?: Prisma.SortOrderInput | Prisma.SortOrder
+  bidUnit?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.MessageCountOrderByAggregateInput
+  _avg?: Prisma.MessageAvgOrderByAggregateInput
   _max?: Prisma.MessageMaxOrderByAggregateInput
   _min?: Prisma.MessageMinOrderByAggregateInput
+  _sum?: Prisma.MessageSumOrderByAggregateInput
 }
 
 export type MessageScalarWhereWithAggregatesInput = {
@@ -236,7 +305,10 @@ export type MessageScalarWhereWithAggregatesInput = {
   dealRecipientId?: Prisma.StringWithAggregatesFilter<"Message"> | string
   senderType?: Prisma.StringWithAggregatesFilter<"Message"> | string
   senderName?: Prisma.StringWithAggregatesFilter<"Message"> | string
+  type?: Prisma.StringWithAggregatesFilter<"Message"> | string
   content?: Prisma.StringWithAggregatesFilter<"Message"> | string
+  bidAmount?: Prisma.FloatNullableWithAggregatesFilter<"Message"> | number | null
+  bidUnit?: Prisma.StringNullableWithAggregatesFilter<"Message"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Message"> | Date | string
 }
 
@@ -244,7 +316,10 @@ export type MessageCreateInput = {
   id?: string
   senderType: string
   senderName: string
+  type?: string
   content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
   createdAt?: Date | string
   dealRecipient: Prisma.DealRecipientCreateNestedOneWithoutMessagesInput
 }
@@ -254,7 +329,10 @@ export type MessageUncheckedCreateInput = {
   dealRecipientId: string
   senderType: string
   senderName: string
+  type?: string
   content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
   createdAt?: Date | string
 }
 
@@ -262,7 +340,10 @@ export type MessageUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   senderType?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dealRecipient?: Prisma.DealRecipientUpdateOneRequiredWithoutMessagesNestedInput
 }
@@ -272,7 +353,10 @@ export type MessageUncheckedUpdateInput = {
   dealRecipientId?: Prisma.StringFieldUpdateOperationsInput | string
   senderType?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -281,7 +365,10 @@ export type MessageCreateManyInput = {
   dealRecipientId: string
   senderType: string
   senderName: string
+  type?: string
   content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
   createdAt?: Date | string
 }
 
@@ -289,7 +376,10 @@ export type MessageUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   senderType?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -298,7 +388,10 @@ export type MessageUncheckedUpdateManyInput = {
   dealRecipientId?: Prisma.StringFieldUpdateOperationsInput | string
   senderType?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -317,8 +410,15 @@ export type MessageCountOrderByAggregateInput = {
   dealRecipientId?: Prisma.SortOrder
   senderType?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  bidAmount?: Prisma.SortOrder
+  bidUnit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+}
+
+export type MessageAvgOrderByAggregateInput = {
+  bidAmount?: Prisma.SortOrder
 }
 
 export type MessageMaxOrderByAggregateInput = {
@@ -326,7 +426,10 @@ export type MessageMaxOrderByAggregateInput = {
   dealRecipientId?: Prisma.SortOrder
   senderType?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  bidAmount?: Prisma.SortOrder
+  bidUnit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -335,8 +438,15 @@ export type MessageMinOrderByAggregateInput = {
   dealRecipientId?: Prisma.SortOrder
   senderType?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  bidAmount?: Prisma.SortOrder
+  bidUnit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+}
+
+export type MessageSumOrderByAggregateInput = {
+  bidAmount?: Prisma.SortOrder
 }
 
 export type MessageCreateNestedManyWithoutDealRecipientInput = {
@@ -385,7 +495,10 @@ export type MessageCreateWithoutDealRecipientInput = {
   id?: string
   senderType: string
   senderName: string
+  type?: string
   content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
   createdAt?: Date | string
 }
 
@@ -393,7 +506,10 @@ export type MessageUncheckedCreateWithoutDealRecipientInput = {
   id?: string
   senderType: string
   senderName: string
+  type?: string
   content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
   createdAt?: Date | string
 }
 
@@ -430,7 +546,10 @@ export type MessageScalarWhereInput = {
   dealRecipientId?: Prisma.StringFilter<"Message"> | string
   senderType?: Prisma.StringFilter<"Message"> | string
   senderName?: Prisma.StringFilter<"Message"> | string
+  type?: Prisma.StringFilter<"Message"> | string
   content?: Prisma.StringFilter<"Message"> | string
+  bidAmount?: Prisma.FloatNullableFilter<"Message"> | number | null
+  bidUnit?: Prisma.StringNullableFilter<"Message"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Message"> | Date | string
 }
 
@@ -438,7 +557,10 @@ export type MessageCreateManyDealRecipientInput = {
   id?: string
   senderType: string
   senderName: string
+  type?: string
   content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
   createdAt?: Date | string
 }
 
@@ -446,7 +568,10 @@ export type MessageUpdateWithoutDealRecipientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   senderType?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -454,7 +579,10 @@ export type MessageUncheckedUpdateWithoutDealRecipientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   senderType?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -462,7 +590,10 @@ export type MessageUncheckedUpdateManyWithoutDealRecipientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   senderType?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -473,7 +604,10 @@ export type MessageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   dealRecipientId?: boolean
   senderType?: boolean
   senderName?: boolean
+  type?: boolean
   content?: boolean
+  bidAmount?: boolean
+  bidUnit?: boolean
   createdAt?: boolean
   dealRecipient?: boolean | Prisma.DealRecipientDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["message"]>
@@ -483,7 +617,10 @@ export type MessageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   dealRecipientId?: boolean
   senderType?: boolean
   senderName?: boolean
+  type?: boolean
   content?: boolean
+  bidAmount?: boolean
+  bidUnit?: boolean
   createdAt?: boolean
   dealRecipient?: boolean | Prisma.DealRecipientDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["message"]>
@@ -493,7 +630,10 @@ export type MessageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   dealRecipientId?: boolean
   senderType?: boolean
   senderName?: boolean
+  type?: boolean
   content?: boolean
+  bidAmount?: boolean
+  bidUnit?: boolean
   createdAt?: boolean
   dealRecipient?: boolean | Prisma.DealRecipientDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["message"]>
@@ -503,11 +643,14 @@ export type MessageSelectScalar = {
   dealRecipientId?: boolean
   senderType?: boolean
   senderName?: boolean
+  type?: boolean
   content?: boolean
+  bidAmount?: boolean
+  bidUnit?: boolean
   createdAt?: boolean
 }
 
-export type MessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "dealRecipientId" | "senderType" | "senderName" | "content" | "createdAt", ExtArgs["result"]["message"]>
+export type MessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "dealRecipientId" | "senderType" | "senderName" | "type" | "content" | "bidAmount" | "bidUnit" | "createdAt", ExtArgs["result"]["message"]>
 export type MessageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   dealRecipient?: boolean | Prisma.DealRecipientDefaultArgs<ExtArgs>
 }
@@ -528,7 +671,10 @@ export type $MessagePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     dealRecipientId: string
     senderType: string
     senderName: string
+    type: string
     content: string
+    bidAmount: number | null
+    bidUnit: string | null
     createdAt: Date
   }, ExtArgs["result"]["message"]>
   composites: {}
@@ -958,7 +1104,10 @@ export interface MessageFieldRefs {
   readonly dealRecipientId: Prisma.FieldRef<"Message", 'String'>
   readonly senderType: Prisma.FieldRef<"Message", 'String'>
   readonly senderName: Prisma.FieldRef<"Message", 'String'>
+  readonly type: Prisma.FieldRef<"Message", 'String'>
   readonly content: Prisma.FieldRef<"Message", 'String'>
+  readonly bidAmount: Prisma.FieldRef<"Message", 'Float'>
+  readonly bidUnit: Prisma.FieldRef<"Message", 'String'>
   readonly createdAt: Prisma.FieldRef<"Message", 'DateTime'>
 }
     

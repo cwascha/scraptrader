@@ -3,6 +3,16 @@ import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 
+// Refuse to run in production without a real JWT secret. The "dev-secret"
+// fallback exists purely so local dev works before .env is set up — a
+// production deployment signing sessions with a publicly known string
+// would let anyone mint a valid session for any userId.
+if (process.env.NODE_ENV === "production" && !process.env.NEXTAUTH_SECRET) {
+  throw new Error(
+    "NEXTAUTH_SECRET must be set in production — refusing to start with the dev fallback secret."
+  );
+}
+
 const SECRET = new TextEncoder().encode(
   process.env.NEXTAUTH_SECRET || "dev-secret"
 );

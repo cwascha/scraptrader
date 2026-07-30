@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { fetchJson } from "@/lib/fetch-json";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -33,26 +34,22 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: form.name,
-        email: form.email,
-        companyName: form.companyName,
-        password: form.password,
-      }),
-    });
-
-    const data = await res.json();
-    setLoading(false);
-
-    if (!res.ok) {
-      setError(data.error);
-      return;
+    try {
+      await fetchJson("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          companyName: form.companyName,
+          password: form.password,
+        }),
+      });
+      router.push("/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Registration failed");
+      setLoading(false);
     }
-
-    router.push("/dashboard");
   }
 
   return (

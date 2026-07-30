@@ -64,12 +64,12 @@ export default function Home() {
                 {
                   step: "1",
                   title: "Create a Deal",
-                  desc: "Add material details, photos, pricing, and quantity. Everything a buyer needs to make a decision.",
+                  desc: "Add material details, photos, weight, and shipping terms. Everything a buyer needs to make a decision.",
                 },
                 {
                   step: "2",
                   title: "Publish to Contacts",
-                  desc: "Select contacts and choose how to reach them — email, SMS, or WhatsApp. Each gets a unique deal link.",
+                  desc: "Select contacts and choose how to reach them — email, SMS, or WhatsApp. Each buyer gets a private link to their own portal: every deal you've sent them, in one place.",
                 },
                 {
                   step: "3",
@@ -103,7 +103,7 @@ export default function Home() {
               {[
                 {
                   title: "Encrypted Contact Lists",
-                  desc: "All contact information is encrypted with AES-256. Even we can't read your contacts.",
+                  desc: "Contact names, emails, and numbers are encrypted at rest with AES-256-GCM under a key unique to your account — decrypted only to send the deals you publish. Never sold, never shared, never visible to another dealer.",
                 },
                 {
                   title: "No Public Marketplace",
@@ -114,8 +114,8 @@ export default function Home() {
                   desc: "Your buyers never need to create an account. They interact through a simple link.",
                 },
                 {
-                  title: "Secure Pass-Through",
-                  desc: "ScrapTrader acts as a secure conduit. Your pricing and customer data stays in your hands.",
+                  title: "Your Data Isn't Our Product",
+                  desc: "We don't sell it, mine it for market intelligence, or surface your deals to anyone you didn't send them to. No other dealer can see your contacts, your prices, or your conversations.",
                 },
               ].map((item) => (
                 <div

@@ -386,6 +386,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Contact: 'Contact',
+  ContactGroup: 'ContactGroup',
+  YardAddress: 'YardAddress',
   Deal: 'Deal',
   DealImage: 'DealImage',
   DealRecipient: 'DealRecipient',
@@ -405,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "contact" | "deal" | "dealImage" | "dealRecipient" | "message"
+    modelProps: "user" | "contact" | "contactGroup" | "yardAddress" | "deal" | "dealImage" | "dealRecipient" | "message"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -554,6 +556,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ContactCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ContactCountAggregateOutputType> | number
+        }
+      }
+    }
+    ContactGroup: {
+      payload: Prisma.$ContactGroupPayload<ExtArgs>
+      fields: Prisma.ContactGroupFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ContactGroupFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactGroupPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ContactGroupFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactGroupPayload>
+        }
+        findFirst: {
+          args: Prisma.ContactGroupFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactGroupPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ContactGroupFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactGroupPayload>
+        }
+        findMany: {
+          args: Prisma.ContactGroupFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactGroupPayload>[]
+        }
+        create: {
+          args: Prisma.ContactGroupCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactGroupPayload>
+        }
+        createMany: {
+          args: Prisma.ContactGroupCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ContactGroupCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactGroupPayload>[]
+        }
+        delete: {
+          args: Prisma.ContactGroupDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactGroupPayload>
+        }
+        update: {
+          args: Prisma.ContactGroupUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactGroupPayload>
+        }
+        deleteMany: {
+          args: Prisma.ContactGroupDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ContactGroupUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ContactGroupUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactGroupPayload>[]
+        }
+        upsert: {
+          args: Prisma.ContactGroupUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContactGroupPayload>
+        }
+        aggregate: {
+          args: Prisma.ContactGroupAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateContactGroup>
+        }
+        groupBy: {
+          args: Prisma.ContactGroupGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ContactGroupGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ContactGroupCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ContactGroupCountAggregateOutputType> | number
+        }
+      }
+    }
+    YardAddress: {
+      payload: Prisma.$YardAddressPayload<ExtArgs>
+      fields: Prisma.YardAddressFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.YardAddressFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$YardAddressPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.YardAddressFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$YardAddressPayload>
+        }
+        findFirst: {
+          args: Prisma.YardAddressFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$YardAddressPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.YardAddressFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$YardAddressPayload>
+        }
+        findMany: {
+          args: Prisma.YardAddressFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$YardAddressPayload>[]
+        }
+        create: {
+          args: Prisma.YardAddressCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$YardAddressPayload>
+        }
+        createMany: {
+          args: Prisma.YardAddressCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.YardAddressCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$YardAddressPayload>[]
+        }
+        delete: {
+          args: Prisma.YardAddressDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$YardAddressPayload>
+        }
+        update: {
+          args: Prisma.YardAddressUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$YardAddressPayload>
+        }
+        deleteMany: {
+          args: Prisma.YardAddressDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.YardAddressUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.YardAddressUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$YardAddressPayload>[]
+        }
+        upsert: {
+          args: Prisma.YardAddressUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$YardAddressPayload>
+        }
+        aggregate: {
+          args: Prisma.YardAddressAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateYardAddress>
+        }
+        groupBy: {
+          args: Prisma.YardAddressGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.YardAddressGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.YardAddressCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.YardAddressCountAggregateOutputType> | number
         }
       }
     }
@@ -896,6 +1046,12 @@ export const UserScalarFieldEnum = {
   companyName: 'companyName',
   passwordHash: 'passwordHash',
   encryptionKey: 'encryptionKey',
+  preferredWeightUnit: 'preferredWeightUnit',
+  logoUrl: 'logoUrl',
+  themeBrand: 'themeBrand',
+  themeBrandDark: 'themeBrandDark',
+  themeAccent: 'themeAccent',
+  themeMode: 'themeMode',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -911,6 +1067,7 @@ export const ContactScalarFieldEnum = {
   encryptedPhone: 'encryptedPhone',
   encryptedWhatsApp: 'encryptedWhatsApp',
   tags: 'tags',
+  portalToken: 'portalToken',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -918,18 +1075,59 @@ export const ContactScalarFieldEnum = {
 export type ContactScalarFieldEnum = (typeof ContactScalarFieldEnum)[keyof typeof ContactScalarFieldEnum]
 
 
+export const ContactGroupScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ContactGroupScalarFieldEnum = (typeof ContactGroupScalarFieldEnum)[keyof typeof ContactGroupScalarFieldEnum]
+
+
+export const YardAddressScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  street: 'street',
+  city: 'city',
+  state: 'state',
+  zip: 'zip',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type YardAddressScalarFieldEnum = (typeof YardAddressScalarFieldEnum)[keyof typeof YardAddressScalarFieldEnum]
+
+
 export const DealScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   title: 'title',
-  metalType: 'metalType',
-  description: 'description',
-  quantity: 'quantity',
-  unit: 'unit',
+  material: 'material',
+  packaging: 'packaging',
+  numLoads: 'numLoads',
+  weightPerLoad: 'weightPerLoad',
+  weightUnit: 'weightUnit',
+  shippingTypes: 'shippingTypes',
+  notes: 'notes',
+  pickupStreet: 'pickupStreet',
+  pickupCity: 'pickupCity',
+  pickupState: 'pickupState',
+  pickupZip: 'pickupZip',
+  portStreet: 'portStreet',
+  portCity: 'portCity',
+  portState: 'portState',
+  portZip: 'portZip',
   askingPrice: 'askingPrice',
   priceUnit: 'priceUnit',
   location: 'location',
   status: 'status',
+  acceptedPrice: 'acceptedPrice',
+  acceptedUnit: 'acceptedUnit',
+  acceptedRecipientId: 'acceptedRecipientId',
+  acceptedAt: 'acceptedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   expiresAt: 'expiresAt'
@@ -959,6 +1157,8 @@ export const DealRecipientScalarFieldEnum = {
   sentAt: 'sentAt',
   viewedAt: 'viewedAt',
   status: 'status',
+  ownerLastReadAt: 'ownerLastReadAt',
+  lastNudgeAt: 'lastNudgeAt',
   createdAt: 'createdAt'
 } as const
 
@@ -970,7 +1170,10 @@ export const MessageScalarFieldEnum = {
   dealRecipientId: 'dealRecipientId',
   senderType: 'senderType',
   senderName: 'senderName',
+  type: 'type',
   content: 'content',
+  bidAmount: 'bidAmount',
+  bidUnit: 'bidUnit',
   createdAt: 'createdAt'
 } as const
 
@@ -1014,16 +1217,16 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
 
 
 /**
- * Reference to a field of type 'Float'
+ * Reference to a field of type 'Int'
  */
-export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
     
 
 
 /**
- * Reference to a field of type 'Int'
+ * Reference to a field of type 'Float'
  */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
     
 
 /**
@@ -1138,6 +1341,8 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   contact?: Prisma.ContactOmit
+  contactGroup?: Prisma.ContactGroupOmit
+  yardAddress?: Prisma.YardAddressOmit
   deal?: Prisma.DealOmit
   dealImage?: Prisma.DealImageOmit
   dealRecipient?: Prisma.DealRecipientOmit

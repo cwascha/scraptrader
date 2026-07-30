@@ -10,6 +10,8 @@
  */
 export type * from './models/User'
 export type * from './models/Contact'
+export type * from './models/ContactGroup'
+export type * from './models/YardAddress'
 export type * from './models/Deal'
 export type * from './models/DealImage'
 export type * from './models/DealRecipient'

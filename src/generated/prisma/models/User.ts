@@ -31,6 +31,12 @@ export type UserMinAggregateOutputType = {
   companyName: string | null
   passwordHash: string | null
   encryptionKey: string | null
+  preferredWeightUnit: string | null
+  logoUrl: string | null
+  themeBrand: string | null
+  themeBrandDark: string | null
+  themeAccent: string | null
+  themeMode: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -42,6 +48,12 @@ export type UserMaxAggregateOutputType = {
   companyName: string | null
   passwordHash: string | null
   encryptionKey: string | null
+  preferredWeightUnit: string | null
+  logoUrl: string | null
+  themeBrand: string | null
+  themeBrandDark: string | null
+  themeAccent: string | null
+  themeMode: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -53,6 +65,12 @@ export type UserCountAggregateOutputType = {
   companyName: number
   passwordHash: number
   encryptionKey: number
+  preferredWeightUnit: number
+  logoUrl: number
+  themeBrand: number
+  themeBrandDark: number
+  themeAccent: number
+  themeMode: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -66,6 +84,12 @@ export type UserMinAggregateInputType = {
   companyName?: true
   passwordHash?: true
   encryptionKey?: true
+  preferredWeightUnit?: true
+  logoUrl?: true
+  themeBrand?: true
+  themeBrandDark?: true
+  themeAccent?: true
+  themeMode?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -77,6 +101,12 @@ export type UserMaxAggregateInputType = {
   companyName?: true
   passwordHash?: true
   encryptionKey?: true
+  preferredWeightUnit?: true
+  logoUrl?: true
+  themeBrand?: true
+  themeBrandDark?: true
+  themeAccent?: true
+  themeMode?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -88,6 +118,12 @@ export type UserCountAggregateInputType = {
   companyName?: true
   passwordHash?: true
   encryptionKey?: true
+  preferredWeightUnit?: true
+  logoUrl?: true
+  themeBrand?: true
+  themeBrandDark?: true
+  themeAccent?: true
+  themeMode?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -172,6 +208,12 @@ export type UserGroupByOutputType = {
   companyName: string
   passwordHash: string
   encryptionKey: string
+  preferredWeightUnit: string
+  logoUrl: string | null
+  themeBrand: string | null
+  themeBrandDark: string | null
+  themeAccent: string | null
+  themeMode: string | null
   createdAt: Date
   updatedAt: Date
   _count: UserCountAggregateOutputType | null
@@ -204,10 +246,18 @@ export type UserWhereInput = {
   companyName?: Prisma.StringFilter<"User"> | string
   passwordHash?: Prisma.StringFilter<"User"> | string
   encryptionKey?: Prisma.StringFilter<"User"> | string
+  preferredWeightUnit?: Prisma.StringFilter<"User"> | string
+  logoUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  themeBrand?: Prisma.StringNullableFilter<"User"> | string | null
+  themeBrandDark?: Prisma.StringNullableFilter<"User"> | string | null
+  themeAccent?: Prisma.StringNullableFilter<"User"> | string | null
+  themeMode?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   deals?: Prisma.DealListRelationFilter
   contacts?: Prisma.ContactListRelationFilter
+  yardAddresses?: Prisma.YardAddressListRelationFilter
+  contactGroups?: Prisma.ContactGroupListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -217,10 +267,18 @@ export type UserOrderByWithRelationInput = {
   companyName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   encryptionKey?: Prisma.SortOrder
+  preferredWeightUnit?: Prisma.SortOrder
+  logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  themeBrand?: Prisma.SortOrderInput | Prisma.SortOrder
+  themeBrandDark?: Prisma.SortOrderInput | Prisma.SortOrder
+  themeAccent?: Prisma.SortOrderInput | Prisma.SortOrder
+  themeMode?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deals?: Prisma.DealOrderByRelationAggregateInput
   contacts?: Prisma.ContactOrderByRelationAggregateInput
+  yardAddresses?: Prisma.YardAddressOrderByRelationAggregateInput
+  contactGroups?: Prisma.ContactGroupOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -233,10 +291,18 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   companyName?: Prisma.StringFilter<"User"> | string
   passwordHash?: Prisma.StringFilter<"User"> | string
   encryptionKey?: Prisma.StringFilter<"User"> | string
+  preferredWeightUnit?: Prisma.StringFilter<"User"> | string
+  logoUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  themeBrand?: Prisma.StringNullableFilter<"User"> | string | null
+  themeBrandDark?: Prisma.StringNullableFilter<"User"> | string | null
+  themeAccent?: Prisma.StringNullableFilter<"User"> | string | null
+  themeMode?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   deals?: Prisma.DealListRelationFilter
   contacts?: Prisma.ContactListRelationFilter
+  yardAddresses?: Prisma.YardAddressListRelationFilter
+  contactGroups?: Prisma.ContactGroupListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -246,6 +312,12 @@ export type UserOrderByWithAggregationInput = {
   companyName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   encryptionKey?: Prisma.SortOrder
+  preferredWeightUnit?: Prisma.SortOrder
+  logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  themeBrand?: Prisma.SortOrderInput | Prisma.SortOrder
+  themeBrandDark?: Prisma.SortOrderInput | Prisma.SortOrder
+  themeAccent?: Prisma.SortOrderInput | Prisma.SortOrder
+  themeMode?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
@@ -263,6 +335,12 @@ export type UserScalarWhereWithAggregatesInput = {
   companyName?: Prisma.StringWithAggregatesFilter<"User"> | string
   passwordHash?: Prisma.StringWithAggregatesFilter<"User"> | string
   encryptionKey?: Prisma.StringWithAggregatesFilter<"User"> | string
+  preferredWeightUnit?: Prisma.StringWithAggregatesFilter<"User"> | string
+  logoUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  themeBrand?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  themeBrandDark?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  themeAccent?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  themeMode?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
@@ -274,10 +352,18 @@ export type UserCreateInput = {
   companyName: string
   passwordHash: string
   encryptionKey: string
+  preferredWeightUnit?: string
+  logoUrl?: string | null
+  themeBrand?: string | null
+  themeBrandDark?: string | null
+  themeAccent?: string | null
+  themeMode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deals?: Prisma.DealCreateNestedManyWithoutUserInput
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
+  yardAddresses?: Prisma.YardAddressCreateNestedManyWithoutUserInput
+  contactGroups?: Prisma.ContactGroupCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -287,10 +373,18 @@ export type UserUncheckedCreateInput = {
   companyName: string
   passwordHash: string
   encryptionKey: string
+  preferredWeightUnit?: string
+  logoUrl?: string | null
+  themeBrand?: string | null
+  themeBrandDark?: string | null
+  themeAccent?: string | null
+  themeMode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deals?: Prisma.DealUncheckedCreateNestedManyWithoutUserInput
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
+  yardAddresses?: Prisma.YardAddressUncheckedCreateNestedManyWithoutUserInput
+  contactGroups?: Prisma.ContactGroupUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -300,10 +394,18 @@ export type UserUpdateInput = {
   companyName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deals?: Prisma.DealUpdateManyWithoutUserNestedInput
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
+  yardAddresses?: Prisma.YardAddressUpdateManyWithoutUserNestedInput
+  contactGroups?: Prisma.ContactGroupUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -313,10 +415,18 @@ export type UserUncheckedUpdateInput = {
   companyName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deals?: Prisma.DealUncheckedUpdateManyWithoutUserNestedInput
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
+  yardAddresses?: Prisma.YardAddressUncheckedUpdateManyWithoutUserNestedInput
+  contactGroups?: Prisma.ContactGroupUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -326,6 +436,12 @@ export type UserCreateManyInput = {
   companyName: string
   passwordHash: string
   encryptionKey: string
+  preferredWeightUnit?: string
+  logoUrl?: string | null
+  themeBrand?: string | null
+  themeBrandDark?: string | null
+  themeAccent?: string | null
+  themeMode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -337,6 +453,12 @@ export type UserUpdateManyMutationInput = {
   companyName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -348,6 +470,12 @@ export type UserUncheckedUpdateManyInput = {
   companyName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -359,6 +487,12 @@ export type UserCountOrderByAggregateInput = {
   companyName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   encryptionKey?: Prisma.SortOrder
+  preferredWeightUnit?: Prisma.SortOrder
+  logoUrl?: Prisma.SortOrder
+  themeBrand?: Prisma.SortOrder
+  themeBrandDark?: Prisma.SortOrder
+  themeAccent?: Prisma.SortOrder
+  themeMode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -370,6 +504,12 @@ export type UserMaxOrderByAggregateInput = {
   companyName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   encryptionKey?: Prisma.SortOrder
+  preferredWeightUnit?: Prisma.SortOrder
+  logoUrl?: Prisma.SortOrder
+  themeBrand?: Prisma.SortOrder
+  themeBrandDark?: Prisma.SortOrder
+  themeAccent?: Prisma.SortOrder
+  themeMode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -381,6 +521,12 @@ export type UserMinOrderByAggregateInput = {
   companyName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   encryptionKey?: Prisma.SortOrder
+  preferredWeightUnit?: Prisma.SortOrder
+  logoUrl?: Prisma.SortOrder
+  themeBrand?: Prisma.SortOrder
+  themeBrandDark?: Prisma.SortOrder
+  themeAccent?: Prisma.SortOrder
+  themeMode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -392,6 +538,10 @@ export type UserScalarRelationFilter = {
 
 export type StringFieldUpdateOperationsInput = {
   set?: string
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -410,6 +560,34 @@ export type UserUpdateOneRequiredWithoutContactsNestedInput = {
   upsert?: Prisma.UserUpsertWithoutContactsInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutContactsInput, Prisma.UserUpdateWithoutContactsInput>, Prisma.UserUncheckedUpdateWithoutContactsInput>
+}
+
+export type UserCreateNestedOneWithoutContactGroupsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutContactGroupsInput, Prisma.UserUncheckedCreateWithoutContactGroupsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutContactGroupsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutContactGroupsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutContactGroupsInput, Prisma.UserUncheckedCreateWithoutContactGroupsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutContactGroupsInput
+  upsert?: Prisma.UserUpsertWithoutContactGroupsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutContactGroupsInput, Prisma.UserUpdateWithoutContactGroupsInput>, Prisma.UserUncheckedUpdateWithoutContactGroupsInput>
+}
+
+export type UserCreateNestedOneWithoutYardAddressesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutYardAddressesInput, Prisma.UserUncheckedCreateWithoutYardAddressesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutYardAddressesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutYardAddressesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutYardAddressesInput, Prisma.UserUncheckedCreateWithoutYardAddressesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutYardAddressesInput
+  upsert?: Prisma.UserUpsertWithoutYardAddressesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutYardAddressesInput, Prisma.UserUpdateWithoutYardAddressesInput>, Prisma.UserUncheckedUpdateWithoutYardAddressesInput>
 }
 
 export type UserCreateNestedOneWithoutDealsInput = {
@@ -433,9 +611,17 @@ export type UserCreateWithoutContactsInput = {
   companyName: string
   passwordHash: string
   encryptionKey: string
+  preferredWeightUnit?: string
+  logoUrl?: string | null
+  themeBrand?: string | null
+  themeBrandDark?: string | null
+  themeAccent?: string | null
+  themeMode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deals?: Prisma.DealCreateNestedManyWithoutUserInput
+  yardAddresses?: Prisma.YardAddressCreateNestedManyWithoutUserInput
+  contactGroups?: Prisma.ContactGroupCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContactsInput = {
@@ -445,9 +631,17 @@ export type UserUncheckedCreateWithoutContactsInput = {
   companyName: string
   passwordHash: string
   encryptionKey: string
+  preferredWeightUnit?: string
+  logoUrl?: string | null
+  themeBrand?: string | null
+  themeBrandDark?: string | null
+  themeAccent?: string | null
+  themeMode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deals?: Prisma.DealUncheckedCreateNestedManyWithoutUserInput
+  yardAddresses?: Prisma.YardAddressUncheckedCreateNestedManyWithoutUserInput
+  contactGroups?: Prisma.ContactGroupUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContactsInput = {
@@ -473,9 +667,17 @@ export type UserUpdateWithoutContactsInput = {
   companyName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deals?: Prisma.DealUpdateManyWithoutUserNestedInput
+  yardAddresses?: Prisma.YardAddressUpdateManyWithoutUserNestedInput
+  contactGroups?: Prisma.ContactGroupUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactsInput = {
@@ -485,9 +687,209 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   companyName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deals?: Prisma.DealUncheckedUpdateManyWithoutUserNestedInput
+  yardAddresses?: Prisma.YardAddressUncheckedUpdateManyWithoutUserNestedInput
+  contactGroups?: Prisma.ContactGroupUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutContactGroupsInput = {
+  id?: string
+  email: string
+  name: string
+  companyName: string
+  passwordHash: string
+  encryptionKey: string
+  preferredWeightUnit?: string
+  logoUrl?: string | null
+  themeBrand?: string | null
+  themeBrandDark?: string | null
+  themeAccent?: string | null
+  themeMode?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deals?: Prisma.DealCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
+  yardAddresses?: Prisma.YardAddressCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutContactGroupsInput = {
+  id?: string
+  email: string
+  name: string
+  companyName: string
+  passwordHash: string
+  encryptionKey: string
+  preferredWeightUnit?: string
+  logoUrl?: string | null
+  themeBrand?: string | null
+  themeBrandDark?: string | null
+  themeAccent?: string | null
+  themeMode?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deals?: Prisma.DealUncheckedCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
+  yardAddresses?: Prisma.YardAddressUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutContactGroupsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutContactGroupsInput, Prisma.UserUncheckedCreateWithoutContactGroupsInput>
+}
+
+export type UserUpsertWithoutContactGroupsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutContactGroupsInput, Prisma.UserUncheckedUpdateWithoutContactGroupsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutContactGroupsInput, Prisma.UserUncheckedCreateWithoutContactGroupsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutContactGroupsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutContactGroupsInput, Prisma.UserUncheckedUpdateWithoutContactGroupsInput>
+}
+
+export type UserUpdateWithoutContactGroupsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  companyName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deals?: Prisma.DealUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
+  yardAddresses?: Prisma.YardAddressUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutContactGroupsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  companyName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deals?: Prisma.DealUncheckedUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
+  yardAddresses?: Prisma.YardAddressUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutYardAddressesInput = {
+  id?: string
+  email: string
+  name: string
+  companyName: string
+  passwordHash: string
+  encryptionKey: string
+  preferredWeightUnit?: string
+  logoUrl?: string | null
+  themeBrand?: string | null
+  themeBrandDark?: string | null
+  themeAccent?: string | null
+  themeMode?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deals?: Prisma.DealCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
+  contactGroups?: Prisma.ContactGroupCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutYardAddressesInput = {
+  id?: string
+  email: string
+  name: string
+  companyName: string
+  passwordHash: string
+  encryptionKey: string
+  preferredWeightUnit?: string
+  logoUrl?: string | null
+  themeBrand?: string | null
+  themeBrandDark?: string | null
+  themeAccent?: string | null
+  themeMode?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deals?: Prisma.DealUncheckedCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
+  contactGroups?: Prisma.ContactGroupUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutYardAddressesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutYardAddressesInput, Prisma.UserUncheckedCreateWithoutYardAddressesInput>
+}
+
+export type UserUpsertWithoutYardAddressesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutYardAddressesInput, Prisma.UserUncheckedUpdateWithoutYardAddressesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutYardAddressesInput, Prisma.UserUncheckedCreateWithoutYardAddressesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutYardAddressesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutYardAddressesInput, Prisma.UserUncheckedUpdateWithoutYardAddressesInput>
+}
+
+export type UserUpdateWithoutYardAddressesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  companyName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deals?: Prisma.DealUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
+  contactGroups?: Prisma.ContactGroupUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutYardAddressesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  companyName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deals?: Prisma.DealUncheckedUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
+  contactGroups?: Prisma.ContactGroupUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutDealsInput = {
@@ -497,9 +899,17 @@ export type UserCreateWithoutDealsInput = {
   companyName: string
   passwordHash: string
   encryptionKey: string
+  preferredWeightUnit?: string
+  logoUrl?: string | null
+  themeBrand?: string | null
+  themeBrandDark?: string | null
+  themeAccent?: string | null
+  themeMode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
+  yardAddresses?: Prisma.YardAddressCreateNestedManyWithoutUserInput
+  contactGroups?: Prisma.ContactGroupCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutDealsInput = {
@@ -509,9 +919,17 @@ export type UserUncheckedCreateWithoutDealsInput = {
   companyName: string
   passwordHash: string
   encryptionKey: string
+  preferredWeightUnit?: string
+  logoUrl?: string | null
+  themeBrand?: string | null
+  themeBrandDark?: string | null
+  themeAccent?: string | null
+  themeMode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
+  yardAddresses?: Prisma.YardAddressUncheckedCreateNestedManyWithoutUserInput
+  contactGroups?: Prisma.ContactGroupUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutDealsInput = {
@@ -537,9 +955,17 @@ export type UserUpdateWithoutDealsInput = {
   companyName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
+  yardAddresses?: Prisma.YardAddressUpdateManyWithoutUserNestedInput
+  contactGroups?: Prisma.ContactGroupUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDealsInput = {
@@ -549,9 +975,17 @@ export type UserUncheckedUpdateWithoutDealsInput = {
   companyName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
+  yardAddresses?: Prisma.YardAddressUncheckedUpdateManyWithoutUserNestedInput
+  contactGroups?: Prisma.ContactGroupUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -562,11 +996,15 @@ export type UserUncheckedUpdateWithoutDealsInput = {
 export type UserCountOutputType = {
   deals: number
   contacts: number
+  yardAddresses: number
+  contactGroups: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   deals?: boolean | UserCountOutputTypeCountDealsArgs
   contacts?: boolean | UserCountOutputTypeCountContactsArgs
+  yardAddresses?: boolean | UserCountOutputTypeCountYardAddressesArgs
+  contactGroups?: boolean | UserCountOutputTypeCountContactGroupsArgs
 }
 
 /**
@@ -593,6 +1031,20 @@ export type UserCountOutputTypeCountContactsArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.ContactWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountYardAddressesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.YardAddressWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountContactGroupsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ContactGroupWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -601,10 +1053,18 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   companyName?: boolean
   passwordHash?: boolean
   encryptionKey?: boolean
+  preferredWeightUnit?: boolean
+  logoUrl?: boolean
+  themeBrand?: boolean
+  themeBrandDark?: boolean
+  themeAccent?: boolean
+  themeMode?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deals?: boolean | Prisma.User$dealsArgs<ExtArgs>
   contacts?: boolean | Prisma.User$contactsArgs<ExtArgs>
+  yardAddresses?: boolean | Prisma.User$yardAddressesArgs<ExtArgs>
+  contactGroups?: boolean | Prisma.User$contactGroupsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -615,6 +1075,12 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   companyName?: boolean
   passwordHash?: boolean
   encryptionKey?: boolean
+  preferredWeightUnit?: boolean
+  logoUrl?: boolean
+  themeBrand?: boolean
+  themeBrandDark?: boolean
+  themeAccent?: boolean
+  themeMode?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -626,6 +1092,12 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   companyName?: boolean
   passwordHash?: boolean
   encryptionKey?: boolean
+  preferredWeightUnit?: boolean
+  logoUrl?: boolean
+  themeBrand?: boolean
+  themeBrandDark?: boolean
+  themeAccent?: boolean
+  themeMode?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -637,14 +1109,22 @@ export type UserSelectScalar = {
   companyName?: boolean
   passwordHash?: boolean
   encryptionKey?: boolean
+  preferredWeightUnit?: boolean
+  logoUrl?: boolean
+  themeBrand?: boolean
+  themeBrandDark?: boolean
+  themeAccent?: boolean
+  themeMode?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "companyName" | "passwordHash" | "encryptionKey" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "companyName" | "passwordHash" | "encryptionKey" | "preferredWeightUnit" | "logoUrl" | "themeBrand" | "themeBrandDark" | "themeAccent" | "themeMode" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   deals?: boolean | Prisma.User$dealsArgs<ExtArgs>
   contacts?: boolean | Prisma.User$contactsArgs<ExtArgs>
+  yardAddresses?: boolean | Prisma.User$yardAddressesArgs<ExtArgs>
+  contactGroups?: boolean | Prisma.User$contactGroupsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -655,6 +1135,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     deals: Prisma.$DealPayload<ExtArgs>[]
     contacts: Prisma.$ContactPayload<ExtArgs>[]
+    yardAddresses: Prisma.$YardAddressPayload<ExtArgs>[]
+    contactGroups: Prisma.$ContactGroupPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -663,6 +1145,12 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     companyName: string
     passwordHash: string
     encryptionKey: string
+    preferredWeightUnit: string
+    logoUrl: string | null
+    themeBrand: string | null
+    themeBrandDark: string | null
+    themeAccent: string | null
+    themeMode: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["user"]>
@@ -1061,6 +1549,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   deals<T extends Prisma.User$dealsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$dealsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DealPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   contacts<T extends Prisma.User$contactsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$contactsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  yardAddresses<T extends Prisma.User$yardAddressesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$yardAddressesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$YardAddressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  contactGroups<T extends Prisma.User$contactGroupsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$contactGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContactGroupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1096,6 +1586,12 @@ export interface UserFieldRefs {
   readonly companyName: Prisma.FieldRef<"User", 'String'>
   readonly passwordHash: Prisma.FieldRef<"User", 'String'>
   readonly encryptionKey: Prisma.FieldRef<"User", 'String'>
+  readonly preferredWeightUnit: Prisma.FieldRef<"User", 'String'>
+  readonly logoUrl: Prisma.FieldRef<"User", 'String'>
+  readonly themeBrand: Prisma.FieldRef<"User", 'String'>
+  readonly themeBrandDark: Prisma.FieldRef<"User", 'String'>
+  readonly themeAccent: Prisma.FieldRef<"User", 'String'>
+  readonly themeMode: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
 }
@@ -1534,6 +2030,54 @@ export type User$contactsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.ContactScalarFieldEnum | Prisma.ContactScalarFieldEnum[]
+}
+
+/**
+ * User.yardAddresses
+ */
+export type User$yardAddressesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the YardAddress
+   */
+  select?: Prisma.YardAddressSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the YardAddress
+   */
+  omit?: Prisma.YardAddressOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.YardAddressInclude<ExtArgs> | null
+  where?: Prisma.YardAddressWhereInput
+  orderBy?: Prisma.YardAddressOrderByWithRelationInput | Prisma.YardAddressOrderByWithRelationInput[]
+  cursor?: Prisma.YardAddressWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.YardAddressScalarFieldEnum | Prisma.YardAddressScalarFieldEnum[]
+}
+
+/**
+ * User.contactGroups
+ */
+export type User$contactGroupsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ContactGroup
+   */
+  select?: Prisma.ContactGroupSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ContactGroup
+   */
+  omit?: Prisma.ContactGroupOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ContactGroupInclude<ExtArgs> | null
+  where?: Prisma.ContactGroupWhereInput
+  orderBy?: Prisma.ContactGroupOrderByWithRelationInput | Prisma.ContactGroupOrderByWithRelationInput[]
+  cursor?: Prisma.ContactGroupWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ContactGroupScalarFieldEnum | Prisma.ContactGroupScalarFieldEnum[]
 }
 
 /**

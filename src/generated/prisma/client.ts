@@ -52,6 +52,16 @@ export type User = Prisma.UserModel
  */
 export type Contact = Prisma.ContactModel
 /**
+ * Model ContactGroup
+ * 
+ */
+export type ContactGroup = Prisma.ContactGroupModel
+/**
+ * Model YardAddress
+ * 
+ */
+export type YardAddress = Prisma.YardAddressModel
+/**
  * Model Deal
  * 
  */

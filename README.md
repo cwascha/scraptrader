@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ScrapTrader
 
-## Getting Started
+The private CRM and negotiating platform for scrap metal trading.
 
-First, run the development server:
+Dealers create deals (ISRI material, packaging, loads, weight, photos), maintain an encrypted contact list organized into groups, and publish to selected contacts. Each buyer gets a private link to that specific deal — emailed automatically when SMTP is configured, or shared manually over SMS and WhatsApp. From any deal page they can jump to their own **portal**: one page listing every deal that dealer has sent them, grouped into Open, Won, and Closed. Portal links can be rotated or revoked if one leaks.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Buyers open the link — no account required — see the deal under the dealer's own branding, and negotiate in built-in chat with text messages and USD bids (weight units convert automatically). There's no posted asking price: price discovery happens in the bids, and accepting the other party's latest bid closes the deal. There is no public marketplace — deals are visible only to people holding a link.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+On the dealer side: an inbox with unread tracking and tab/desktop/email notifications, plus white-label branding (logo + theme, light or dark) applied to the dashboard and to every buyer-facing page.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+For the full technical breakdown (stack, data model, auth, API surface, known gaps), see **[ARCHITECTURE.md](./ARCHITECTURE.md)**. Agent/AI-assistant conventions live in **[AGENTS.md](./AGENTS.md)**.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Stack
 
-## Learn More
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Prisma 7 · SQLite (libsql adapter, Turso-compatible)
 
-To learn more about Next.js, take a look at the following resources:
+## Getting started
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Install dependencies (this also runs `prisma generate`):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```
+   npm install
+   ```
 
-## Deploy on Vercel
+2. Create a `.env` in the project root:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```
+   DATABASE_URL="file:./dev.db"
+   NEXTAUTH_SECRET="<generate a long random string>"
+   NEXTAUTH_URL="http://localhost:3000"
+   ENCRYPTION_MASTER_KEY="<generate a long random string>"
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   For a hosted Turso database, also set `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` (these take precedence at runtime).
+
+   Generate a secret with:
+
+   ```
+   node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+   ```
+
+   `ENCRYPTION_MASTER_KEY` wraps every account's contact-encryption key. It has **no dev fallback** — the app won't create accounts or read wrapped contacts without it, and **changing or losing it makes all contact data permanently unrecoverable**, so back it up somewhere other than the server. Generate it the same way (32+ chars required).
+
+   Email is optional: set `SMTP_USER` and `SMTP_PASS` to send deal links automatically (plus `SMTP_HOST` / `SMTP_PORT` / `SMTP_FROM` to override the Gmail defaults). Without them everything still works — the app falls back to manual link sharing.
+
+3. Create the local database:
+
+   ```
+   npx prisma migrate dev
+   ```
+
+4. Run the dev server:
+
+   ```
+   npm run dev
+   ```
+
+   Open http://localhost:3000, register an account, and you're in the dashboard.
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start the dev server |
+| `npm run build` | `prisma generate` + production build |
+| `npm run start` | Serve the production build |
+| `npm run lint` | ESLint (Next core-web-vitals + TypeScript) |
+| `npm run backfill:keys` | Wrap existing account keys under the master key + normalize legacy ciphertext (idempotent; `-- --dry` to preview) |
+| `npx prisma migrate dev --name <name>` | Apply a schema change as a new migration |
+
+## Notes
+
+- Deal photos are written to `public/uploads/{dealId}/` at runtime — this works on a persistent local disk but **not on serverless hosts** (see ARCHITECTURE.md, Known gaps).
+- `NEXTAUTH_SECRET` falls back to a known dev value when unset, so local development runs out of the box. That fallback is refused in production: `lib/auth.ts` **throws at boot** when the variable is missing, rather than signing sessions with a publicly known string.
+- Contact PII is encrypted with AES-256-GCM (`lib/encryption.ts`) under a per-account key, and that key is itself stored **wrapped** under `ENCRYPTION_MASTER_KEY` (`lib/master-key.ts`), which lives in the environment rather than the database — so a stolen database file alone decrypts nothing. This is not end-to-end encryption: the server decrypts contacts to send deal emails, so anyone with host access can read them.
+- On Windows, stop the dev server before running `npx prisma migrate dev` (the running process holds `dev.db` open).

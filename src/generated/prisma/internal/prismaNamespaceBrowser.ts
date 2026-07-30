@@ -53,6 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Contact: 'Contact',
+  ContactGroup: 'ContactGroup',
+  YardAddress: 'YardAddress',
   Deal: 'Deal',
   DealImage: 'DealImage',
   DealRecipient: 'DealRecipient',
@@ -79,6 +81,12 @@ export const UserScalarFieldEnum = {
   companyName: 'companyName',
   passwordHash: 'passwordHash',
   encryptionKey: 'encryptionKey',
+  preferredWeightUnit: 'preferredWeightUnit',
+  logoUrl: 'logoUrl',
+  themeBrand: 'themeBrand',
+  themeBrandDark: 'themeBrandDark',
+  themeAccent: 'themeAccent',
+  themeMode: 'themeMode',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -94,6 +102,7 @@ export const ContactScalarFieldEnum = {
   encryptedPhone: 'encryptedPhone',
   encryptedWhatsApp: 'encryptedWhatsApp',
   tags: 'tags',
+  portalToken: 'portalToken',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -101,18 +110,59 @@ export const ContactScalarFieldEnum = {
 export type ContactScalarFieldEnum = (typeof ContactScalarFieldEnum)[keyof typeof ContactScalarFieldEnum]
 
 
+export const ContactGroupScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ContactGroupScalarFieldEnum = (typeof ContactGroupScalarFieldEnum)[keyof typeof ContactGroupScalarFieldEnum]
+
+
+export const YardAddressScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  street: 'street',
+  city: 'city',
+  state: 'state',
+  zip: 'zip',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type YardAddressScalarFieldEnum = (typeof YardAddressScalarFieldEnum)[keyof typeof YardAddressScalarFieldEnum]
+
+
 export const DealScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   title: 'title',
-  metalType: 'metalType',
-  description: 'description',
-  quantity: 'quantity',
-  unit: 'unit',
+  material: 'material',
+  packaging: 'packaging',
+  numLoads: 'numLoads',
+  weightPerLoad: 'weightPerLoad',
+  weightUnit: 'weightUnit',
+  shippingTypes: 'shippingTypes',
+  notes: 'notes',
+  pickupStreet: 'pickupStreet',
+  pickupCity: 'pickupCity',
+  pickupState: 'pickupState',
+  pickupZip: 'pickupZip',
+  portStreet: 'portStreet',
+  portCity: 'portCity',
+  portState: 'portState',
+  portZip: 'portZip',
   askingPrice: 'askingPrice',
   priceUnit: 'priceUnit',
   location: 'location',
   status: 'status',
+  acceptedPrice: 'acceptedPrice',
+  acceptedUnit: 'acceptedUnit',
+  acceptedRecipientId: 'acceptedRecipientId',
+  acceptedAt: 'acceptedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   expiresAt: 'expiresAt'
@@ -142,6 +192,8 @@ export const DealRecipientScalarFieldEnum = {
   sentAt: 'sentAt',
   viewedAt: 'viewedAt',
   status: 'status',
+  ownerLastReadAt: 'ownerLastReadAt',
+  lastNudgeAt: 'lastNudgeAt',
   createdAt: 'createdAt'
 } as const
 
@@ -153,7 +205,10 @@ export const MessageScalarFieldEnum = {
   dealRecipientId: 'dealRecipientId',
   senderType: 'senderType',
   senderName: 'senderName',
+  type: 'type',
   content: 'content',
+  bidAmount: 'bidAmount',
+  bidUnit: 'bidUnit',
   createdAt: 'createdAt'
 } as const
 

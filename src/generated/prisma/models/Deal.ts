@@ -27,25 +27,46 @@ export type AggregateDeal = {
 }
 
 export type DealAvgAggregateOutputType = {
+  numLoads: number | null
+  weightPerLoad: number | null
   askingPrice: number | null
+  acceptedPrice: number | null
 }
 
 export type DealSumAggregateOutputType = {
+  numLoads: number | null
+  weightPerLoad: number | null
   askingPrice: number | null
+  acceptedPrice: number | null
 }
 
 export type DealMinAggregateOutputType = {
   id: string | null
   userId: string | null
   title: string | null
-  metalType: string | null
-  description: string | null
-  quantity: string | null
-  unit: string | null
+  material: string | null
+  packaging: string | null
+  numLoads: number | null
+  weightPerLoad: number | null
+  weightUnit: string | null
+  shippingTypes: string | null
+  notes: string | null
+  pickupStreet: string | null
+  pickupCity: string | null
+  pickupState: string | null
+  pickupZip: string | null
+  portStreet: string | null
+  portCity: string | null
+  portState: string | null
+  portZip: string | null
   askingPrice: number | null
   priceUnit: string | null
   location: string | null
   status: string | null
+  acceptedPrice: number | null
+  acceptedUnit: string | null
+  acceptedRecipientId: string | null
+  acceptedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
   expiresAt: Date | null
@@ -55,14 +76,29 @@ export type DealMaxAggregateOutputType = {
   id: string | null
   userId: string | null
   title: string | null
-  metalType: string | null
-  description: string | null
-  quantity: string | null
-  unit: string | null
+  material: string | null
+  packaging: string | null
+  numLoads: number | null
+  weightPerLoad: number | null
+  weightUnit: string | null
+  shippingTypes: string | null
+  notes: string | null
+  pickupStreet: string | null
+  pickupCity: string | null
+  pickupState: string | null
+  pickupZip: string | null
+  portStreet: string | null
+  portCity: string | null
+  portState: string | null
+  portZip: string | null
   askingPrice: number | null
   priceUnit: string | null
   location: string | null
   status: string | null
+  acceptedPrice: number | null
+  acceptedUnit: string | null
+  acceptedRecipientId: string | null
+  acceptedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
   expiresAt: Date | null
@@ -72,14 +108,29 @@ export type DealCountAggregateOutputType = {
   id: number
   userId: number
   title: number
-  metalType: number
-  description: number
-  quantity: number
-  unit: number
+  material: number
+  packaging: number
+  numLoads: number
+  weightPerLoad: number
+  weightUnit: number
+  shippingTypes: number
+  notes: number
+  pickupStreet: number
+  pickupCity: number
+  pickupState: number
+  pickupZip: number
+  portStreet: number
+  portCity: number
+  portState: number
+  portZip: number
   askingPrice: number
   priceUnit: number
   location: number
   status: number
+  acceptedPrice: number
+  acceptedUnit: number
+  acceptedRecipientId: number
+  acceptedAt: number
   createdAt: number
   updatedAt: number
   expiresAt: number
@@ -88,25 +139,46 @@ export type DealCountAggregateOutputType = {
 
 
 export type DealAvgAggregateInputType = {
+  numLoads?: true
+  weightPerLoad?: true
   askingPrice?: true
+  acceptedPrice?: true
 }
 
 export type DealSumAggregateInputType = {
+  numLoads?: true
+  weightPerLoad?: true
   askingPrice?: true
+  acceptedPrice?: true
 }
 
 export type DealMinAggregateInputType = {
   id?: true
   userId?: true
   title?: true
-  metalType?: true
-  description?: true
-  quantity?: true
-  unit?: true
+  material?: true
+  packaging?: true
+  numLoads?: true
+  weightPerLoad?: true
+  weightUnit?: true
+  shippingTypes?: true
+  notes?: true
+  pickupStreet?: true
+  pickupCity?: true
+  pickupState?: true
+  pickupZip?: true
+  portStreet?: true
+  portCity?: true
+  portState?: true
+  portZip?: true
   askingPrice?: true
   priceUnit?: true
   location?: true
   status?: true
+  acceptedPrice?: true
+  acceptedUnit?: true
+  acceptedRecipientId?: true
+  acceptedAt?: true
   createdAt?: true
   updatedAt?: true
   expiresAt?: true
@@ -116,14 +188,29 @@ export type DealMaxAggregateInputType = {
   id?: true
   userId?: true
   title?: true
-  metalType?: true
-  description?: true
-  quantity?: true
-  unit?: true
+  material?: true
+  packaging?: true
+  numLoads?: true
+  weightPerLoad?: true
+  weightUnit?: true
+  shippingTypes?: true
+  notes?: true
+  pickupStreet?: true
+  pickupCity?: true
+  pickupState?: true
+  pickupZip?: true
+  portStreet?: true
+  portCity?: true
+  portState?: true
+  portZip?: true
   askingPrice?: true
   priceUnit?: true
   location?: true
   status?: true
+  acceptedPrice?: true
+  acceptedUnit?: true
+  acceptedRecipientId?: true
+  acceptedAt?: true
   createdAt?: true
   updatedAt?: true
   expiresAt?: true
@@ -133,14 +220,29 @@ export type DealCountAggregateInputType = {
   id?: true
   userId?: true
   title?: true
-  metalType?: true
-  description?: true
-  quantity?: true
-  unit?: true
+  material?: true
+  packaging?: true
+  numLoads?: true
+  weightPerLoad?: true
+  weightUnit?: true
+  shippingTypes?: true
+  notes?: true
+  pickupStreet?: true
+  pickupCity?: true
+  pickupState?: true
+  pickupZip?: true
+  portStreet?: true
+  portCity?: true
+  portState?: true
+  portZip?: true
   askingPrice?: true
   priceUnit?: true
   location?: true
   status?: true
+  acceptedPrice?: true
+  acceptedUnit?: true
+  acceptedRecipientId?: true
+  acceptedAt?: true
   createdAt?: true
   updatedAt?: true
   expiresAt?: true
@@ -237,14 +339,29 @@ export type DealGroupByOutputType = {
   id: string
   userId: string
   title: string
-  metalType: string
-  description: string
-  quantity: string
-  unit: string
+  material: string
+  packaging: string
+  numLoads: number
+  weightPerLoad: number
+  weightUnit: string
+  shippingTypes: string
+  notes: string | null
+  pickupStreet: string | null
+  pickupCity: string | null
+  pickupState: string | null
+  pickupZip: string | null
+  portStreet: string | null
+  portCity: string | null
+  portState: string | null
+  portZip: string | null
   askingPrice: number | null
   priceUnit: string
   location: string | null
   status: string
+  acceptedPrice: number | null
+  acceptedUnit: string | null
+  acceptedRecipientId: string | null
+  acceptedAt: Date | null
   createdAt: Date
   updatedAt: Date
   expiresAt: Date | null
@@ -277,14 +394,29 @@ export type DealWhereInput = {
   id?: Prisma.StringFilter<"Deal"> | string
   userId?: Prisma.StringFilter<"Deal"> | string
   title?: Prisma.StringFilter<"Deal"> | string
-  metalType?: Prisma.StringFilter<"Deal"> | string
-  description?: Prisma.StringFilter<"Deal"> | string
-  quantity?: Prisma.StringFilter<"Deal"> | string
-  unit?: Prisma.StringFilter<"Deal"> | string
+  material?: Prisma.StringFilter<"Deal"> | string
+  packaging?: Prisma.StringFilter<"Deal"> | string
+  numLoads?: Prisma.IntFilter<"Deal"> | number
+  weightPerLoad?: Prisma.FloatFilter<"Deal"> | number
+  weightUnit?: Prisma.StringFilter<"Deal"> | string
+  shippingTypes?: Prisma.StringFilter<"Deal"> | string
+  notes?: Prisma.StringNullableFilter<"Deal"> | string | null
+  pickupStreet?: Prisma.StringNullableFilter<"Deal"> | string | null
+  pickupCity?: Prisma.StringNullableFilter<"Deal"> | string | null
+  pickupState?: Prisma.StringNullableFilter<"Deal"> | string | null
+  pickupZip?: Prisma.StringNullableFilter<"Deal"> | string | null
+  portStreet?: Prisma.StringNullableFilter<"Deal"> | string | null
+  portCity?: Prisma.StringNullableFilter<"Deal"> | string | null
+  portState?: Prisma.StringNullableFilter<"Deal"> | string | null
+  portZip?: Prisma.StringNullableFilter<"Deal"> | string | null
   askingPrice?: Prisma.FloatNullableFilter<"Deal"> | number | null
   priceUnit?: Prisma.StringFilter<"Deal"> | string
   location?: Prisma.StringNullableFilter<"Deal"> | string | null
   status?: Prisma.StringFilter<"Deal"> | string
+  acceptedPrice?: Prisma.FloatNullableFilter<"Deal"> | number | null
+  acceptedUnit?: Prisma.StringNullableFilter<"Deal"> | string | null
+  acceptedRecipientId?: Prisma.StringNullableFilter<"Deal"> | string | null
+  acceptedAt?: Prisma.DateTimeNullableFilter<"Deal"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Deal"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Deal"> | Date | string
   expiresAt?: Prisma.DateTimeNullableFilter<"Deal"> | Date | string | null
@@ -297,14 +429,29 @@ export type DealOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  metalType?: Prisma.SortOrder
-  description?: Prisma.SortOrder
-  quantity?: Prisma.SortOrder
-  unit?: Prisma.SortOrder
+  material?: Prisma.SortOrder
+  packaging?: Prisma.SortOrder
+  numLoads?: Prisma.SortOrder
+  weightPerLoad?: Prisma.SortOrder
+  weightUnit?: Prisma.SortOrder
+  shippingTypes?: Prisma.SortOrder
+  notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupStreet?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupCity?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupState?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupZip?: Prisma.SortOrderInput | Prisma.SortOrder
+  portStreet?: Prisma.SortOrderInput | Prisma.SortOrder
+  portCity?: Prisma.SortOrderInput | Prisma.SortOrder
+  portState?: Prisma.SortOrderInput | Prisma.SortOrder
+  portZip?: Prisma.SortOrderInput | Prisma.SortOrder
   askingPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   priceUnit?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  acceptedPrice?: Prisma.SortOrderInput | Prisma.SortOrder
+  acceptedUnit?: Prisma.SortOrderInput | Prisma.SortOrder
+  acceptedRecipientId?: Prisma.SortOrderInput | Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -320,14 +467,29 @@ export type DealWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.DealWhereInput | Prisma.DealWhereInput[]
   userId?: Prisma.StringFilter<"Deal"> | string
   title?: Prisma.StringFilter<"Deal"> | string
-  metalType?: Prisma.StringFilter<"Deal"> | string
-  description?: Prisma.StringFilter<"Deal"> | string
-  quantity?: Prisma.StringFilter<"Deal"> | string
-  unit?: Prisma.StringFilter<"Deal"> | string
+  material?: Prisma.StringFilter<"Deal"> | string
+  packaging?: Prisma.StringFilter<"Deal"> | string
+  numLoads?: Prisma.IntFilter<"Deal"> | number
+  weightPerLoad?: Prisma.FloatFilter<"Deal"> | number
+  weightUnit?: Prisma.StringFilter<"Deal"> | string
+  shippingTypes?: Prisma.StringFilter<"Deal"> | string
+  notes?: Prisma.StringNullableFilter<"Deal"> | string | null
+  pickupStreet?: Prisma.StringNullableFilter<"Deal"> | string | null
+  pickupCity?: Prisma.StringNullableFilter<"Deal"> | string | null
+  pickupState?: Prisma.StringNullableFilter<"Deal"> | string | null
+  pickupZip?: Prisma.StringNullableFilter<"Deal"> | string | null
+  portStreet?: Prisma.StringNullableFilter<"Deal"> | string | null
+  portCity?: Prisma.StringNullableFilter<"Deal"> | string | null
+  portState?: Prisma.StringNullableFilter<"Deal"> | string | null
+  portZip?: Prisma.StringNullableFilter<"Deal"> | string | null
   askingPrice?: Prisma.FloatNullableFilter<"Deal"> | number | null
   priceUnit?: Prisma.StringFilter<"Deal"> | string
   location?: Prisma.StringNullableFilter<"Deal"> | string | null
   status?: Prisma.StringFilter<"Deal"> | string
+  acceptedPrice?: Prisma.FloatNullableFilter<"Deal"> | number | null
+  acceptedUnit?: Prisma.StringNullableFilter<"Deal"> | string | null
+  acceptedRecipientId?: Prisma.StringNullableFilter<"Deal"> | string | null
+  acceptedAt?: Prisma.DateTimeNullableFilter<"Deal"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Deal"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Deal"> | Date | string
   expiresAt?: Prisma.DateTimeNullableFilter<"Deal"> | Date | string | null
@@ -340,14 +502,29 @@ export type DealOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  metalType?: Prisma.SortOrder
-  description?: Prisma.SortOrder
-  quantity?: Prisma.SortOrder
-  unit?: Prisma.SortOrder
+  material?: Prisma.SortOrder
+  packaging?: Prisma.SortOrder
+  numLoads?: Prisma.SortOrder
+  weightPerLoad?: Prisma.SortOrder
+  weightUnit?: Prisma.SortOrder
+  shippingTypes?: Prisma.SortOrder
+  notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupStreet?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupCity?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupState?: Prisma.SortOrderInput | Prisma.SortOrder
+  pickupZip?: Prisma.SortOrderInput | Prisma.SortOrder
+  portStreet?: Prisma.SortOrderInput | Prisma.SortOrder
+  portCity?: Prisma.SortOrderInput | Prisma.SortOrder
+  portState?: Prisma.SortOrderInput | Prisma.SortOrder
+  portZip?: Prisma.SortOrderInput | Prisma.SortOrder
   askingPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   priceUnit?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  acceptedPrice?: Prisma.SortOrderInput | Prisma.SortOrder
+  acceptedUnit?: Prisma.SortOrderInput | Prisma.SortOrder
+  acceptedRecipientId?: Prisma.SortOrderInput | Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -365,14 +542,29 @@ export type DealScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Deal"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Deal"> | string
   title?: Prisma.StringWithAggregatesFilter<"Deal"> | string
-  metalType?: Prisma.StringWithAggregatesFilter<"Deal"> | string
-  description?: Prisma.StringWithAggregatesFilter<"Deal"> | string
-  quantity?: Prisma.StringWithAggregatesFilter<"Deal"> | string
-  unit?: Prisma.StringWithAggregatesFilter<"Deal"> | string
+  material?: Prisma.StringWithAggregatesFilter<"Deal"> | string
+  packaging?: Prisma.StringWithAggregatesFilter<"Deal"> | string
+  numLoads?: Prisma.IntWithAggregatesFilter<"Deal"> | number
+  weightPerLoad?: Prisma.FloatWithAggregatesFilter<"Deal"> | number
+  weightUnit?: Prisma.StringWithAggregatesFilter<"Deal"> | string
+  shippingTypes?: Prisma.StringWithAggregatesFilter<"Deal"> | string
+  notes?: Prisma.StringNullableWithAggregatesFilter<"Deal"> | string | null
+  pickupStreet?: Prisma.StringNullableWithAggregatesFilter<"Deal"> | string | null
+  pickupCity?: Prisma.StringNullableWithAggregatesFilter<"Deal"> | string | null
+  pickupState?: Prisma.StringNullableWithAggregatesFilter<"Deal"> | string | null
+  pickupZip?: Prisma.StringNullableWithAggregatesFilter<"Deal"> | string | null
+  portStreet?: Prisma.StringNullableWithAggregatesFilter<"Deal"> | string | null
+  portCity?: Prisma.StringNullableWithAggregatesFilter<"Deal"> | string | null
+  portState?: Prisma.StringNullableWithAggregatesFilter<"Deal"> | string | null
+  portZip?: Prisma.StringNullableWithAggregatesFilter<"Deal"> | string | null
   askingPrice?: Prisma.FloatNullableWithAggregatesFilter<"Deal"> | number | null
   priceUnit?: Prisma.StringWithAggregatesFilter<"Deal"> | string
   location?: Prisma.StringNullableWithAggregatesFilter<"Deal"> | string | null
   status?: Prisma.StringWithAggregatesFilter<"Deal"> | string
+  acceptedPrice?: Prisma.FloatNullableWithAggregatesFilter<"Deal"> | number | null
+  acceptedUnit?: Prisma.StringNullableWithAggregatesFilter<"Deal"> | string | null
+  acceptedRecipientId?: Prisma.StringNullableWithAggregatesFilter<"Deal"> | string | null
+  acceptedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Deal"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Deal"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Deal"> | Date | string
   expiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Deal"> | Date | string | null
@@ -381,14 +573,29 @@ export type DealScalarWhereWithAggregatesInput = {
 export type DealCreateInput = {
   id?: string
   title: string
-  metalType: string
-  description: string
-  quantity: string
-  unit?: string
+  material: string
+  packaging: string
+  numLoads: number
+  weightPerLoad: number
+  weightUnit?: string
+  shippingTypes: string
+  notes?: string | null
+  pickupStreet?: string | null
+  pickupCity?: string | null
+  pickupState?: string | null
+  pickupZip?: string | null
+  portStreet?: string | null
+  portCity?: string | null
+  portState?: string | null
+  portZip?: string | null
   askingPrice?: number | null
   priceUnit?: string
   location?: string | null
   status?: string
+  acceptedPrice?: number | null
+  acceptedUnit?: string | null
+  acceptedRecipientId?: string | null
+  acceptedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   expiresAt?: Date | string | null
@@ -401,14 +608,29 @@ export type DealUncheckedCreateInput = {
   id?: string
   userId: string
   title: string
-  metalType: string
-  description: string
-  quantity: string
-  unit?: string
+  material: string
+  packaging: string
+  numLoads: number
+  weightPerLoad: number
+  weightUnit?: string
+  shippingTypes: string
+  notes?: string | null
+  pickupStreet?: string | null
+  pickupCity?: string | null
+  pickupState?: string | null
+  pickupZip?: string | null
+  portStreet?: string | null
+  portCity?: string | null
+  portState?: string | null
+  portZip?: string | null
   askingPrice?: number | null
   priceUnit?: string
   location?: string | null
   status?: string
+  acceptedPrice?: number | null
+  acceptedUnit?: string | null
+  acceptedRecipientId?: string | null
+  acceptedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   expiresAt?: Date | string | null
@@ -419,14 +641,29 @@ export type DealUncheckedCreateInput = {
 export type DealUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  metalType?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  material?: Prisma.StringFieldUpdateOperationsInput | string
+  packaging?: Prisma.StringFieldUpdateOperationsInput | string
+  numLoads?: Prisma.IntFieldUpdateOperationsInput | number
+  weightPerLoad?: Prisma.FloatFieldUpdateOperationsInput | number
+  weightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingTypes?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   askingPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceUnit?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  acceptedPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  acceptedUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -439,14 +676,29 @@ export type DealUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  metalType?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  material?: Prisma.StringFieldUpdateOperationsInput | string
+  packaging?: Prisma.StringFieldUpdateOperationsInput | string
+  numLoads?: Prisma.IntFieldUpdateOperationsInput | number
+  weightPerLoad?: Prisma.FloatFieldUpdateOperationsInput | number
+  weightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingTypes?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   askingPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceUnit?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  acceptedPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  acceptedUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -458,14 +710,29 @@ export type DealCreateManyInput = {
   id?: string
   userId: string
   title: string
-  metalType: string
-  description: string
-  quantity: string
-  unit?: string
+  material: string
+  packaging: string
+  numLoads: number
+  weightPerLoad: number
+  weightUnit?: string
+  shippingTypes: string
+  notes?: string | null
+  pickupStreet?: string | null
+  pickupCity?: string | null
+  pickupState?: string | null
+  pickupZip?: string | null
+  portStreet?: string | null
+  portCity?: string | null
+  portState?: string | null
+  portZip?: string | null
   askingPrice?: number | null
   priceUnit?: string
   location?: string | null
   status?: string
+  acceptedPrice?: number | null
+  acceptedUnit?: string | null
+  acceptedRecipientId?: string | null
+  acceptedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   expiresAt?: Date | string | null
@@ -474,14 +741,29 @@ export type DealCreateManyInput = {
 export type DealUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  metalType?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  material?: Prisma.StringFieldUpdateOperationsInput | string
+  packaging?: Prisma.StringFieldUpdateOperationsInput | string
+  numLoads?: Prisma.IntFieldUpdateOperationsInput | number
+  weightPerLoad?: Prisma.FloatFieldUpdateOperationsInput | number
+  weightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingTypes?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   askingPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceUnit?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  acceptedPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  acceptedUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -491,14 +773,29 @@ export type DealUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  metalType?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  material?: Prisma.StringFieldUpdateOperationsInput | string
+  packaging?: Prisma.StringFieldUpdateOperationsInput | string
+  numLoads?: Prisma.IntFieldUpdateOperationsInput | number
+  weightPerLoad?: Prisma.FloatFieldUpdateOperationsInput | number
+  weightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingTypes?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   askingPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceUnit?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  acceptedPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  acceptedUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -518,35 +815,68 @@ export type DealCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  metalType?: Prisma.SortOrder
-  description?: Prisma.SortOrder
-  quantity?: Prisma.SortOrder
-  unit?: Prisma.SortOrder
+  material?: Prisma.SortOrder
+  packaging?: Prisma.SortOrder
+  numLoads?: Prisma.SortOrder
+  weightPerLoad?: Prisma.SortOrder
+  weightUnit?: Prisma.SortOrder
+  shippingTypes?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
+  pickupStreet?: Prisma.SortOrder
+  pickupCity?: Prisma.SortOrder
+  pickupState?: Prisma.SortOrder
+  pickupZip?: Prisma.SortOrder
+  portStreet?: Prisma.SortOrder
+  portCity?: Prisma.SortOrder
+  portState?: Prisma.SortOrder
+  portZip?: Prisma.SortOrder
   askingPrice?: Prisma.SortOrder
   priceUnit?: Prisma.SortOrder
   location?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  acceptedPrice?: Prisma.SortOrder
+  acceptedUnit?: Prisma.SortOrder
+  acceptedRecipientId?: Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
 }
 
 export type DealAvgOrderByAggregateInput = {
+  numLoads?: Prisma.SortOrder
+  weightPerLoad?: Prisma.SortOrder
   askingPrice?: Prisma.SortOrder
+  acceptedPrice?: Prisma.SortOrder
 }
 
 export type DealMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  metalType?: Prisma.SortOrder
-  description?: Prisma.SortOrder
-  quantity?: Prisma.SortOrder
-  unit?: Prisma.SortOrder
+  material?: Prisma.SortOrder
+  packaging?: Prisma.SortOrder
+  numLoads?: Prisma.SortOrder
+  weightPerLoad?: Prisma.SortOrder
+  weightUnit?: Prisma.SortOrder
+  shippingTypes?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
+  pickupStreet?: Prisma.SortOrder
+  pickupCity?: Prisma.SortOrder
+  pickupState?: Prisma.SortOrder
+  pickupZip?: Prisma.SortOrder
+  portStreet?: Prisma.SortOrder
+  portCity?: Prisma.SortOrder
+  portState?: Prisma.SortOrder
+  portZip?: Prisma.SortOrder
   askingPrice?: Prisma.SortOrder
   priceUnit?: Prisma.SortOrder
   location?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  acceptedPrice?: Prisma.SortOrder
+  acceptedUnit?: Prisma.SortOrder
+  acceptedRecipientId?: Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
@@ -556,21 +886,39 @@ export type DealMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  metalType?: Prisma.SortOrder
-  description?: Prisma.SortOrder
-  quantity?: Prisma.SortOrder
-  unit?: Prisma.SortOrder
+  material?: Prisma.SortOrder
+  packaging?: Prisma.SortOrder
+  numLoads?: Prisma.SortOrder
+  weightPerLoad?: Prisma.SortOrder
+  weightUnit?: Prisma.SortOrder
+  shippingTypes?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
+  pickupStreet?: Prisma.SortOrder
+  pickupCity?: Prisma.SortOrder
+  pickupState?: Prisma.SortOrder
+  pickupZip?: Prisma.SortOrder
+  portStreet?: Prisma.SortOrder
+  portCity?: Prisma.SortOrder
+  portState?: Prisma.SortOrder
+  portZip?: Prisma.SortOrder
   askingPrice?: Prisma.SortOrder
   priceUnit?: Prisma.SortOrder
   location?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  acceptedPrice?: Prisma.SortOrder
+  acceptedUnit?: Prisma.SortOrder
+  acceptedRecipientId?: Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
 }
 
 export type DealSumOrderByAggregateInput = {
+  numLoads?: Prisma.SortOrder
+  weightPerLoad?: Prisma.SortOrder
   askingPrice?: Prisma.SortOrder
+  acceptedPrice?: Prisma.SortOrder
 }
 
 export type DealScalarRelationFilter = {
@@ -620,6 +968,22 @@ export type DealUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.DealScalarWhereInput | Prisma.DealScalarWhereInput[]
 }
 
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type FloatFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type NullableFloatFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
@@ -663,14 +1027,29 @@ export type DealUpdateOneRequiredWithoutRecipientsNestedInput = {
 export type DealCreateWithoutUserInput = {
   id?: string
   title: string
-  metalType: string
-  description: string
-  quantity: string
-  unit?: string
+  material: string
+  packaging: string
+  numLoads: number
+  weightPerLoad: number
+  weightUnit?: string
+  shippingTypes: string
+  notes?: string | null
+  pickupStreet?: string | null
+  pickupCity?: string | null
+  pickupState?: string | null
+  pickupZip?: string | null
+  portStreet?: string | null
+  portCity?: string | null
+  portState?: string | null
+  portZip?: string | null
   askingPrice?: number | null
   priceUnit?: string
   location?: string | null
   status?: string
+  acceptedPrice?: number | null
+  acceptedUnit?: string | null
+  acceptedRecipientId?: string | null
+  acceptedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   expiresAt?: Date | string | null
@@ -681,14 +1060,29 @@ export type DealCreateWithoutUserInput = {
 export type DealUncheckedCreateWithoutUserInput = {
   id?: string
   title: string
-  metalType: string
-  description: string
-  quantity: string
-  unit?: string
+  material: string
+  packaging: string
+  numLoads: number
+  weightPerLoad: number
+  weightUnit?: string
+  shippingTypes: string
+  notes?: string | null
+  pickupStreet?: string | null
+  pickupCity?: string | null
+  pickupState?: string | null
+  pickupZip?: string | null
+  portStreet?: string | null
+  portCity?: string | null
+  portState?: string | null
+  portZip?: string | null
   askingPrice?: number | null
   priceUnit?: string
   location?: string | null
   status?: string
+  acceptedPrice?: number | null
+  acceptedUnit?: string | null
+  acceptedRecipientId?: string | null
+  acceptedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   expiresAt?: Date | string | null
@@ -728,14 +1122,29 @@ export type DealScalarWhereInput = {
   id?: Prisma.StringFilter<"Deal"> | string
   userId?: Prisma.StringFilter<"Deal"> | string
   title?: Prisma.StringFilter<"Deal"> | string
-  metalType?: Prisma.StringFilter<"Deal"> | string
-  description?: Prisma.StringFilter<"Deal"> | string
-  quantity?: Prisma.StringFilter<"Deal"> | string
-  unit?: Prisma.StringFilter<"Deal"> | string
+  material?: Prisma.StringFilter<"Deal"> | string
+  packaging?: Prisma.StringFilter<"Deal"> | string
+  numLoads?: Prisma.IntFilter<"Deal"> | number
+  weightPerLoad?: Prisma.FloatFilter<"Deal"> | number
+  weightUnit?: Prisma.StringFilter<"Deal"> | string
+  shippingTypes?: Prisma.StringFilter<"Deal"> | string
+  notes?: Prisma.StringNullableFilter<"Deal"> | string | null
+  pickupStreet?: Prisma.StringNullableFilter<"Deal"> | string | null
+  pickupCity?: Prisma.StringNullableFilter<"Deal"> | string | null
+  pickupState?: Prisma.StringNullableFilter<"Deal"> | string | null
+  pickupZip?: Prisma.StringNullableFilter<"Deal"> | string | null
+  portStreet?: Prisma.StringNullableFilter<"Deal"> | string | null
+  portCity?: Prisma.StringNullableFilter<"Deal"> | string | null
+  portState?: Prisma.StringNullableFilter<"Deal"> | string | null
+  portZip?: Prisma.StringNullableFilter<"Deal"> | string | null
   askingPrice?: Prisma.FloatNullableFilter<"Deal"> | number | null
   priceUnit?: Prisma.StringFilter<"Deal"> | string
   location?: Prisma.StringNullableFilter<"Deal"> | string | null
   status?: Prisma.StringFilter<"Deal"> | string
+  acceptedPrice?: Prisma.FloatNullableFilter<"Deal"> | number | null
+  acceptedUnit?: Prisma.StringNullableFilter<"Deal"> | string | null
+  acceptedRecipientId?: Prisma.StringNullableFilter<"Deal"> | string | null
+  acceptedAt?: Prisma.DateTimeNullableFilter<"Deal"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Deal"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Deal"> | Date | string
   expiresAt?: Prisma.DateTimeNullableFilter<"Deal"> | Date | string | null
@@ -744,14 +1153,29 @@ export type DealScalarWhereInput = {
 export type DealCreateWithoutImagesInput = {
   id?: string
   title: string
-  metalType: string
-  description: string
-  quantity: string
-  unit?: string
+  material: string
+  packaging: string
+  numLoads: number
+  weightPerLoad: number
+  weightUnit?: string
+  shippingTypes: string
+  notes?: string | null
+  pickupStreet?: string | null
+  pickupCity?: string | null
+  pickupState?: string | null
+  pickupZip?: string | null
+  portStreet?: string | null
+  portCity?: string | null
+  portState?: string | null
+  portZip?: string | null
   askingPrice?: number | null
   priceUnit?: string
   location?: string | null
   status?: string
+  acceptedPrice?: number | null
+  acceptedUnit?: string | null
+  acceptedRecipientId?: string | null
+  acceptedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   expiresAt?: Date | string | null
@@ -763,14 +1187,29 @@ export type DealUncheckedCreateWithoutImagesInput = {
   id?: string
   userId: string
   title: string
-  metalType: string
-  description: string
-  quantity: string
-  unit?: string
+  material: string
+  packaging: string
+  numLoads: number
+  weightPerLoad: number
+  weightUnit?: string
+  shippingTypes: string
+  notes?: string | null
+  pickupStreet?: string | null
+  pickupCity?: string | null
+  pickupState?: string | null
+  pickupZip?: string | null
+  portStreet?: string | null
+  portCity?: string | null
+  portState?: string | null
+  portZip?: string | null
   askingPrice?: number | null
   priceUnit?: string
   location?: string | null
   status?: string
+  acceptedPrice?: number | null
+  acceptedUnit?: string | null
+  acceptedRecipientId?: string | null
+  acceptedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   expiresAt?: Date | string | null
@@ -796,14 +1235,29 @@ export type DealUpdateToOneWithWhereWithoutImagesInput = {
 export type DealUpdateWithoutImagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  metalType?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  material?: Prisma.StringFieldUpdateOperationsInput | string
+  packaging?: Prisma.StringFieldUpdateOperationsInput | string
+  numLoads?: Prisma.IntFieldUpdateOperationsInput | number
+  weightPerLoad?: Prisma.FloatFieldUpdateOperationsInput | number
+  weightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingTypes?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   askingPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceUnit?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  acceptedPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  acceptedUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -815,14 +1269,29 @@ export type DealUncheckedUpdateWithoutImagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  metalType?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  material?: Prisma.StringFieldUpdateOperationsInput | string
+  packaging?: Prisma.StringFieldUpdateOperationsInput | string
+  numLoads?: Prisma.IntFieldUpdateOperationsInput | number
+  weightPerLoad?: Prisma.FloatFieldUpdateOperationsInput | number
+  weightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingTypes?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   askingPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceUnit?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  acceptedPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  acceptedUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -832,14 +1301,29 @@ export type DealUncheckedUpdateWithoutImagesInput = {
 export type DealCreateWithoutRecipientsInput = {
   id?: string
   title: string
-  metalType: string
-  description: string
-  quantity: string
-  unit?: string
+  material: string
+  packaging: string
+  numLoads: number
+  weightPerLoad: number
+  weightUnit?: string
+  shippingTypes: string
+  notes?: string | null
+  pickupStreet?: string | null
+  pickupCity?: string | null
+  pickupState?: string | null
+  pickupZip?: string | null
+  portStreet?: string | null
+  portCity?: string | null
+  portState?: string | null
+  portZip?: string | null
   askingPrice?: number | null
   priceUnit?: string
   location?: string | null
   status?: string
+  acceptedPrice?: number | null
+  acceptedUnit?: string | null
+  acceptedRecipientId?: string | null
+  acceptedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   expiresAt?: Date | string | null
@@ -851,14 +1335,29 @@ export type DealUncheckedCreateWithoutRecipientsInput = {
   id?: string
   userId: string
   title: string
-  metalType: string
-  description: string
-  quantity: string
-  unit?: string
+  material: string
+  packaging: string
+  numLoads: number
+  weightPerLoad: number
+  weightUnit?: string
+  shippingTypes: string
+  notes?: string | null
+  pickupStreet?: string | null
+  pickupCity?: string | null
+  pickupState?: string | null
+  pickupZip?: string | null
+  portStreet?: string | null
+  portCity?: string | null
+  portState?: string | null
+  portZip?: string | null
   askingPrice?: number | null
   priceUnit?: string
   location?: string | null
   status?: string
+  acceptedPrice?: number | null
+  acceptedUnit?: string | null
+  acceptedRecipientId?: string | null
+  acceptedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   expiresAt?: Date | string | null
@@ -884,14 +1383,29 @@ export type DealUpdateToOneWithWhereWithoutRecipientsInput = {
 export type DealUpdateWithoutRecipientsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  metalType?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  material?: Prisma.StringFieldUpdateOperationsInput | string
+  packaging?: Prisma.StringFieldUpdateOperationsInput | string
+  numLoads?: Prisma.IntFieldUpdateOperationsInput | number
+  weightPerLoad?: Prisma.FloatFieldUpdateOperationsInput | number
+  weightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingTypes?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   askingPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceUnit?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  acceptedPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  acceptedUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -903,14 +1417,29 @@ export type DealUncheckedUpdateWithoutRecipientsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  metalType?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  material?: Prisma.StringFieldUpdateOperationsInput | string
+  packaging?: Prisma.StringFieldUpdateOperationsInput | string
+  numLoads?: Prisma.IntFieldUpdateOperationsInput | number
+  weightPerLoad?: Prisma.FloatFieldUpdateOperationsInput | number
+  weightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingTypes?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   askingPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceUnit?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  acceptedPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  acceptedUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -920,14 +1449,29 @@ export type DealUncheckedUpdateWithoutRecipientsInput = {
 export type DealCreateManyUserInput = {
   id?: string
   title: string
-  metalType: string
-  description: string
-  quantity: string
-  unit?: string
+  material: string
+  packaging: string
+  numLoads: number
+  weightPerLoad: number
+  weightUnit?: string
+  shippingTypes: string
+  notes?: string | null
+  pickupStreet?: string | null
+  pickupCity?: string | null
+  pickupState?: string | null
+  pickupZip?: string | null
+  portStreet?: string | null
+  portCity?: string | null
+  portState?: string | null
+  portZip?: string | null
   askingPrice?: number | null
   priceUnit?: string
   location?: string | null
   status?: string
+  acceptedPrice?: number | null
+  acceptedUnit?: string | null
+  acceptedRecipientId?: string | null
+  acceptedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   expiresAt?: Date | string | null
@@ -936,14 +1480,29 @@ export type DealCreateManyUserInput = {
 export type DealUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  metalType?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  material?: Prisma.StringFieldUpdateOperationsInput | string
+  packaging?: Prisma.StringFieldUpdateOperationsInput | string
+  numLoads?: Prisma.IntFieldUpdateOperationsInput | number
+  weightPerLoad?: Prisma.FloatFieldUpdateOperationsInput | number
+  weightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingTypes?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   askingPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceUnit?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  acceptedPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  acceptedUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -954,14 +1513,29 @@ export type DealUpdateWithoutUserInput = {
 export type DealUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  metalType?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  material?: Prisma.StringFieldUpdateOperationsInput | string
+  packaging?: Prisma.StringFieldUpdateOperationsInput | string
+  numLoads?: Prisma.IntFieldUpdateOperationsInput | number
+  weightPerLoad?: Prisma.FloatFieldUpdateOperationsInput | number
+  weightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingTypes?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   askingPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceUnit?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  acceptedPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  acceptedUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -972,14 +1546,29 @@ export type DealUncheckedUpdateWithoutUserInput = {
 export type DealUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  metalType?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  material?: Prisma.StringFieldUpdateOperationsInput | string
+  packaging?: Prisma.StringFieldUpdateOperationsInput | string
+  numLoads?: Prisma.IntFieldUpdateOperationsInput | number
+  weightPerLoad?: Prisma.FloatFieldUpdateOperationsInput | number
+  weightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingTypes?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portStreet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   askingPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceUnit?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  acceptedPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  acceptedUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1029,14 +1618,29 @@ export type DealSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   id?: boolean
   userId?: boolean
   title?: boolean
-  metalType?: boolean
-  description?: boolean
-  quantity?: boolean
-  unit?: boolean
+  material?: boolean
+  packaging?: boolean
+  numLoads?: boolean
+  weightPerLoad?: boolean
+  weightUnit?: boolean
+  shippingTypes?: boolean
+  notes?: boolean
+  pickupStreet?: boolean
+  pickupCity?: boolean
+  pickupState?: boolean
+  pickupZip?: boolean
+  portStreet?: boolean
+  portCity?: boolean
+  portState?: boolean
+  portZip?: boolean
   askingPrice?: boolean
   priceUnit?: boolean
   location?: boolean
   status?: boolean
+  acceptedPrice?: boolean
+  acceptedUnit?: boolean
+  acceptedRecipientId?: boolean
+  acceptedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   expiresAt?: boolean
@@ -1050,14 +1654,29 @@ export type DealSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   userId?: boolean
   title?: boolean
-  metalType?: boolean
-  description?: boolean
-  quantity?: boolean
-  unit?: boolean
+  material?: boolean
+  packaging?: boolean
+  numLoads?: boolean
+  weightPerLoad?: boolean
+  weightUnit?: boolean
+  shippingTypes?: boolean
+  notes?: boolean
+  pickupStreet?: boolean
+  pickupCity?: boolean
+  pickupState?: boolean
+  pickupZip?: boolean
+  portStreet?: boolean
+  portCity?: boolean
+  portState?: boolean
+  portZip?: boolean
   askingPrice?: boolean
   priceUnit?: boolean
   location?: boolean
   status?: boolean
+  acceptedPrice?: boolean
+  acceptedUnit?: boolean
+  acceptedRecipientId?: boolean
+  acceptedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   expiresAt?: boolean
@@ -1068,14 +1687,29 @@ export type DealSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   userId?: boolean
   title?: boolean
-  metalType?: boolean
-  description?: boolean
-  quantity?: boolean
-  unit?: boolean
+  material?: boolean
+  packaging?: boolean
+  numLoads?: boolean
+  weightPerLoad?: boolean
+  weightUnit?: boolean
+  shippingTypes?: boolean
+  notes?: boolean
+  pickupStreet?: boolean
+  pickupCity?: boolean
+  pickupState?: boolean
+  pickupZip?: boolean
+  portStreet?: boolean
+  portCity?: boolean
+  portState?: boolean
+  portZip?: boolean
   askingPrice?: boolean
   priceUnit?: boolean
   location?: boolean
   status?: boolean
+  acceptedPrice?: boolean
+  acceptedUnit?: boolean
+  acceptedRecipientId?: boolean
+  acceptedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   expiresAt?: boolean
@@ -1086,20 +1720,35 @@ export type DealSelectScalar = {
   id?: boolean
   userId?: boolean
   title?: boolean
-  metalType?: boolean
-  description?: boolean
-  quantity?: boolean
-  unit?: boolean
+  material?: boolean
+  packaging?: boolean
+  numLoads?: boolean
+  weightPerLoad?: boolean
+  weightUnit?: boolean
+  shippingTypes?: boolean
+  notes?: boolean
+  pickupStreet?: boolean
+  pickupCity?: boolean
+  pickupState?: boolean
+  pickupZip?: boolean
+  portStreet?: boolean
+  portCity?: boolean
+  portState?: boolean
+  portZip?: boolean
   askingPrice?: boolean
   priceUnit?: boolean
   location?: boolean
   status?: boolean
+  acceptedPrice?: boolean
+  acceptedUnit?: boolean
+  acceptedRecipientId?: boolean
+  acceptedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   expiresAt?: boolean
 }
 
-export type DealOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "title" | "metalType" | "description" | "quantity" | "unit" | "askingPrice" | "priceUnit" | "location" | "status" | "createdAt" | "updatedAt" | "expiresAt", ExtArgs["result"]["deal"]>
+export type DealOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "title" | "material" | "packaging" | "numLoads" | "weightPerLoad" | "weightUnit" | "shippingTypes" | "notes" | "pickupStreet" | "pickupCity" | "pickupState" | "pickupZip" | "portStreet" | "portCity" | "portState" | "portZip" | "askingPrice" | "priceUnit" | "location" | "status" | "acceptedPrice" | "acceptedUnit" | "acceptedRecipientId" | "acceptedAt" | "createdAt" | "updatedAt" | "expiresAt", ExtArgs["result"]["deal"]>
 export type DealInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   images?: boolean | Prisma.Deal$imagesArgs<ExtArgs>
@@ -1124,14 +1773,29 @@ export type $DealPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     id: string
     userId: string
     title: string
-    metalType: string
-    description: string
-    quantity: string
-    unit: string
+    material: string
+    packaging: string
+    numLoads: number
+    weightPerLoad: number
+    weightUnit: string
+    shippingTypes: string
+    notes: string | null
+    pickupStreet: string | null
+    pickupCity: string | null
+    pickupState: string | null
+    pickupZip: string | null
+    portStreet: string | null
+    portCity: string | null
+    portState: string | null
+    portZip: string | null
     askingPrice: number | null
     priceUnit: string
     location: string | null
     status: string
+    acceptedPrice: number | null
+    acceptedUnit: string | null
+    acceptedRecipientId: string | null
+    acceptedAt: Date | null
     createdAt: Date
     updatedAt: Date
     expiresAt: Date | null
@@ -1564,14 +2228,29 @@ export interface DealFieldRefs {
   readonly id: Prisma.FieldRef<"Deal", 'String'>
   readonly userId: Prisma.FieldRef<"Deal", 'String'>
   readonly title: Prisma.FieldRef<"Deal", 'String'>
-  readonly metalType: Prisma.FieldRef<"Deal", 'String'>
-  readonly description: Prisma.FieldRef<"Deal", 'String'>
-  readonly quantity: Prisma.FieldRef<"Deal", 'String'>
-  readonly unit: Prisma.FieldRef<"Deal", 'String'>
+  readonly material: Prisma.FieldRef<"Deal", 'String'>
+  readonly packaging: Prisma.FieldRef<"Deal", 'String'>
+  readonly numLoads: Prisma.FieldRef<"Deal", 'Int'>
+  readonly weightPerLoad: Prisma.FieldRef<"Deal", 'Float'>
+  readonly weightUnit: Prisma.FieldRef<"Deal", 'String'>
+  readonly shippingTypes: Prisma.FieldRef<"Deal", 'String'>
+  readonly notes: Prisma.FieldRef<"Deal", 'String'>
+  readonly pickupStreet: Prisma.FieldRef<"Deal", 'String'>
+  readonly pickupCity: Prisma.FieldRef<"Deal", 'String'>
+  readonly pickupState: Prisma.FieldRef<"Deal", 'String'>
+  readonly pickupZip: Prisma.FieldRef<"Deal", 'String'>
+  readonly portStreet: Prisma.FieldRef<"Deal", 'String'>
+  readonly portCity: Prisma.FieldRef<"Deal", 'String'>
+  readonly portState: Prisma.FieldRef<"Deal", 'String'>
+  readonly portZip: Prisma.FieldRef<"Deal", 'String'>
   readonly askingPrice: Prisma.FieldRef<"Deal", 'Float'>
   readonly priceUnit: Prisma.FieldRef<"Deal", 'String'>
   readonly location: Prisma.FieldRef<"Deal", 'String'>
   readonly status: Prisma.FieldRef<"Deal", 'String'>
+  readonly acceptedPrice: Prisma.FieldRef<"Deal", 'Float'>
+  readonly acceptedUnit: Prisma.FieldRef<"Deal", 'String'>
+  readonly acceptedRecipientId: Prisma.FieldRef<"Deal", 'String'>
+  readonly acceptedAt: Prisma.FieldRef<"Deal", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Deal", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Deal", 'DateTime'>
   readonly expiresAt: Prisma.FieldRef<"Deal", 'DateTime'>

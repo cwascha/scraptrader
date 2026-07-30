@@ -8,52 +8,131 @@ datasource db {
 }
 
 model User {
-  id             String    @id @default(uuid())
-  email          String    @unique
-  name           String
-  companyName    String
-  passwordHash   String
-  encryptionKey  String
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  deals          Deal[]
-  contacts       Contact[]
+  id                  String         @id @default(uuid())
+  email               String         @unique
+  name                String
+  companyName         String
+  passwordHash        String
+  encryptionKey       String
+  preferredWeightUnit String         @default("lbs")
+  // White-label branding: dealer logo + theme palette + light/dark mode,
+  // applied to the dealer's dashboard AND to buyer-facing deal pages.
+  // Colors are all-or-nothing (themeBrand set implies all three).
+  logoUrl             String?
+  themeBrand          String?        // hex, e.g. "#2d5f8a"
+  themeBrandDark      String?
+  themeAccent         String?
+  themeMode           String?        // "light" | "dark"; null = light
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  deals               Deal[]
+  contacts            Contact[]
+  yardAddresses       YardAddress[]
+  contactGroups       ContactGroup[]
 }
 
 model Contact {
-  id                String   @id @default(uuid())
+  id                String         @id @default(uuid())
   userId            String
   encryptedName     String
   encryptedEmail    String?
   encryptedPhone    String?
   encryptedWhatsApp String?
-  tags              String   @default("")
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags              String         @default("")
+  // Contact-level buyer portal credential: one token per buyer (channel-
+  // independent) opening /portal/{token} — a hub listing every deal sent
+  // to this contact. Minted on first publish (or on demand from the
+  // Contacts page) and used as THE link the dealer shares — deal emails
+  // link here, not to a single deal. NOTE: possession = access to the
+  // buyer's whole history with this dealer, and there is no revoke/rotate
+  // yet (ARCHITECTURE gap #16).
+  portalToken       String?        @unique
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   dealRecipients    DealRecipient[]
+  groups            ContactGroup[]
+
+  @@index([userId])
+}
+
+// Named groups of contacts (e.g. "Copper" = everyone who buys copper).
+// Many-to-many: a contact can belong to multiple groups. Group names are
+// plaintext labels (like yard addresses) — contact PII stays encrypted on
+// the Contact rows themselves.
+model ContactGroup {
+  id        String    @id @default(uuid())
+  userId    String
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contacts  Contact[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+// A user's saved yard AND port locations ("Yard & Port Addresses" in the
+// UI) — one shared list. Yards serve domestic pickups; ports serve export
+// shipments. Deals SNAPSHOT address fields (pickup*/port* columns) rather
+// than referencing these rows, so later edits/deletes never rewrite deals.
+model YardAddress {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String   // label, e.g. "Main Yard", "Port of Newark"
+  street    String
+  city      String
+  state     String
+  zip       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model Deal {
-  id          String          @id @default(uuid())
-  userId      String
-  title       String
-  metalType   String
-  description String
-  quantity    String
-  unit        String          @default("lbs")
-  askingPrice Float?
-  priceUnit   String          @default("per lb")
-  location    String?
-  status      String          @default("draft")
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  expiresAt   DateTime?
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  images      DealImage[]
-  recipients  DealRecipient[]
+  id            String          @id @default(uuid())
+  userId        String
+  title         String          // auto-generated server-side from material/loads/weight/packaging
+  material      String          // ISRI code or main-category name (see lib/materials.ts)
+  packaging     String          // comma-separated subset of: Bales,Boxes,Loose,Palletized
+  numLoads      Int
+  weightPerLoad Float
+  weightUnit    String          @default("lbs")
+  shippingTypes String          // comma-separated subset of: Domestic,Export
+  notes         String?
+  // Domestic pickup (yard) address snapshot — set only when shippingTypes
+  // includes Domestic; all four together or all null. Buyers see city+state.
+  pickupStreet  String?
+  pickupCity    String?
+  pickupState   String?
+  pickupZip     String?
+  // Export origin (port/dock) address snapshot — set only when shippingTypes
+  // includes Export; all four together or all null. Buyers see city+state.
+  portStreet    String?
+  portCity      String?
+  portState     String?
+  portZip       String?
+  askingPrice   Float?          // VESTIGIAL — editor removed; drop in a future migration
+  priceUnit     String          @default("per lb") // VESTIGIAL — see askingPrice
+  location      String?         // VESTIGIAL — editor removed; drop in a future migration
+  status        String          @default("draft") // draft -> published -> closed (bid accepted)
+  // Accepted-bid snapshot: set when a bid is accepted (status -> "closed").
+  // Stored AS BID (amount + unit as entered); acceptedRecipientId points at
+  // the winning DealRecipient (plain column, no FK — recipient already
+  // belongs to this deal).
+  acceptedPrice       Float?
+  acceptedUnit        String?
+  acceptedRecipientId String?
+  acceptedAt          DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  expiresAt     DateTime?
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  images        DealImage[]
+  recipients    DealRecipient[]
 
   @@index([userId])
   @@index([status])
@@ -80,6 +159,14 @@ model DealRecipient {
   sentAt      DateTime?
   viewedAt    DateTime?
   status      String    @default("pending")
+  // Owner's read state for this conversation (inbox/unread tracking).
+  // Unread = buyer messages with createdAt > ownerLastReadAt. Null =
+  // never opened. Buyers have no equivalent (their page IS the thread).
+  ownerLastReadAt DateTime?
+  // When the owner was last emailed about unread messages in this
+  // conversation (Tier 3 nudges). One nudge per unread batch: no new
+  // nudge until the conversation is read again (see lib/notify.ts).
+  lastNudgeAt     DateTime?
   createdAt   DateTime  @default(now())
   deal        Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
   contact     Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
@@ -89,12 +176,24 @@ model DealRecipient {
   @@index([accessToken])
 }
 
+// Chat messages between owner and a specific recipient.
+// senderType: "owner" | "buyer" | "system" (system = automated notices,
+// e.g. bid accepted / bidding closed; rendered as centered notices).
+// Two content types:
+//   "message" — free text (content)
+//   "bid"     — a USD price offer per weight unit (bidAmount + bidUnit,
+//               unit ∈ WEIGHT_UNITS). Stored AS ENTERED — display-time
+//               conversion happens in lib/bids.ts, never at rest.
+//               content carries a formatted fallback string.
 model Message {
   id              String        @id @default(uuid())
   dealRecipientId String
   senderType      String
   senderName      String
+  type            String        @default("message")
   content         String
+  bidAmount       Float?
+  bidUnit         String?
   createdAt       DateTime      @default(now())
   dealRecipient   DealRecipient @relation(fields: [dealRecipientId], references: [id], onDelete: Cascade)
 

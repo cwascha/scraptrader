@@ -425,14 +425,6 @@ export type DealImageUncheckedUpdateManyWithoutDealNestedInput = {
   deleteMany?: Prisma.DealImageScalarWhereInput | Prisma.DealImageScalarWhereInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type DealImageCreateWithoutDealInput = {
   id?: string
   url: string
