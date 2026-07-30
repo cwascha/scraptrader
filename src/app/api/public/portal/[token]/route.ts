@@ -4,9 +4,10 @@ import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 // PUBLIC buyer portal: a contact-level token opens a hub listing every
 // deal the dealer has sent this buyer, each linking to its existing
-// per-deal page. Authorization is token possession + rate limit, same
-// trust model as deal links but with a wider blast radius — which is why
-// portal links are shared deliberately, never auto-emailed.
+// per-deal page. Authorization is token possession + rate limit. Wider
+// blast radius than a deal link — and since deal pages now link BACK
+// here, any deal link reaches this in one click. Rotate/revoke on the
+// Contacts page is the control.
 //
 // Whitelisted projection rules carried over from the deal endpoint:
 // no contact name (dealer-only data), no addresses, no accepted price
@@ -18,6 +19,10 @@ import { rateLimit, clientIp } from "@/lib/rate-limit";
 // winner's thread and "Bidding on this deal is closed" into every other
 // one, so any buyer can already tell which side they landed on from
 // their own conversation. The price and the winner's identity stay out.
+
+// A buyer's standing on a deal. won/lost only mean anything once closed.
+type Outcome = "open" | "won" | "lost";
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ token: string }> }
@@ -103,7 +108,7 @@ export async function GET(
     // acceptance and the agreed price live. Otherwise, the busiest.
     const link = winning ?? mostActive(recs);
 
-    const outcome = !closed ? "open" : winning ? "won" : "lost";
+    const outcome: Outcome = !closed ? "open" : winning ? "won" : "lost";
 
     return {
       // Sort key only — stripped from the response below. Closed deals
@@ -126,7 +131,7 @@ export async function GET(
 
   // Open first (newest first), then won, then lost — newest first within
   // each group. Live deals are the ones a buyer needs to act on.
-  const GROUP_ORDER = { open: 0, won: 1, lost: 2 } as const;
+  const GROUP_ORDER: Record<Outcome, number> = { open: 0, won: 1, lost: 2 };
   entries.sort(
     (a, b) =>
       GROUP_ORDER[a.outcome] - GROUP_ORDER[b.outcome] ||

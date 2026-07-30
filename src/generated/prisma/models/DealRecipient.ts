@@ -458,9 +458,9 @@ export type DealRecipientMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
 }
 
-export type DealRecipientScalarRelationFilter = {
-  is?: Prisma.DealRecipientWhereInput
-  isNot?: Prisma.DealRecipientWhereInput
+export type DealRecipientNullableScalarRelationFilter = {
+  is?: Prisma.DealRecipientWhereInput | null
+  isNot?: Prisma.DealRecipientWhereInput | null
 }
 
 export type DealRecipientCreateNestedManyWithoutContactInput = {
@@ -553,10 +553,12 @@ export type DealRecipientCreateNestedOneWithoutMessagesInput = {
   connect?: Prisma.DealRecipientWhereUniqueInput
 }
 
-export type DealRecipientUpdateOneRequiredWithoutMessagesNestedInput = {
+export type DealRecipientUpdateOneWithoutMessagesNestedInput = {
   create?: Prisma.XOR<Prisma.DealRecipientCreateWithoutMessagesInput, Prisma.DealRecipientUncheckedCreateWithoutMessagesInput>
   connectOrCreate?: Prisma.DealRecipientCreateOrConnectWithoutMessagesInput
   upsert?: Prisma.DealRecipientUpsertWithoutMessagesInput
+  disconnect?: Prisma.DealRecipientWhereInput | boolean
+  delete?: Prisma.DealRecipientWhereInput | boolean
   connect?: Prisma.DealRecipientWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.DealRecipientUpdateToOneWithWhereWithoutMessagesInput, Prisma.DealRecipientUpdateWithoutMessagesInput>, Prisma.DealRecipientUncheckedUpdateWithoutMessagesInput>
 }

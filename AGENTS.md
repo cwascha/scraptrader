@@ -6,7 +6,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # ScrapTrader — Agent Guide
 
-Private CRM for scrap metal dealers: create deals, publish them to an encrypted contact list via unique tokenized links, negotiate with buyers through built-in chat. No public marketplace. **Publishing emails email-channel recipients automatically** when SMTP is configured; SMS/WhatsApp links are shared manually. **Dealers share PER-DEAL links** (`/deal/{accessToken}`); the buyer reaches their contact-level portal (`/portal/{portalToken}` — every deal sent to them, grouped Open/Won/Closed) via the "All deals" link on any deal page.
+Private CRM for scrap metal dealers. **Two outgoing communication types:**
+
+- **Deals — the dealer SELLS.** Publish a deal to an encrypted contact list via per-contact tokenized links; buyers negotiate in chat with USD bids; accepting the other side's latest bid closes it. Buyers reach their contact-level portal (`/portal/{portalToken}`, every deal sent to them grouped Open/Won/Closed) via the "All deals" link on any deal page.
+- **Buying price sheets — the dealer BUYS.** Publish what the yard will PAY per grade; each supplier gets their own link (`/prices/{accessToken}`), fills in the tonnage they have and optionally counters the price, and the yard counters / accepts / declines. **Direction is inverted from deals — `buyerPrice` on a response line is the SUPPLIER's ask, not a bid to buy.**
+
+No public marketplace. Email sends automatically when SMTP is configured; SMS/WhatsApp send via Twilio when configured, and otherwise degrade to manual link sharing.
 
 **Read `ARCHITECTURE.md` first** — it has the full stack, data model, flows, API surface, env vars, and the current known-gaps list. Keep both that file and this one updated when architecture or conventions change.
 
@@ -19,6 +24,8 @@ Private CRM for scrap metal dealers: create deals, publish them to an encrypted 
 - **Public buyer routes** (`/api/public/deal/[token]/**`) authorize by recipient `accessToken` possession only — never expose owner data beyond the whitelisted deal projection (see `public/deal/[token]/route.ts`).
 - **Token helpers in `@/lib/portal` do NO authorization** — `ensurePortalToken`/`rotatePortalToken`/`revokePortalToken` take a contact id the caller has already scoped by `userId`. Prove ownership first, always.
 - **Cap request bodies** on public, auth, and upload POSTs: call `enforceBodyLimit(req, …)` from `@/lib/body-limit` BEFORE `req.json()`/`req.formData()`.
+- **A published price sheet is IMMUTABLE.** The PATCH route rejects edits once `status === "published"`, and `accepted`/`declined` responses are terminal on both sides. Suppliers are quoting against frozen numbers — don't add a path that mutates them. New prices = a new sheet (Duplicate).
+- **Render prices through `formatPrice()`** (`@/lib/price-sheet-defaults`). A line carries EITHER `price` OR `priceNote` ("Need Pics"); the editor, public page, and email all share that one renderer so they can't disagree.
 - Next 16: `params` is a Promise — `await params` in route handlers, `use(params)` in client pages.
 
 ## Conventions

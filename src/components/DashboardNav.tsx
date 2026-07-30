@@ -10,10 +10,12 @@ import {
   IconContacts,
   IconChat,
   IconSettings,
+  IconPrices,
 } from "./icons";
 
 const navItems = [
   { href: "/dashboard", label: "Deals", Icon: IconDeals },
+  { href: "/dashboard/prices", label: "Prices", Icon: IconPrices },
   { href: "/dashboard/contacts", label: "Contacts", Icon: IconContacts },
   { href: "/dashboard/conversations", label: "Conversations", Icon: IconChat },
   { href: "/dashboard/settings", label: "Settings", Icon: IconSettings },

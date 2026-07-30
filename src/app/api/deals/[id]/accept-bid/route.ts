@@ -35,6 +35,14 @@ export async function POST(
     return NextResponse.json({ error: "Bid not found" }, { status: 404 });
   }
 
+  // `Message` can now belong to a price-sheet thread instead of a deal, so
+  // the relation is nullable. The WHERE above already excludes those, but
+  // narrow explicitly rather than asserting — if the query ever loosens,
+  // this refuses a price-sheet message id instead of dereferencing null.
+  if (!message.dealRecipient) {
+    return NextResponse.json({ error: "Bid not found" }, { status: 404 });
+  }
+
   if (
     message.type !== "bid" ||
     message.bidAmount === null ||
@@ -62,9 +70,11 @@ export async function POST(
   }
 
   // Server-side latest-bid check — the client view may be stale (a newer
-  // bid can arrive between render and click).
+  // bid can arrive between render and click). Keyed off the relation's id
+  // (proven non-null above) rather than the nullable column, so this can
+  // never widen into "every message with a null dealRecipientId".
   const latestBid = await prisma.message.findFirst({
-    where: { dealRecipientId: message.dealRecipientId, type: "bid" },
+    where: { dealRecipientId: message.dealRecipient.id, type: "bid" },
     orderBy: { createdAt: "desc" },
   });
   if (!latestBid || latestBid.id !== message.id) {

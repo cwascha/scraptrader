@@ -97,7 +97,20 @@ export async function POST(
   const logoAbsUrl = user.logoUrl ? `${baseUrl}${user.logoUrl}` : null;
   const brandColor = user.themeBrand || "#2d5f8a";
 
-  const recipients = [];
+  // Explicitly typed and explicitly projected. Spreading the whole
+  // DealRecipient row here would (a) leave TS inferring an evolving any[]
+  // that breaks once it's read inside a callback below, and (b) ship
+  // internal columns to the client by default — the same whitelist rule
+  // the public routes follow.
+  const recipients: {
+    id: string;
+    contactName: string;
+    channel: string;
+    status: string;
+    dealLink: string;
+    sent: boolean;
+    sendError?: string;
+  }[] = [];
   let skipped = 0;
   let sentCount = 0;
   let failedCount = 0;
@@ -208,8 +221,10 @@ export async function POST(
       }
 
       recipients.push({
-        ...recipient,
+        id: recipient.id,
         contactName: decrypted.name,
+        channel: recipient.channel,
+        status: recipient.status,
         dealLink,
         sent,
         sendError,

@@ -224,6 +224,7 @@ export type ContactWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   dealRecipients?: Prisma.DealRecipientListRelationFilter
+  priceSheetRecipients?: Prisma.PriceSheetRecipientListRelationFilter
   groups?: Prisma.ContactGroupListRelationFilter
 }
 
@@ -240,6 +241,7 @@ export type ContactOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   dealRecipients?: Prisma.DealRecipientOrderByRelationAggregateInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientOrderByRelationAggregateInput
   groups?: Prisma.ContactGroupOrderByRelationAggregateInput
 }
 
@@ -259,6 +261,7 @@ export type ContactWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   dealRecipients?: Prisma.DealRecipientListRelationFilter
+  priceSheetRecipients?: Prisma.PriceSheetRecipientListRelationFilter
   groups?: Prisma.ContactGroupListRelationFilter
 }, "id" | "portalToken">
 
@@ -306,6 +309,7 @@ export type ContactCreateInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutContactsInput
   dealRecipients?: Prisma.DealRecipientCreateNestedManyWithoutContactInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientCreateNestedManyWithoutContactInput
   groups?: Prisma.ContactGroupCreateNestedManyWithoutContactsInput
 }
 
@@ -321,6 +325,7 @@ export type ContactUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   dealRecipients?: Prisma.DealRecipientUncheckedCreateNestedManyWithoutContactInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientUncheckedCreateNestedManyWithoutContactInput
   groups?: Prisma.ContactGroupUncheckedCreateNestedManyWithoutContactsInput
 }
 
@@ -336,6 +341,7 @@ export type ContactUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
   dealRecipients?: Prisma.DealRecipientUpdateManyWithoutContactNestedInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientUpdateManyWithoutContactNestedInput
   groups?: Prisma.ContactGroupUpdateManyWithoutContactsNestedInput
 }
 
@@ -351,6 +357,7 @@ export type ContactUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dealRecipients?: Prisma.DealRecipientUncheckedUpdateManyWithoutContactNestedInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientUncheckedUpdateManyWithoutContactNestedInput
   groups?: Prisma.ContactGroupUncheckedUpdateManyWithoutContactsNestedInput
 }
 
@@ -542,6 +549,22 @@ export type ContactUpdateOneWithoutDealRecipientsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ContactUpdateToOneWithWhereWithoutDealRecipientsInput, Prisma.ContactUpdateWithoutDealRecipientsInput>, Prisma.ContactUncheckedUpdateWithoutDealRecipientsInput>
 }
 
+export type ContactCreateNestedOneWithoutPriceSheetRecipientsInput = {
+  create?: Prisma.XOR<Prisma.ContactCreateWithoutPriceSheetRecipientsInput, Prisma.ContactUncheckedCreateWithoutPriceSheetRecipientsInput>
+  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutPriceSheetRecipientsInput
+  connect?: Prisma.ContactWhereUniqueInput
+}
+
+export type ContactUpdateOneWithoutPriceSheetRecipientsNestedInput = {
+  create?: Prisma.XOR<Prisma.ContactCreateWithoutPriceSheetRecipientsInput, Prisma.ContactUncheckedCreateWithoutPriceSheetRecipientsInput>
+  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutPriceSheetRecipientsInput
+  upsert?: Prisma.ContactUpsertWithoutPriceSheetRecipientsInput
+  disconnect?: Prisma.ContactWhereInput | boolean
+  delete?: Prisma.ContactWhereInput | boolean
+  connect?: Prisma.ContactWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ContactUpdateToOneWithWhereWithoutPriceSheetRecipientsInput, Prisma.ContactUpdateWithoutPriceSheetRecipientsInput>, Prisma.ContactUncheckedUpdateWithoutPriceSheetRecipientsInput>
+}
+
 export type ContactCreateWithoutUserInput = {
   id?: string
   encryptedName: string
@@ -553,6 +576,7 @@ export type ContactCreateWithoutUserInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   dealRecipients?: Prisma.DealRecipientCreateNestedManyWithoutContactInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientCreateNestedManyWithoutContactInput
   groups?: Prisma.ContactGroupCreateNestedManyWithoutContactsInput
 }
 
@@ -567,6 +591,7 @@ export type ContactUncheckedCreateWithoutUserInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   dealRecipients?: Prisma.DealRecipientUncheckedCreateNestedManyWithoutContactInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientUncheckedCreateNestedManyWithoutContactInput
   groups?: Prisma.ContactGroupUncheckedCreateNestedManyWithoutContactsInput
 }
 
@@ -623,6 +648,7 @@ export type ContactCreateWithoutGroupsInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutContactsInput
   dealRecipients?: Prisma.DealRecipientCreateNestedManyWithoutContactInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientCreateNestedManyWithoutContactInput
 }
 
 export type ContactUncheckedCreateWithoutGroupsInput = {
@@ -637,6 +663,7 @@ export type ContactUncheckedCreateWithoutGroupsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   dealRecipients?: Prisma.DealRecipientUncheckedCreateNestedManyWithoutContactInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientUncheckedCreateNestedManyWithoutContactInput
 }
 
 export type ContactCreateOrConnectWithoutGroupsInput = {
@@ -671,6 +698,7 @@ export type ContactCreateWithoutDealRecipientsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutContactsInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientCreateNestedManyWithoutContactInput
   groups?: Prisma.ContactGroupCreateNestedManyWithoutContactsInput
 }
 
@@ -685,6 +713,7 @@ export type ContactUncheckedCreateWithoutDealRecipientsInput = {
   portalToken?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  priceSheetRecipients?: Prisma.PriceSheetRecipientUncheckedCreateNestedManyWithoutContactInput
   groups?: Prisma.ContactGroupUncheckedCreateNestedManyWithoutContactsInput
 }
 
@@ -715,6 +744,7 @@ export type ContactUpdateWithoutDealRecipientsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientUpdateManyWithoutContactNestedInput
   groups?: Prisma.ContactGroupUpdateManyWithoutContactsNestedInput
 }
 
@@ -729,6 +759,83 @@ export type ContactUncheckedUpdateWithoutDealRecipientsInput = {
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  priceSheetRecipients?: Prisma.PriceSheetRecipientUncheckedUpdateManyWithoutContactNestedInput
+  groups?: Prisma.ContactGroupUncheckedUpdateManyWithoutContactsNestedInput
+}
+
+export type ContactCreateWithoutPriceSheetRecipientsInput = {
+  id?: string
+  encryptedName: string
+  encryptedEmail?: string | null
+  encryptedPhone?: string | null
+  encryptedWhatsApp?: string | null
+  tags?: string
+  portalToken?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutContactsInput
+  dealRecipients?: Prisma.DealRecipientCreateNestedManyWithoutContactInput
+  groups?: Prisma.ContactGroupCreateNestedManyWithoutContactsInput
+}
+
+export type ContactUncheckedCreateWithoutPriceSheetRecipientsInput = {
+  id?: string
+  userId: string
+  encryptedName: string
+  encryptedEmail?: string | null
+  encryptedPhone?: string | null
+  encryptedWhatsApp?: string | null
+  tags?: string
+  portalToken?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  dealRecipients?: Prisma.DealRecipientUncheckedCreateNestedManyWithoutContactInput
+  groups?: Prisma.ContactGroupUncheckedCreateNestedManyWithoutContactsInput
+}
+
+export type ContactCreateOrConnectWithoutPriceSheetRecipientsInput = {
+  where: Prisma.ContactWhereUniqueInput
+  create: Prisma.XOR<Prisma.ContactCreateWithoutPriceSheetRecipientsInput, Prisma.ContactUncheckedCreateWithoutPriceSheetRecipientsInput>
+}
+
+export type ContactUpsertWithoutPriceSheetRecipientsInput = {
+  update: Prisma.XOR<Prisma.ContactUpdateWithoutPriceSheetRecipientsInput, Prisma.ContactUncheckedUpdateWithoutPriceSheetRecipientsInput>
+  create: Prisma.XOR<Prisma.ContactCreateWithoutPriceSheetRecipientsInput, Prisma.ContactUncheckedCreateWithoutPriceSheetRecipientsInput>
+  where?: Prisma.ContactWhereInput
+}
+
+export type ContactUpdateToOneWithWhereWithoutPriceSheetRecipientsInput = {
+  where?: Prisma.ContactWhereInput
+  data: Prisma.XOR<Prisma.ContactUpdateWithoutPriceSheetRecipientsInput, Prisma.ContactUncheckedUpdateWithoutPriceSheetRecipientsInput>
+}
+
+export type ContactUpdateWithoutPriceSheetRecipientsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedName?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.StringFieldUpdateOperationsInput | string
+  portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
+  dealRecipients?: Prisma.DealRecipientUpdateManyWithoutContactNestedInput
+  groups?: Prisma.ContactGroupUpdateManyWithoutContactsNestedInput
+}
+
+export type ContactUncheckedUpdateWithoutPriceSheetRecipientsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedName?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.StringFieldUpdateOperationsInput | string
+  portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  dealRecipients?: Prisma.DealRecipientUncheckedUpdateManyWithoutContactNestedInput
   groups?: Prisma.ContactGroupUncheckedUpdateManyWithoutContactsNestedInput
 }
 
@@ -755,6 +862,7 @@ export type ContactUpdateWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dealRecipients?: Prisma.DealRecipientUpdateManyWithoutContactNestedInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientUpdateManyWithoutContactNestedInput
   groups?: Prisma.ContactGroupUpdateManyWithoutContactsNestedInput
 }
 
@@ -769,6 +877,7 @@ export type ContactUncheckedUpdateWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dealRecipients?: Prisma.DealRecipientUncheckedUpdateManyWithoutContactNestedInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientUncheckedUpdateManyWithoutContactNestedInput
   groups?: Prisma.ContactGroupUncheckedUpdateManyWithoutContactsNestedInput
 }
 
@@ -796,6 +905,7 @@ export type ContactUpdateWithoutGroupsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
   dealRecipients?: Prisma.DealRecipientUpdateManyWithoutContactNestedInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientUpdateManyWithoutContactNestedInput
 }
 
 export type ContactUncheckedUpdateWithoutGroupsInput = {
@@ -810,6 +920,7 @@ export type ContactUncheckedUpdateWithoutGroupsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dealRecipients?: Prisma.DealRecipientUncheckedUpdateManyWithoutContactNestedInput
+  priceSheetRecipients?: Prisma.PriceSheetRecipientUncheckedUpdateManyWithoutContactNestedInput
 }
 
 export type ContactUncheckedUpdateManyWithoutGroupsInput = {
@@ -832,11 +943,13 @@ export type ContactUncheckedUpdateManyWithoutGroupsInput = {
 
 export type ContactCountOutputType = {
   dealRecipients: number
+  priceSheetRecipients: number
   groups: number
 }
 
 export type ContactCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   dealRecipients?: boolean | ContactCountOutputTypeCountDealRecipientsArgs
+  priceSheetRecipients?: boolean | ContactCountOutputTypeCountPriceSheetRecipientsArgs
   groups?: boolean | ContactCountOutputTypeCountGroupsArgs
 }
 
@@ -860,6 +973,13 @@ export type ContactCountOutputTypeCountDealRecipientsArgs<ExtArgs extends runtim
 /**
  * ContactCountOutputType without action
  */
+export type ContactCountOutputTypeCountPriceSheetRecipientsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PriceSheetRecipientWhereInput
+}
+
+/**
+ * ContactCountOutputType without action
+ */
 export type ContactCountOutputTypeCountGroupsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ContactGroupWhereInput
 }
@@ -878,6 +998,7 @@ export type ContactSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   dealRecipients?: boolean | Prisma.Contact$dealRecipientsArgs<ExtArgs>
+  priceSheetRecipients?: boolean | Prisma.Contact$priceSheetRecipientsArgs<ExtArgs>
   groups?: boolean | Prisma.Contact$groupsArgs<ExtArgs>
   _count?: boolean | Prisma.ContactCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["contact"]>
@@ -927,6 +1048,7 @@ export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type ContactInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   dealRecipients?: boolean | Prisma.Contact$dealRecipientsArgs<ExtArgs>
+  priceSheetRecipients?: boolean | Prisma.Contact$priceSheetRecipientsArgs<ExtArgs>
   groups?: boolean | Prisma.Contact$groupsArgs<ExtArgs>
   _count?: boolean | Prisma.ContactCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -942,6 +1064,7 @@ export type $ContactPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
     dealRecipients: Prisma.$DealRecipientPayload<ExtArgs>[]
+    priceSheetRecipients: Prisma.$PriceSheetRecipientPayload<ExtArgs>[]
     groups: Prisma.$ContactGroupPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1351,6 +1474,7 @@ export interface Prisma__ContactClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   dealRecipients<T extends Prisma.Contact$dealRecipientsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Contact$dealRecipientsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DealRecipientPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  priceSheetRecipients<T extends Prisma.Contact$priceSheetRecipientsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Contact$priceSheetRecipientsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PriceSheetRecipientPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   groups<T extends Prisma.Contact$groupsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Contact$groupsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContactGroupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1811,6 +1935,30 @@ export type Contact$dealRecipientsArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.DealRecipientScalarFieldEnum | Prisma.DealRecipientScalarFieldEnum[]
+}
+
+/**
+ * Contact.priceSheetRecipients
+ */
+export type Contact$priceSheetRecipientsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PriceSheetRecipient
+   */
+  select?: Prisma.PriceSheetRecipientSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PriceSheetRecipient
+   */
+  omit?: Prisma.PriceSheetRecipientOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PriceSheetRecipientInclude<ExtArgs> | null
+  where?: Prisma.PriceSheetRecipientWhereInput
+  orderBy?: Prisma.PriceSheetRecipientOrderByWithRelationInput | Prisma.PriceSheetRecipientOrderByWithRelationInput[]
+  cursor?: Prisma.PriceSheetRecipientWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PriceSheetRecipientScalarFieldEnum | Prisma.PriceSheetRecipientScalarFieldEnum[]
 }
 
 /**

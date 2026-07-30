@@ -127,3 +127,80 @@ export async function sendDealWhatsApp(o: DealTextOptions): Promise<void> {
   if (!to) throw new Error(`Not a usable WhatsApp number: ${o.to}`);
   await send(`whatsapp:${to}`, `whatsapp:${from}`, body(o));
 }
+
+export interface PriceSheetTextOptions {
+  to: string;
+  sellerName: string;
+  companyName: string;
+  sheetTitle: string;
+  effectiveDateText: string;
+  sheetLink: string;
+}
+
+// Price sheets go out as a LINK ONLY on SMS/WhatsApp — a 48-line price
+// table would be dozens of billable segments and unreadable on a phone.
+// The full table is inlined in the email version instead. The link is the
+// supplier's own copy, where they enter tonnage and counter prices.
+function sheetBody(o: PriceSheetTextOptions): string {
+  return `${o.sellerName} at ${o.companyName} — ${o.sheetTitle}, effective ${o.effectiveDateText}. See our buying prices and tell us what you have: ${o.sheetLink}`;
+}
+
+export async function sendPriceSheetSms(
+  o: PriceSheetTextOptions
+): Promise<void> {
+  const from = smsFrom();
+  if (!from) throw new Error("SMS sending is not configured");
+  const to = toE164(o.to);
+  if (!to) throw new Error(`Not a usable phone number: ${o.to}`);
+  await send(to, from, sheetBody(o));
+}
+
+export async function sendPriceSheetWhatsApp(
+  o: PriceSheetTextOptions
+): Promise<void> {
+  const from = whatsAppFrom();
+  if (!from) throw new Error("WhatsApp sending is not configured");
+  const to = toE164(o.to);
+  if (!to) throw new Error(`Not a usable WhatsApp number: ${o.to}`);
+  await send(`whatsapp:${to}`, `whatsapp:${from}`, sheetBody(o));
+}
+
+export interface OutcomeTextOptions {
+  to: string;
+  companyName: string;
+  sheetTitle: string;
+  outcome: "countered" | "accepted" | "declined";
+  sheetLink: string;
+}
+
+// Supplier-facing outcome notice on the channel they were reached on.
+// Short by necessity; the detail lives behind the link.
+function outcomeBody(o: OutcomeTextOptions): string {
+  const verb =
+    o.outcome === "accepted"
+      ? "accepted your offer"
+      : o.outcome === "declined"
+        ? "passed on your offer"
+        : "countered your offer";
+  const tail =
+    o.outcome === "countered" ? "Review and respond: " : "Details: ";
+  return `${o.companyName} ${verb} on ${o.sheetTitle}. ${tail}${o.sheetLink}`;
+}
+
+export async function sendOutcomeSms(o: OutcomeTextOptions): Promise<void> {
+  const from = smsFrom();
+  if (!from) throw new Error("SMS sending is not configured");
+  const to = toE164(o.to);
+  if (!to) throw new Error(`Not a usable phone number: ${o.to}`);
+  await send(to, from, outcomeBody(o));
+}
+
+export async function sendOutcomeWhatsApp(
+  o: OutcomeTextOptions
+): Promise<void> {
+  const from = whatsAppFrom();
+  if (!from) throw new Error("WhatsApp sending is not configured");
+  const to = toE164(o.to);
+  if (!to) throw new Error(`Not a usable WhatsApp number: ${o.to}`);
+  await send(`whatsapp:${to}`, `whatsapp:${from}`, outcomeBody(o));
+}

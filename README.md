@@ -1,10 +1,14 @@
 # ScrapTrader
 
-The private CRM and negotiating platform for scrap metal trading.
+The private CRM and negotiating platform for scrap metal trading. Two directions of trade, one contact list.
 
-Dealers create deals (ISRI material, packaging, loads, weight, photos), maintain an encrypted contact list organized into groups, and publish to selected contacts. Each buyer gets a private link to that specific deal — emailed automatically when SMTP is configured, or shared manually over SMS and WhatsApp. From any deal page they can jump to their own **portal**: one page listing every deal that dealer has sent them, grouped into Open, Won, and Closed. Portal links can be rotated or revoked if one leaks.
+**Selling — deals.** Dealers create deals (ISRI material, packaging, loads, weight, photos), maintain an encrypted contact list organized into groups, and publish to selected contacts. Each buyer gets a private link to that specific deal — emailed automatically when SMTP is configured, sent by SMS or WhatsApp when Twilio is configured, or shared by hand otherwise. From any deal page they can jump to their own **portal**: one page listing every deal that dealer has sent them, grouped into Open, Won, and Closed. Portal links can be rotated or revoked if one leaks.
 
-Buyers open the link — no account required — see the deal under the dealer's own branding, and negotiate in built-in chat with text messages and USD bids (weight units convert automatically). There's no posted asking price: price discovery happens in the bids, and accepting the other party's latest bid closes the deal. There is no public marketplace — deals are visible only to people holding a link.
+Buyers open the link — no account required — see the deal under the dealer's own branding, and negotiate in built-in chat with text messages and USD bids (weight units convert automatically). There's no posted asking price: price discovery happens in the bids, and accepting the other party's latest bid closes the deal.
+
+**Buying — price sheets.** Dealers publish what the yard will **pay** per material grade, starting from a pre-filled grade list so the first sheet is editing numbers rather than typing names. Each supplier receives their own link, enters the tonnage they have, and either takes the quoted price or names their own. The yard then counters line by line, accepts, or declines. Publishing locks a sheet, so suppliers are always quoting against fixed numbers — new prices mean a new sheet, duplicated from the last one.
+
+There is no public marketplace — nothing is visible except to people holding a link.
 
 On the dealer side: an inbox with unread tracking and tab/desktop/email notifications, plus white-label branding (logo + theme, light or dark) applied to the dashboard and to every buyer-facing page.
 
@@ -40,6 +44,8 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Prisma 7 
    ```
 
    `ENCRYPTION_MASTER_KEY` wraps every account's contact-encryption key. It has **no dev fallback** — the app won't create accounts or read wrapped contacts without it, and **changing or losing it makes all contact data permanently unrecoverable**, so back it up somewhere other than the server. Generate it the same way (32+ chars required).
+
+   SMS and WhatsApp are optional and independent: set `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN`, then `TWILIO_SMS_FROM` and/or `TWILIO_WHATSAPP_FROM`. A channel without credentials just gives you a link to share by hand.
 
    Email is optional: set `SMTP_USER` and `SMTP_PASS` to send deal links automatically (plus `SMTP_HOST` / `SMTP_PORT` / `SMTP_FROM` to override the Gmail defaults). Without them everything still works — the app falls back to manual link sharing.
 

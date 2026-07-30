@@ -58,7 +58,12 @@ export const ModelName = {
   Deal: 'Deal',
   DealImage: 'DealImage',
   DealRecipient: 'DealRecipient',
-  Message: 'Message'
+  Message: 'Message',
+  PriceSheet: 'PriceSheet',
+  PriceSheetItem: 'PriceSheetItem',
+  PriceSheetRecipient: 'PriceSheetRecipient',
+  PriceSheetResponse: 'PriceSheetResponse',
+  PriceSheetResponseLine: 'PriceSheetResponseLine'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -203,6 +208,7 @@ export type DealRecipientScalarFieldEnum = (typeof DealRecipientScalarFieldEnum)
 export const MessageScalarFieldEnum = {
   id: 'id',
   dealRecipientId: 'dealRecipientId',
+  priceSheetRecipientId: 'priceSheetRecipientId',
   senderType: 'senderType',
   senderName: 'senderName',
   type: 'type',
@@ -213,6 +219,81 @@ export const MessageScalarFieldEnum = {
 } as const
 
 export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
+
+
+export const PriceSheetScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  title: 'title',
+  headerNote: 'headerNote',
+  effectiveDate: 'effectiveDate',
+  expiresAt: 'expiresAt',
+  status: 'status',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PriceSheetScalarFieldEnum = (typeof PriceSheetScalarFieldEnum)[keyof typeof PriceSheetScalarFieldEnum]
+
+
+export const PriceSheetItemScalarFieldEnum = {
+  id: 'id',
+  sheetId: 'sheetId',
+  category: 'category',
+  name: 'name',
+  price: 'price',
+  priceNote: 'priceNote',
+  unit: 'unit',
+  sortOrder: 'sortOrder'
+} as const
+
+export type PriceSheetItemScalarFieldEnum = (typeof PriceSheetItemScalarFieldEnum)[keyof typeof PriceSheetItemScalarFieldEnum]
+
+
+export const PriceSheetRecipientScalarFieldEnum = {
+  id: 'id',
+  sheetId: 'sheetId',
+  contactId: 'contactId',
+  accessToken: 'accessToken',
+  channel: 'channel',
+  status: 'status',
+  sentAt: 'sentAt',
+  viewedAt: 'viewedAt',
+  ownerLastReadAt: 'ownerLastReadAt',
+  lastNudgeAt: 'lastNudgeAt',
+  createdAt: 'createdAt'
+} as const
+
+export type PriceSheetRecipientScalarFieldEnum = (typeof PriceSheetRecipientScalarFieldEnum)[keyof typeof PriceSheetRecipientScalarFieldEnum]
+
+
+export const PriceSheetResponseScalarFieldEnum = {
+  id: 'id',
+  recipientId: 'recipientId',
+  status: 'status',
+  buyerNote: 'buyerNote',
+  dealerNote: 'dealerNote',
+  agreedTotal: 'agreedTotal',
+  submittedAt: 'submittedAt',
+  respondedAt: 'respondedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PriceSheetResponseScalarFieldEnum = (typeof PriceSheetResponseScalarFieldEnum)[keyof typeof PriceSheetResponseScalarFieldEnum]
+
+
+export const PriceSheetResponseLineScalarFieldEnum = {
+  id: 'id',
+  responseId: 'responseId',
+  itemId: 'itemId',
+  weight: 'weight',
+  weightUnit: 'weightUnit',
+  buyerPrice: 'buyerPrice',
+  dealerPrice: 'dealerPrice'
+} as const
+
+export type PriceSheetResponseLineScalarFieldEnum = (typeof PriceSheetResponseLineScalarFieldEnum)[keyof typeof PriceSheetResponseLineScalarFieldEnum]
 
 
 export const SortOrder = {

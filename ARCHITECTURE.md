@@ -1,10 +1,16 @@
 # ScrapTrader — Architecture
 
-> Last updated: 2026-07-26 (security audit round 3 — AES-GCM migration, request body caps, buyer image projection, register/login input hygiene; **plus portal auto-share (decision #1) with rotate/revoke**). Update this file when the architecture changes.
+> Last updated: 2026-07-30 (**buying price sheets** — second outgoing communication type, with supplier responses and counter-offers; **Twilio SMS/WhatsApp** wired but dormant until credentials land; security audit round 3 + envelope encryption). Update this file when the architecture changes.
 
 ## What this app is
 
-A private CRM for scrap metal dealers. A dealer (the only account type) creates **deals** (ISRI material, packaging, loads, weight, shipping types, photos), keeps an **encrypted contact list** organized into **groups**, and **publishes** deals to selected groups and/or individual contacts (de-duplicated). Publishing creates a recipient record per contact per channel and shares the buyer's **portal link**; **email-channel recipients are emailed automatically when SMTP is configured**, while SMS/WhatsApp links are shared manually. Buyers open the link — no account needed — view the deal **under the dealer's own branding**, and negotiate via chat with **text messages and USD bids with automatic weight-unit conversion**. No posted asking price — **price discovery happens in the bids**, and **accepting the latest bid from the other party closes the deal**. A **buyer portal** (contact-level link) lists every deal sent to a buyer. An **inbox** (Conversations) tracks unread buyer messages, with **tab/desktop/email notifications**. There is **no public marketplace**.
+A private CRM for scrap metal dealers, with **two outgoing communication types**.
+
+**Deals (the dealer SELLS).** A dealer (the only account type) creates **deals** (ISRI material, packaging, loads, weight, shipping types, photos), keeps an **encrypted contact list** organized into **groups**, and **publishes** deals to selected groups and/or individual contacts (de-duplicated). Publishing creates a recipient record per contact per channel and shares a **per-deal link**; **email-channel recipients are emailed automatically when SMTP is configured**, SMS/WhatsApp send via Twilio when configured and otherwise degrade to manual link sharing. Buyers open the link — no account needed — view the deal **under the dealer's own branding**, and negotiate via chat with **text messages and USD bids with automatic weight-unit conversion**. No posted asking price — **price discovery happens in the bids**, and **accepting the latest bid from the other party closes the deal**. A **buyer portal** (contact-level link, reached from any deal page) lists every deal sent to a buyer, grouped Open/Won/Closed.
+
+**Buying price sheets (the dealer BUYS).** The yard publishes what it will **pay** per material grade, sends it to suppliers, and each supplier replies on their own copy with the tonnage they have and the price they want — which the yard then counters, accepts, or declines. **Direction is the mirror of deals**: here the recipient is the seller and the yard's money goes out.
+
+An **inbox** (Conversations) tracks unread buyer messages on deals, with **tab/desktop/email notifications**. There is **no public marketplace**.
 
 ## Stack
 
@@ -75,6 +81,38 @@ Messages: senderType "owner"|"buyer"|"system" (system = centered notice pills); 
 - **Deal list**: Active (by created date) / Closed (by acceptedAt) sections, newest/oldest/title/heaviest sorting (weight normalized to lbs).
 - **Polling**: owner deal 5s, buyer messages 5s, inbox 15s, nav badge 30s (hidden tabs included, browser-throttled) — overlap guards + keep-current-on-failure.
 
+## Buying price sheets (dealer BUYS)
+
+The second outgoing communication type. A sheet lists what the yard will **pay** per grade; suppliers reply with what they have. **Read every "price" in this subsystem as money going OUT** — the direction is inverted from deals, and `buyerPrice` on a response line means the SUPPLIER's ask, not a bid to buy.
+
+**Structure.** `PriceSheet` → `PriceSheetItem[]` grouped by free-text `category` and ordered by `sortOrder`. Modelled on the real Ruby Recycling sheet: seven categories, ~48 lines, everything $/lb. Two details that a generic design gets wrong:
+
+- **A line can be non-numeric.** The source sheet has "Dirty Brass — Need Pics", so `price` and `priceNote` are mutually exclusive (a usable number always wins, enforced server-side). `formatPrice()` in `lib/price-sheet-defaults.ts` is the single renderer shared by the editor, the public page, and email — so the three can't disagree.
+- **Recovery percentages live in the item name** ("#1 Heavy (87% basis)", "Irony Alum (50%)"). That's how yards write the grade; splitting them into a field would fight the domain.
+
+**Snapshot semantics.** Publishing LOCKS the sheet (server-enforced on PATCH, mirroring the closed-deal guard). A supplier's counter is meaningless unless the prices they were quoting against are frozen. New prices = a new sheet; **Duplicate** copies the line items forward so nobody retypes 48 rows. The `headerNote` (market basis, e.g. "Comex $4.49") is deliberately **NOT** duplicated — a copied index reading is wrong the moment it's copied.
+
+**Seeding.** The first sheet is pre-filled from `STARTER_ITEMS`; every later one copies the dealer's most recent sheet.
+
+**Per-recipient links.** `PriceSheetRecipient.accessToken` — one per contact per channel, like `DealRecipient`. A response has to be attributable, so there is no shared link. (An earlier design used one public token per sheet; it was replaced when responses were added.)
+
+**The negotiation.** One `PriceSheetResponse` per recipient — revising updates it rather than stacking rows, so there is always exactly one current position per side. Lines are `PriceSheetResponseLine` (weight + unit, optional `buyerPrice` ask, optional `dealerPrice` counter); a null `buyerPrice` means "your quoted price is fine", which is the common case and shouldn't require typing.
+
+| status | meaning | whose move |
+|---|---|---|
+| `submitted` | supplier sent or revised their numbers | yard |
+| `countered` | yard countered one or more lines | supplier |
+| `accepted` | yard took their current numbers | — terminal |
+| `declined` | yard passed | — terminal |
+
+Terminal states are enforced on **both** sides: the public route refuses further revisions, and the dealer route refuses further actions. A decision can't be silently reversed from a link still sitting in an inbox.
+
+**Channel split.** Email inlines the FULL price table (suppliers compare sheets side by side in their inbox); SMS/WhatsApp send the link only — 48 lines would be dozens of billable segments and unreadable on a phone.
+
+**Publishing guard.** If no selected contact has an address/number for the chosen channels, the route bails with a 400 **before** locking — otherwise a first publish that reached nobody would freeze the sheet and force a duplicate to fix a missing email address.
+
+**Estimated total** on the supplier page sums **per-lb lines only**; ton/each lines display but don't roll up, because mixing bases would produce a confidently wrong number.
+
 ## Rate limiting & auth hardening
 
 `lib/rate-limit.ts`: in-memory fixed-window + `clientIp()`; single-process only; resets on restart; self-prunes expired buckets.
@@ -86,6 +124,8 @@ Messages: senderType "owner"|"buyer"|"system" (system = centered notice pills); 
 | `GET public/deal/[token]/messages` | 60 / token / 60s |
 | `POST public/deal/[token]/accept-bid` | 5 / token AND 10 / IP / 60s |
 | `GET public/portal/[token]` | 20 / IP / 60s |
+| `GET public/prices/[token]` | 20 / IP / 60s |
+| `POST public/prices/[token]` (supplier offer) | 10 / IP / 60s |
 | `POST api/auth/login` | 15 / IP AND **5 / email** / 5min |
 | `POST api/auth/register` | 5 / IP AND **20 global** / hour |
 
@@ -119,6 +159,8 @@ Other auth measures: uniform "Invalid credentials" on login + **bcrypt timing eq
 |---|---|
 | `POST api/auth/login`, `api/auth/register` | 64 KB (`JSON_BODY_LIMIT`) |
 | `POST public/deal/[token]/messages`, `.../accept-bid` | 64 KB |
+| `POST public/prices/[token]` (supplier offer) | 64 KB |
+| `POST/PATCH api/price-sheets/**` | 64 KB |
 | `POST api/branding` (logo multipart) | 6 MB |
 | `POST api/deals/[id]/images` (10 × 10 MB + overhead) | 110 MB |
 
@@ -126,7 +168,7 @@ Other auth measures: uniform "Invalid credentials" on login + **bcrypt timing eq
 
 ## Input bounds (per audit rounds 2–3)
 
-Server-side length caps everywhere untrusted (or bulky-when-encrypted) input is stored: messages 4000 (see Chat); contact name 200, contact email/phone/whatsapp 320 each (trimmed, then encrypted — `contacts` POST); registration email 320 / name 200 / companyName 200 and password 8–200; group names 100; addresses street 200 / city 100 / zip 20; state validated against the US code list. Numeric bounds: bid amount (0, 1e9], loads ≥ 1 integer, weight > 0. These are authenticated-input hygiene for the dealer's own account except the message cap, the register caps, and public-token limits, which are genuine abuse boundaries. Whole-request size is bounded separately — see Request body limits.
+Server-side length caps everywhere untrusted (or bulky-when-encrypted) input is stored: messages 4000 (see Chat); contact name 200, contact email/phone/whatsapp 320 each (trimmed, then encrypted — `contacts` POST); registration email 320 / name 200 / companyName 200 and password 8–200; group names 100; addresses street 200 / city 100 / zip 20; state validated against the US code list. **Price sheets:** title 120, header note 200, category 60, item name 120, price note 60, **300 lines max**; supplier offers cap the note at 1000 and reject weight > 10,000,000 or price > 1,000,000 per line (fat-fingered-zero guard — 10M lbs is ~4,500 tons, far past any truckload). Numeric bounds: bid amount (0, 1e9], loads ≥ 1 integer, weight > 0. These are authenticated-input hygiene for the dealer's own account except the message cap, the register caps, and public-token limits, which are genuine abuse boundaries. Whole-request size is bounded separately — see Request body limits.
 
 ## Client fetch hardening
 
@@ -134,11 +176,11 @@ Server-side length caps everywhere untrusted (or bulky-when-encrypted) input is 
 
 ## Email (SMTP / Google Workspace)
 
-`lib/mailer.ts`: shared branded shell; `sendDealEmail()` + `sendBidAcceptedEmail()` (dealer-identity From display name + Reply-To) + `sendUnreadNudgeEmail()` (platform→dealer, ScrapTrader-branded). Dealer logo renders in buyer-facing emails as a LINKED image (absolute URL from `NEXTAUTH_URL` + `user.logoUrl`) — recipients fetch it at open time, so it requires a reachable origin (tunnel in dev; permanent domain in prod). All user-controlled strings HTML-escaped; plain-text alternatives; failures never break publish/accept/nudge-sweep. **Both `sendDealEmail()` and `sendBidAcceptedEmail()` link to the specific deal** (`/deal/{accessToken}`); buyers reach their portal from the "All deals" link on that page. Dev: links use `NEXTAUTH_URL` (tunnel: set it to the tunnel URL + restart; `allowedDevOrigins` in next.config.ts) — nudge deep links use it too.
+`lib/mailer.ts`: shared branded shell; `sendDealEmail()` + `sendBidAcceptedEmail()` + `sendPriceSheetEmail()` (dealer-identity From display name + Reply-To) + `sendUnreadNudgeEmail()` and `sendPriceSheetResponseNotice()` (platform→dealer, ScrapTrader-branded). Dealer logo renders in buyer-facing emails as a LINKED image (absolute URL from `NEXTAUTH_URL` + `user.logoUrl`) — recipients fetch it at open time, so it requires a reachable origin (tunnel in dev; permanent domain in prod). All user-controlled strings HTML-escaped; plain-text alternatives; failures never break publish/accept/nudge-sweep. **Both `sendDealEmail()` and `sendBidAcceptedEmail()` link to the specific deal** (`/deal/{accessToken}`); buyers reach their portal from the "All deals" link on that page. **`sendPriceSheetEmail()` inlines the full price table** and links to that supplier's own copy (`/prices/{accessToken}`) with a "Tell Us What You Have" CTA; **`sendPriceSheetResponseNotice()`** tells the dealer a supplier replied, and whether they took the quoted prices or are asking above them. Dev: links use `NEXTAUTH_URL` (tunnel: set it to the tunnel URL + restart; `allowedDevOrigins` in next.config.ts) — nudge deep links use it too.
 
 ## SMS & WhatsApp (Twilio)
 
-`lib/sms.ts`: `sendDealSms()` / `sendDealWhatsApp()` via Twilio's Messages REST endpoint. **Mirrors the mailer pattern deliberately — configuration is detected from env, and an unconfigured channel silently degrades to manual link sharing. There is no feature flag: add the vars and restart.** SMS and WhatsApp are detected INDEPENDENTLY (`isSmsConfigured()` / `isWhatsAppConfigured()`) because Twilio approves them separately and one usually lands first.
+`lib/sms.ts`: `sendDealSms()` / `sendDealWhatsApp()` / `sendPriceSheetSms()` / `sendPriceSheetWhatsApp()` via Twilio's Messages REST endpoint. **Mirrors the mailer pattern deliberately — configuration is detected from env, and an unconfigured channel silently degrades to manual link sharing. There is no feature flag: add the vars and restart.** SMS and WhatsApp are detected INDEPENDENTLY (`isSmsConfigured()` / `isWhatsAppConfigured()`) because Twilio approves them separately and one usually lands first.
 
 **No `twilio` SDK dependency** — the endpoint is one form-encoded POST with basic auth, and this project blocks package install scripts (`allowScripts`). Twilio's `{code, message}` error body is surfaced verbatim to the dealer so "unverified number" is actionable rather than a bare 400.
 
@@ -174,8 +216,10 @@ src/
     accept-bid.ts          # finalizeAcceptedBid (atomic close + notices + winner email)
     notify.ts              # Tier-3 nudge sweeper (in-process, ensureNudgeSweeper)
     portal.ts              # ensurePortalToken / rotatePortalToken / revokePortalToken (caller proves ownership)
+    price-sheet-defaults.ts # STARTER_ITEMS (Ruby sheet), PRICE_UNITS, shared formatPrice()
     time.ts / rate-limit.ts / fetch-json.ts
-    mailer.ts              # sendDealEmail + sendBidAcceptedEmail + sendUnreadNudgeEmail
+    mailer.ts              # deal + bid-accepted + price-sheet emails; nudge + offer notices
+    sms.ts                 # Twilio SMS/WhatsApp; env-detected per channel, no SDK
   components/
     DashboardNav.tsx       # responsive; unread badge; tab title (T1); desktop alerts (T2)
     Logo.tsx / MaterialSelect.tsx / icons.tsx
@@ -188,8 +232,11 @@ src/
       conversations/page.tsx  # INBOX: one row per thread, unread, previews, deep links
       settings/page.tsx / deals/new/page.tsx
       deals/[id]/page.tsx  # deep-link/auto-expand, unread pills, mark-read, copy, accept
+      prices/page.tsx      # price sheet list; New/Duplicate; "N awaiting you" badge
+      prices/[id]/page.tsx # sheet editor (locks on publish) + send panel + Offers Received
     deal/[token]/page.tsx  # PUBLIC per-deal buyer page
     portal/[token]/page.tsx # PUBLIC buyer portal hub
+    prices/[token]/page.tsx # PUBLIC supplier offer form (weights + counter prices)
     api/
       auth/{register,login,logout,me}   # register+login RATE LIMITED + body-capped; defensive JSON parse; field caps; timing equalizer; me hand-picks fields
       branding                          # hex regex-validated; logo magic-byte validated; 6 MB body cap
@@ -204,11 +251,18 @@ src/
       deals/[id]/messages (bids blocked when closed)
       deals/[id]/accept-bid
       deals/[id]/publish/route.ts     # REJECTS closed deals; guarded status transition
+      price-sheets/route.ts           # GET list (+awaitingYou) / POST create (duplicate or seed)
+      price-sheets/[id]/route.ts      # GET (items+responses) / PATCH (DRAFT ONLY — locked after publish) / DELETE
+      price-sheets/[id]/publish/route.ts          # per-recipient tokens; locks sheet; bails before lock if nothing sent
+      price-sheets/[id]/responses/[responseId]    # PATCH counter | accept | decline (terminal states enforced)
       public/deal/[token]/(route|messages|accept-bid)  # RATE LIMITED + body-capped;
                                                        # "You" masking; images projected to {id,url};
                                                        # returns portalToken for the "All deals" link;
                                                        # messages POST warms nudge sweeper
       public/portal/[token]/route.ts                   # RATE LIMITED
+      public/prices/[token]/route.ts                   # RATE LIMITED + body-capped;
+                                                       # GET supplier's own copy (resumable form state)
+                                                       # POST submit/revise offer; notifies dealer
 public/uploads/{dealId}/ + public/uploads/branding/{userId}/  # gitignored
 ```
 
@@ -221,10 +275,19 @@ public/uploads/{dealId}/ + public/uploads/branding/{userId}/  # gitignored
 - **DealRecipient** — contact × channel; `accessToken` = buyer credential+identity; status pending/sent/viewed; **`ownerLastReadAt?`** = owner read marker; **`lastNudgeAt?`** = last Tier-3 email about this conversation (one per unread batch).
 - **Message** — senderType incl. "system"; type message|bid; buyer senderName server-derived, masked "You" publicly.
 - **DealImage** — photos (re-encoded .jpg; `filename` keeps the original upload name for display).
+- **PriceSheet** — buying prices; `title`, `headerNote` (market basis), `effectiveDate`, status draft→published (**locked on publish**).
+- **PriceSheetItem** — one grade: `category` + `name` + `sortOrder`, and EITHER `price` OR `priceNote` ("Need Pics"), `unit` lb/ton/each.
+- **PriceSheetRecipient** — contact × channel; `accessToken` = the supplier's own link; status pending/sent/viewed/responded.
+- **PriceSheetResponse** — one per recipient (revisions update in place); status submitted→countered→…→accepted|declined; `buyerNote`/`dealerNote`.
+- **PriceSheetResponseLine** — what the supplier has: `weight`+`weightUnit`, `buyerPrice` (their ask; null = accepts quoted), `dealerPrice` (yard's counter).
 
-## Publish flow / Auth
+## Publish flows / Auth
 
-Publish: **closed deals rejected (400)**; de-duped union, skip existing pairs, **undecryptable contacts skipped and counted (`unreadable`) rather than aborting the run**, **portal token minted per contact** (not sent — it backs the deal page's "All deals" link), **per-deal links emailed/texted/shared**, **each channel dispatches when its own credentials are present and degrades to link-sharing when they aren't**, failures never abort (they're counted and named in the summary); status write is a guarded transition (never overwrites "closed"); new deals appear on portals automatically. Auth: proxy JWT on /dashboard/*, layout gate, userId scoping everywhere, public routes = token + rate limit.
+**Deals.** **Closed deals rejected (400)**; de-duped union, skip existing pairs, **undecryptable contacts skipped and counted (`unreadable`) rather than aborting the run**, **portal token minted per contact** (not sent — it backs the deal page's "All deals" link), **per-deal links emailed/texted/shared**, **each channel dispatches when its own credentials are present and degrades to link-sharing when they aren't**, failures never abort (they're counted and named in the summary); status write is a guarded transition (never overwrites "closed"); new deals appear on portals automatically. The response is an **explicit projection**, not a spread of the recipient row.
+
+**Price sheets.** Same shape: de-dupe on contact × channel, skip already-sent pairs, skip undecryptable contacts, per-channel dispatch with graceful degradation. Differences: a **per-recipient `accessToken`** is minted for each send, publishing **locks the sheet**, and the route **bails with a 400 before locking** if nothing was actually sent.
+
+**Auth.** Proxy JWT on /dashboard/*, layout gate, userId scoping everywhere, public routes = token + rate limit.
 
 ## Environment variables
 
@@ -266,7 +329,7 @@ npx prisma migrate dev --name <name>   # STOP dev server first on Windows
 
 3. **Dealer-to-dealer account linking ("Received deals").** *(flagged 2026-07-17; current = no linkage whatsoever)* Today, publishing to an email that belongs to another registered ScrapTrader dealer treats them as any anonymous buyer: token-only identity, nothing in their dashboard or inbox, sessions never consulted on buyer pages, both parties' data fully partitioned under their own encryption keys. (Cosmetic quirk: a dealer-recipient gets your deal emails and their own nudge emails from the same platform address, different display names.) The debate: should incoming deals surface inside a recipient dealer's account — a "Received deals" section, unified inbox across sent + received, network effects between dealers? Arguments for: it's the natural network feature; dealers ARE each other's buyers in real brokerage chains; one login instead of a pile of emailed links. Arguments against, both structural: (a) **it collides with the contact-encryption promise** — matching recipients to accounts requires comparing emails the platform deliberately cannot read; the workaround (store an email hash on DealRecipient at publish time) is a real weakening of the privacy posture and enables cross-dealer correlation the current design makes impossible; (b) **it drifts toward the marketplace this product explicitly is not** — once dealers see inbound flow in-app, pressure follows for discovery, profiles, ratings. Middle ground worth tabling: opt-in linking (a dealer chooses to associate their email hash for receiving), keeping non-consenting users invisible. No implementation until the team decides; touches schema, publish flow, and the privacy model, so it's the heaviest of the three open decisions.
 
-## Known gaps / tech debt (as of 2026-07-26)
+## Known gaps / tech debt (as of 2026-07-30)
 
 1. ~~Encryption key stored beside the data~~ — **RESOLVED 2026-07-26**: envelope encryption. `User.encryptionKey` is stored wrapped (`w1:`, AES-256-GCM) under `ENCRYPTION_MASTER_KEY` from the environment, so a database dump alone no longer yields contact PII. See "PII encryption". **Residual risk, by design:** the master key currently sits in `.env` on the same host as the app, so a full host compromise still reads everything — moving it to a systemd credential, a mounted secret, or KMS is the next increment, and `master-key.ts` is the only file that changes. Also: **back the value up off-host** — losing it destroys all contact data.
 2. ~~dev-secret JWT fallback~~ — **RESOLVED 2026-07-17**: auth.ts throws at boot in production without `NEXTAUTH_SECRET`.
@@ -307,4 +370,14 @@ npx prisma migrate dev --name <name>   # STOP dev server first on Windows
 
 30. **Twilio: unproven, plus three things to settle before switching it on.** The code path is written and dormant (no credentials = manual sharing), so it is UNTESTED against the live API — the first real publish is the first real test. (a) **WhatsApp templates**: free-form messages only reach buyers inside a 24h window; cold outreach needs a Meta-approved template, which is a separate approval AND a code change (template SID + variables instead of a `Body`). (b) **Cost**: unlike email, every message bills. Publishing to a 200-contact group fires 200 SMS with no confirmation step — consider a spend guard or a "this will send N texts" confirmation. (c) **Consent/TCPA**: US commercial SMS needs prior express consent, and contacts were imported by dealers with no consent field anywhere in the schema. Twilio auto-handles STOP on US numbers, but the consent record is the dealer's problem and the product currently gives them nowhere to keep it.
 
-Resolved (2026-07-15/17/26): upload validation; deal form overhaul; yard addresses; state validation; contact groups + de-dupe; dual addresses; ISRI materials; white-label theme engine + dark mode; SMTP dealer-identity email; dependency cleanup; conversation names; chat polling; bids + unit conversion; timestamps; rate limiting; fetch hardening; buyer identity from token; shipping city/state; Pricing card bid stats; contact-name privacy; bid acceptance flow; Active/Closed sections; buyer portal; design language Phase 1; inbox + unread tracking Phase 2; notifications Tiers 1–3; responsive floor for phones; image pipeline + deal-delete disk cleanup; security audit round 1 (closed-publish guard, auth throttling + timing equalizer, register hygiene, prod secret enforcement); **security audit round 2 — full-codebase read: message-length DoS cap (4000) + contact-field length clamps; confirmed clean on IDOR, SQL injection, secret leakage, stored XSS, CSS injection**; **security audit round 3 — crypto-js → AES-256-GCM (Node crypto) with legacy-format reader and the dependency dropped; request body caps (`lib/body-limit.ts`) on all public/auth/upload POSTs; buyer image projection narrowed to `{id, url}`; register/login defensive JSON parse + field caps + password upper bound + P2002 race; `contacts` GET and the publish loop degrade per-row instead of failing the whole request**; **portal auto-share (open decision #1) with rotate/revoke controls (gap #16)**; **landing-page security claims corrected to match the real posture (gap #23)**; **envelope encryption — account data keys wrapped under `ENCRYPTION_MASTER_KEY`, closing the long-standing key-custody gap #1**.
+31. **⚠ THE SUPPLIER IS NEVER TOLD THE YARD RESPONDED — the negotiation loop is only half-wired.** Submitting an offer emails the dealer (`sendPriceSheetResponseNotice`). Counter, accept, and decline send the supplier **nothing**. They only find out by revisiting their link on a hunch, so in practice a counter goes unanswered and the deal dies silently. This is the highest-value price-sheet fix: a `sendPriceSheetCounterEmail` / accepted / declined trio using the dealer-identity From, fired from the responses PATCH route, best-effort like every other send. Until then, counters need a phone call to land.
+
+32. **Price-sheet negotiations are invisible to the inbox.** Conversations, unread counts, the nav badge, and Tier-3 nudges all key off `Message` + `DealRecipient`, so an offer sitting at `submitted` produces no badge, no nudge, and no inbox row — only the "N awaiting you" chip on the Prices list, which a dealer has to go looking for. Also no free-text chat on a response: the counter loop carries one note per side per round and nothing else, so "can you do $4.02 if I bring three loads?" has nowhere to go. Unifying means making `Message.dealRecipientId` nullable and adding `priceSheetRecipientId` (existing deal queries all filter on the former, so it's additive), then widening the inbox queries.
+
+33. **Weight units aren't normalized against the quoted basis.** A supplier can enter tons on a line the yard quoted in $/lb, and the dealer's Offers panel shows "40 tons" next to "$3.99" with no conversion — the reader has to do the 2,000× in their head, on a screen where getting it wrong is a five-figure error. The supplier-side estimate sidesteps this by summing per-lb lines only, which is safe but silently omits ton/each lines from the total. Fix: normalize to the item's unit on display (the conversion helpers already exist in `lib/bids.ts`), and show both figures.
+
+34. **An accepted offer is a dead end.** `status = "accepted"` is the whole record — nothing schedules a delivery, produces a purchase record, or feeds anything downstream. Fine while the yard runs fulfillment on paper; worth revisiting if price sheets become a primary channel.
+
+35. **`effectiveDate` is decorative.** Nothing expires a sheet or stops a supplier submitting against three-week-old copper prices. Deliberate for now (the yard controls who gets links), but the pairing of a locked snapshot with an unbounded lifetime is exactly the shape of an eventual dispute. Interacts with open decision #2 (retention).
+
+Resolved (2026-07-15/17/26): upload validation; deal form overhaul; yard addresses; state validation; contact groups + de-dupe; dual addresses; ISRI materials; white-label theme engine + dark mode; SMTP dealer-identity email; dependency cleanup; conversation names; chat polling; bids + unit conversion; timestamps; rate limiting; fetch hardening; buyer identity from token; shipping city/state; Pricing card bid stats; contact-name privacy; bid acceptance flow; Active/Closed sections; buyer portal; design language Phase 1; inbox + unread tracking Phase 2; notifications Tiers 1–3; responsive floor for phones; image pipeline + deal-delete disk cleanup; security audit round 1 (closed-publish guard, auth throttling + timing equalizer, register hygiene, prod secret enforcement); **security audit round 2 — full-codebase read: message-length DoS cap (4000) + contact-field length clamps; confirmed clean on IDOR, SQL injection, secret leakage, stored XSS, CSS injection**; **security audit round 3 — crypto-js → AES-256-GCM (Node crypto) with legacy-format reader and the dependency dropped; request body caps (`lib/body-limit.ts`) on all public/auth/upload POSTs; buyer image projection narrowed to `{id, url}`; register/login defensive JSON parse + field caps + password upper bound + P2002 race; `contacts` GET and the publish loop degrade per-row instead of failing the whole request**; **portal auto-share (open decision #1) with rotate/revoke controls (gap #16)**; **landing-page security claims corrected to match the real posture (gap #23)**; **envelope encryption — account data keys wrapped under `ENCRYPTION_MASTER_KEY`, closing the long-standing key-custody gap #1**; **Twilio SMS/WhatsApp send path (dormant until credentials)**; **buying price sheets — snapshot sheets seeded from a starter grade list, per-recipient links, supplier offers with weights + counter prices, and a counter/accept/decline loop**.

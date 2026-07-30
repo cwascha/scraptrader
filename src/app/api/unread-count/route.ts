@@ -17,19 +17,34 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const recipients = await prisma.dealRecipient.findMany({
-    where: { deal: { userId: user.id } },
-    select: {
-      ownerLastReadAt: true,
-      messages: {
-        where: { senderType: "buyer" },
-        select: { createdAt: true },
+  const [dealRecipients, sheetRecipients] = await Promise.all([
+    prisma.dealRecipient.findMany({
+      where: { deal: { userId: user.id } },
+      select: {
+        ownerLastReadAt: true,
+        messages: {
+          where: { senderType: "buyer" },
+          select: { createdAt: true },
+        },
       },
-    },
-  });
+    }),
+    // Price-sheet negotiations count toward the same badge. A supplier's
+    // offer is written to the thread as a buyer message, so the arithmetic
+    // is identical and needs no special case.
+    prisma.priceSheetRecipient.findMany({
+      where: { sheet: { userId: user.id } },
+      select: {
+        ownerLastReadAt: true,
+        messages: {
+          where: { senderType: "buyer" },
+          select: { createdAt: true },
+        },
+      },
+    }),
+  ]);
 
   let unread = 0;
-  for (const r of recipients) {
+  for (const r of [...dealRecipients, ...sheetRecipients]) {
     const lastReadMs = r.ownerLastReadAt
       ? new Date(r.ownerLastReadAt).getTime()
       : 0;

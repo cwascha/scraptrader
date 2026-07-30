@@ -265,6 +265,287 @@ export async function sendBidAcceptedEmail(
   });
 }
 
+export interface PriceSheetEmailOptions {
+  to: string;
+  contactName: string;
+  sellerName: string;
+  companyName: string;
+  replyTo: string;
+  sheetTitle: string;
+  headerNote: string | null; // e.g. "Comex $4.49"
+  effectiveDateText: string; // e.g. "September 2, 2025"
+  // Grouped exactly as the sheet is laid out; `value` is already
+  // formatted ("$4.09/lb" or "Need Pics").
+  categories: { name: string; items: { name: string; value: string }[] }[];
+  sheetLink: string;
+  brandColor: string;
+  logoUrl: string | null;
+}
+
+// Buying price sheet — what the yard will PAY. Unlike the deal email,
+// this inlines the FULL price table: suppliers compare sheets side by
+// side in their inbox and shouldn't have to open a link to do it. The
+// link goes to THEIR copy of the sheet, where they enter the tonnage they
+// have and counter any price they want more for.
+export async function sendPriceSheetEmail(
+  opts: PriceSheetEmailOptions
+): Promise<void> {
+  const brand = sanitizeBrand(opts.brandColor);
+
+  const contactName = escapeHtml(opts.contactName);
+  const sellerName = escapeHtml(opts.sellerName);
+  const companyName = escapeHtml(opts.companyName);
+  const sheetTitle = escapeHtml(opts.sheetTitle);
+  const headerNote = opts.headerNote ? escapeHtml(opts.headerNote) : null;
+  const effectiveDateText = escapeHtml(opts.effectiveDateText);
+
+  // One block per category: a tinted label row, then name/price pairs.
+  const tableHtml = opts.categories
+    .map((cat) => {
+      const rows = cat.items
+        .map(
+          (i, idx) =>
+            `<tr style="background:${idx % 2 ? "#f8fafc" : "#ffffff"};">
+              <td style="padding:6px 12px;color:#1e293b;font-size:13px;">${escapeHtml(i.name)}</td>
+              <td style="padding:6px 12px;color:#1e293b;font-size:13px;font-weight:600;text-align:right;white-space:nowrap;">${escapeHtml(i.value)}</td>
+            </tr>`
+        )
+        .join("");
+      return `<tr><td colspan="2" style="padding:14px 12px 6px;color:${brand};font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:0.08em;">${escapeHtml(cat.name)}</td></tr>${rows}`;
+    })
+    .join("");
+
+  const body = `
+            <p style="margin:0 0 16px;color:#1e293b;font-size:14px;">Hi ${contactName},</p>
+            <p style="margin:0 0 20px;color:#1e293b;font-size:14px;">
+              ${sellerName} at ${companyName} sent you an updated buying price sheet.
+            </p>
+            <h2 style="margin:0 0 4px;color:#1e293b;font-size:18px;">${sheetTitle}</h2>
+            <p style="margin:0 0 2px;color:#64748b;font-size:12px;">Effective ${effectiveDateText}</p>
+            ${headerNote ? `<p style="margin:0 0 16px;color:#64748b;font-size:12px;font-weight:600;">${headerNote}</p>` : `<div style="height:12px;"></div>`}
+            <table cellpadding="0" cellspacing="0" style="width:100%;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:24px;">
+              ${tableHtml}
+            </table>
+            <table cellpadding="0" cellspacing="0"><tr><td style="border-radius:8px;background:${brand};">
+              <a href="${opts.sheetLink}" style="display:inline-block;padding:12px 28px;color:#ffffff;font-size:14px;font-weight:bold;text-decoration:none;">
+                Tell Us What You Have
+              </a>
+            </td></tr></table>
+            <p style="margin:16px 0 0;color:#64748b;font-size:12px;">
+              Enter the weight you have for any of these grades — and name your
+              price if you want more than we've quoted. We'll come back to you.
+            </p>
+            <p style="margin:12px 0 0;color:#94a3b8;font-size:12px;">
+              Or copy this link: <a href="${opts.sheetLink}" style="color:${brand};">${opts.sheetLink}</a>
+            </p>`;
+
+  const html = shell(headerHtml(opts.logoUrl, companyName, brand), body);
+
+  const text = [
+    `Hi ${opts.contactName},`,
+    ``,
+    `${opts.sellerName} at ${opts.companyName} sent you an updated buying price sheet.`,
+    ``,
+    opts.sheetTitle,
+    `Effective ${opts.effectiveDateText}`,
+    ...(opts.headerNote ? [opts.headerNote] : []),
+    ``,
+    ...opts.categories.flatMap((cat) => [
+      cat.name.toUpperCase(),
+      ...cat.items.map((i) => `  ${i.name}: ${i.value}`),
+      ``,
+    ]),
+    `Tell us what you have (enter weights, name your price if you want more): ${opts.sheetLink}`,
+  ].join("\n");
+
+  await getTransporter().sendMail({
+    from: {
+      name: `${opts.sellerName} (${opts.companyName})`,
+      address: fromAddress(),
+    },
+    replyTo: opts.replyTo,
+    to: opts.to,
+    subject: `${opts.companyName}: ${opts.sheetTitle} — ${opts.effectiveDateText}`,
+    text,
+    html,
+  });
+}
+
+export interface PriceSheetResponseNoticeOptions {
+  to: string; // the DEALER's email
+  dealerName: string;
+  contactName: string; // decrypted supplier name (dealer-side data)
+  sheetTitle: string;
+  lineCount: number;
+  totalWeightText: string; // e.g. "64,000 lbs across 3 grades"
+  hasCounters: boolean; // did they ask above sheet price on any line?
+  responseUrl: string; // /dashboard/prices/{id}
+}
+
+// Platform-to-dealer notice that a supplier answered a price sheet.
+// ScrapTrader-branded, like the unread nudge — this is the app telling
+// its user something happened, not the dealer talking to a buyer.
+export async function sendPriceSheetResponseNotice(
+  opts: PriceSheetResponseNoticeOptions
+): Promise<void> {
+  const brand = sanitizeBrand("#2d5f8a");
+  const dealerName = escapeHtml(opts.dealerName);
+  const contactName = escapeHtml(opts.contactName);
+  const sheetTitle = escapeHtml(opts.sheetTitle);
+  const totalWeightText = escapeHtml(opts.totalWeightText);
+
+  const body = `
+            <p style="margin:0 0 16px;color:#1e293b;font-size:14px;">Hi ${dealerName},</p>
+            <p style="margin:0 0 16px;color:#1e293b;font-size:14px;">
+              <strong>${contactName}</strong> replied to <strong>${sheetTitle}</strong>
+              with material to sell: ${totalWeightText}.
+            </p>
+            ${
+              opts.hasCounters
+                ? `<p style="margin:0 0 16px;color:#b45309;font-size:14px;">They're asking above your sheet price on at least one grade.</p>`
+                : `<p style="margin:0 0 16px;color:#15803d;font-size:14px;">They accepted your sheet prices as quoted.</p>`
+            }
+            <table cellpadding="0" cellspacing="0"><tr><td style="border-radius:8px;background:${brand};">
+              <a href="${opts.responseUrl}" style="display:inline-block;padding:12px 28px;color:#ffffff;font-size:14px;font-weight:bold;text-decoration:none;">
+                Review Their Offer
+              </a>
+            </td></tr></table>`;
+
+  const html = shell(headerHtml(null, "ScrapTrader", brand), body);
+
+  const text = [
+    `Hi ${opts.dealerName},`,
+    ``,
+    `${opts.contactName} replied to "${opts.sheetTitle}" with material to sell: ${opts.totalWeightText}.`,
+    opts.hasCounters
+      ? `They're asking above your sheet price on at least one grade.`
+      : `They accepted your sheet prices as quoted.`,
+    ``,
+    `Review their offer: ${opts.responseUrl}`,
+  ].join("\n");
+
+  await getTransporter().sendMail({
+    from: { name: "ScrapTrader", address: fromAddress() },
+    to: opts.to,
+    subject: `${opts.contactName} replied to ${opts.sheetTitle}`,
+    text,
+    html,
+  });
+}
+
+export interface PriceSheetOutcomeEmailOptions {
+  to: string; // the SUPPLIER's email
+  contactName: string;
+  sellerName: string;
+  companyName: string;
+  replyTo: string;
+  sheetTitle: string;
+  outcome: "countered" | "accepted" | "declined";
+  dealerNote: string | null;
+  // Pre-formatted so the email can't disagree with the pages.
+  lines: { name: string; detail: string }[];
+  totalText: string | null;
+  sheetLink: string;
+}
+
+// Tells the SUPPLIER the yard moved. Without this the negotiation is
+// one-way: they'd only discover a counter by revisiting their link on a
+// hunch, so counters go unanswered and offers die silently. Dealer
+// identity on the From, replies land in the dealer's inbox.
+export async function sendPriceSheetOutcomeEmail(
+  opts: PriceSheetOutcomeEmailOptions
+): Promise<void> {
+  const brand = sanitizeBrand("#2d5f8a");
+  const contactName = escapeHtml(opts.contactName);
+  const sellerName = escapeHtml(opts.sellerName);
+  const companyName = escapeHtml(opts.companyName);
+  const sheetTitle = escapeHtml(opts.sheetTitle);
+  const dealerNote = opts.dealerNote ? escapeHtml(opts.dealerNote) : null;
+
+  const headline =
+    opts.outcome === "accepted"
+      ? `${companyName} accepted your offer`
+      : opts.outcome === "declined"
+        ? `${companyName} passed on your offer`
+        : `${companyName} countered your offer`;
+
+  const cta =
+    opts.outcome === "countered" ? "Review &amp; Respond" : "View Details";
+
+  const rows = opts.lines
+    .map(
+      (l, idx) =>
+        `<tr style="background:${idx % 2 ? "#f8fafc" : "#ffffff"};">
+          <td style="padding:6px 12px;color:#1e293b;font-size:13px;">${escapeHtml(l.name)}</td>
+          <td style="padding:6px 12px;color:#1e293b;font-size:13px;font-weight:600;text-align:right;white-space:nowrap;">${escapeHtml(l.detail)}</td>
+        </tr>`
+    )
+    .join("");
+
+  const body = `
+            <p style="margin:0 0 16px;color:#1e293b;font-size:14px;">Hi ${contactName},</p>
+            <h2 style="margin:0 0 4px;color:#1e293b;font-size:18px;">${headline}</h2>
+            <p style="margin:0 0 16px;color:#64748b;font-size:12px;">${sheetTitle}</p>
+            ${dealerNote ? `<p style="margin:0 0 16px;padding:10px 12px;background:#f8fafc;border-radius:8px;color:#1e293b;font-size:14px;">“${dealerNote}”</p>` : ""}
+            <table cellpadding="0" cellspacing="0" style="width:100%;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:16px;">
+              ${rows}
+            </table>
+            ${
+              opts.totalText
+                ? `<p style="margin:0 0 20px;color:#1e293b;font-size:15px;font-weight:bold;">Total: ${escapeHtml(opts.totalText)}</p>`
+                : ""
+            }
+            <table cellpadding="0" cellspacing="0"><tr><td style="border-radius:8px;background:${brand};">
+              <a href="${opts.sheetLink}" style="display:inline-block;padding:12px 28px;color:#ffffff;font-size:14px;font-weight:bold;text-decoration:none;">
+                ${cta}
+              </a>
+            </td></tr></table>
+            ${
+              opts.outcome === "countered"
+                ? `<p style="margin:16px 0 0;color:#64748b;font-size:12px;">Adjust your numbers and send again, or leave them as they are to take the counter.</p>`
+                : ""
+            }`;
+
+  const html = shell(headerHtml(null, companyName, brand), body);
+
+  const text = [
+    `Hi ${opts.contactName},`,
+    ``,
+    opts.outcome === "accepted"
+      ? `${opts.companyName} accepted your offer.`
+      : opts.outcome === "declined"
+        ? `${opts.companyName} passed on your offer.`
+        : `${opts.companyName} countered your offer.`,
+    opts.sheetTitle,
+    ...(opts.dealerNote ? [``, `"${opts.dealerNote}"`] : []),
+    ``,
+    ...opts.lines.map((l) => `  ${l.name}: ${l.detail}`),
+    ...(opts.totalText ? [``, `Total: ${opts.totalText}`] : []),
+    ``,
+    opts.outcome === "countered"
+      ? `Review and respond: ${opts.sheetLink}`
+      : `View details: ${opts.sheetLink}`,
+  ].join("\n");
+
+  await getTransporter().sendMail({
+    from: {
+      name: `${opts.sellerName} (${opts.companyName})`,
+      address: fromAddress(),
+    },
+    replyTo: opts.replyTo,
+    to: opts.to,
+    subject: `${opts.companyName}: ${
+      opts.outcome === "accepted"
+        ? "offer accepted"
+        : opts.outcome === "declined"
+          ? "offer declined"
+          : "counter-offer"
+    } — ${opts.sheetTitle}`,
+    text,
+    html,
+  });
+}
+
 export interface UnreadNudgeEmailOptions {
   to: string; // the DEALER's email
   dealerName: string;

@@ -57,3 +57,28 @@ export type DealRecipient = Prisma.DealRecipientModel
  * 
  */
 export type Message = Prisma.MessageModel
+/**
+ * Model PriceSheet
+ * 
+ */
+export type PriceSheet = Prisma.PriceSheetModel
+/**
+ * Model PriceSheetItem
+ * 
+ */
+export type PriceSheetItem = Prisma.PriceSheetItemModel
+/**
+ * Model PriceSheetRecipient
+ * 
+ */
+export type PriceSheetRecipient = Prisma.PriceSheetRecipientModel
+/**
+ * Model PriceSheetResponse
+ * 
+ */
+export type PriceSheetResponse = Prisma.PriceSheetResponseModel
+/**
+ * Model PriceSheetResponseLine
+ * 
+ */
+export type PriceSheetResponseLine = Prisma.PriceSheetResponseLineModel

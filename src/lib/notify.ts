@@ -114,6 +114,71 @@ async function sweep(): Promise<void> {
         data: { lastNudgeAt: new Date() },
       });
     }
+
+    // --- Price-sheet threads: identical rule, different parent --------
+    // An ignored supplier offer is a load the yard doesn't buy, so it
+    // deserves the same chase as an unanswered buyer message.
+    const sheetRecipients = await prisma.priceSheetRecipient.findMany({
+      where: { messages: { some: { senderType: "buyer" } } },
+      include: {
+        contact: true,
+        sheet: {
+          select: {
+            id: true,
+            title: true,
+            user: {
+              select: { email: true, name: true, encryptionKey: true },
+            },
+          },
+        },
+        messages: {
+          where: { senderType: "buyer" },
+          select: { createdAt: true },
+        },
+      },
+    });
+
+    for (const r of sheetRecipients) {
+      const lastReadMs = r.ownerLastReadAt ? r.ownerLastReadAt.getTime() : 0;
+      const unread = r.messages.filter(
+        (m) => m.createdAt.getTime() > lastReadMs
+      );
+      if (unread.length === 0) continue;
+
+      const oldestMs = Math.min(...unread.map((m) => m.createdAt.getTime()));
+      if (now - oldestMs < NUDGE_AGE_MS) continue;
+      if (r.lastNudgeAt && r.lastNudgeAt.getTime() >= oldestMs) continue;
+
+      let contactName = "A supplier";
+      if (r.contact) {
+        try {
+          contactName = decryptContact(
+            r.contact,
+            r.sheet.user.encryptionKey
+          ).name;
+        } catch {
+          // Undecryptable contact — keep the generic fallback.
+        }
+      }
+
+      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+      try {
+        await sendUnreadNudgeEmail({
+          to: r.sheet.user.email,
+          dealerName: r.sheet.user.name,
+          contactName,
+          dealTitle: r.sheet.title,
+          count: unread.length,
+          conversationUrl: `${baseUrl}/dashboard/prices/${r.sheet.id}`,
+        });
+      } catch (err) {
+        console.error("[nudge] price-sheet email send failed:", err);
+      }
+      await prisma.priceSheetRecipient.update({
+        where: { id: r.id },
+        data: { lastNudgeAt: new Date() },
+      });
+    }
   } catch (err) {
     console.error("[nudge] sweep failed:", err);
   } finally {

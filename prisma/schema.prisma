@@ -29,6 +29,7 @@ model User {
   contacts            Contact[]
   yardAddresses       YardAddress[]
   contactGroups       ContactGroup[]
+  priceSheets         PriceSheet[]
 }
 
 model Contact {
@@ -41,16 +42,17 @@ model Contact {
   tags              String         @default("")
   // Contact-level buyer portal credential: one token per buyer (channel-
   // independent) opening /portal/{token} — a hub listing every deal sent
-  // to this contact. Minted on first publish (or on demand from the
-  // Contacts page) and used as THE link the dealer shares — deal emails
-  // link here, not to a single deal. NOTE: possession = access to the
-  // buyer's whole history with this dealer, and there is no revoke/rotate
-  // yet (ARCHITECTURE gap #16).
+  // to this contact, grouped Open/Won/Closed. Minted at publish (or on
+  // demand from the Contacts page). Deals are shared as PER-DEAL links;
+  // buyers reach the portal via the "All deals" link on any deal page,
+  // so possession of any deal link reaches the whole portal in one click.
+  // Rotatable and revocable from the Contacts page.
   portalToken       String?        @unique
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   dealRecipients    DealRecipient[]
+  priceSheetRecipients PriceSheetRecipient[]
   groups            ContactGroup[]
 
   @@index([userId])
@@ -176,7 +178,11 @@ model DealRecipient {
   @@index([accessToken])
 }
 
-// Chat messages between owner and a specific recipient.
+// Chat messages. Belongs to EITHER a DealRecipient or a
+// PriceSheetRecipient — exactly one FK is set. Generalized 2026-07-30 so
+// price-sheet negotiations flow through the same inbox, unread counting,
+// and nudge machinery as deals instead of being a parallel silo.
+//
 // senderType: "owner" | "buyer" | "system" (system = automated notices,
 // e.g. bid accepted / bidding closed; rendered as centered notices).
 // Two content types:
@@ -185,17 +191,148 @@ model DealRecipient {
 //               unit ∈ WEIGHT_UNITS). Stored AS ENTERED — display-time
 //               conversion happens in lib/bids.ts, never at rest.
 //               content carries a formatted fallback string.
+// Price-sheet offers and counters are written as ordinary "message" rows
+// with a generated summary, so unread/inbox/nudges need no special case.
 model Message {
-  id              String        @id @default(uuid())
-  dealRecipientId String
-  senderType      String
-  senderName      String
-  type            String        @default("message")
-  content         String
-  bidAmount       Float?
-  bidUnit         String?
-  createdAt       DateTime      @default(now())
-  dealRecipient   DealRecipient @relation(fields: [dealRecipientId], references: [id], onDelete: Cascade)
+  id                    String               @id @default(uuid())
+  dealRecipientId       String?
+  priceSheetRecipientId String?
+  senderType            String
+  senderName            String
+  type                  String               @default("message")
+  content               String
+  bidAmount             Float?
+  bidUnit               String?
+  createdAt             DateTime             @default(now())
+  dealRecipient         DealRecipient?       @relation(fields: [dealRecipientId], references: [id], onDelete: Cascade)
+  priceSheetRecipient   PriceSheetRecipient? @relation(fields: [priceSheetRecipientId], references: [id], onDelete: Cascade)
 
   @@index([dealRecipientId])
+  @@index([priceSheetRecipientId])
+}
+
+// A dated BUYING price sheet: what this yard will PAY per material. The
+// second outgoing communication type alongside deals.
+//
+// DIRECTION IS THE MIRROR OF DEALS. On a deal the dealer SELLS and
+// contacts bid up. Here the dealer BUYS: the recipient is a supplier who
+// replies with what tonnage they have and what they want for it, and the
+// yard counters. Read every "price" below as money the yard pays out.
+//
+// SNAPSHOT SEMANTICS: publishing LOCKS the sheet. This matters more now
+// that responses exist — a supplier's counter is meaningless unless the
+// prices they were quoting against are fixed. New prices mean a new sheet
+// (duplicate the last one and edit the numbers).
+model PriceSheet {
+  id            String                @id @default(uuid())
+  userId        String
+  title         String                @default("Delivered Prices")
+  // Free-text line under the title for market basis / index reference,
+  // e.g. "Comex $4.49" or "Delivered to our yard".
+  headerNote    String?
+  effectiveDate DateTime
+  // Optional cut-off. After this the public page still SHOWS the prices
+  // (a supplier needs to see what expired) but refuses new offers and
+  // revisions — a locked snapshot with an unbounded lifetime is how you
+  // end up honouring three-week-old copper.
+  expiresAt     DateTime?
+  status        String                @default("draft") // draft -> published (locked)
+  publishedAt   DateTime?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items         PriceSheetItem[]
+  recipients    PriceSheetRecipient[]
+
+  @@index([userId])
+}
+
+// One priced line. `price` and `priceNote` are mutually exclusive: real
+// sheets carry non-numeric entries like "Dirty Brass — Need Pics", which
+// a bare Float column can't hold. Recovery percentages ("#1 Heavy (87%
+// basis)", "Irony Alum (50%)") live inside `name` — that's how yards
+// write the grade, and splitting them out would fight the domain.
+model PriceSheetItem {
+  id        String     @id @default(uuid())
+  sheetId   String
+  category  String
+  name      String
+  price     Float?
+  priceNote String?
+  unit      String     @default("lb")
+  sortOrder Int        @default(0)
+  sheet     PriceSheet @relation(fields: [sheetId], references: [id], onDelete: Cascade)
+
+  @@index([sheetId])
+}
+
+// One recipient of a sheet. PER-RECIPIENT accessToken (like DealRecipient)
+// — a sheet is not broadcast material, it's an individually addressed
+// offer that the supplier answers, so their reply has to be attributable.
+model PriceSheetRecipient {
+  id          String              @id @default(uuid())
+  sheetId     String
+  contactId   String?
+  accessToken String              @unique
+  channel     String
+  // pending -> sent -> viewed -> responded
+  status      String              @default("pending")
+  sentAt      DateTime?
+  viewedAt    DateTime?
+  // Same inbox semantics as DealRecipient: unread = supplier messages
+  // newer than the marker; lastNudgeAt throttles Tier-3 email to one per
+  // unread batch.
+  ownerLastReadAt DateTime?
+  lastNudgeAt     DateTime?
+  createdAt   DateTime            @default(now())
+  sheet       PriceSheet          @relation(fields: [sheetId], references: [id], onDelete: Cascade)
+  contact     Contact?            @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  response    PriceSheetResponse?
+  messages    Message[]
+
+  @@index([sheetId])
+  @@index([accessToken])
+}
+
+// The supplier's reply: what they have, and what they want for it. One
+// per recipient — revising a reply updates this row rather than stacking
+// new ones, so there's always a single current position per side.
+//
+// Status is the negotiation state machine:
+//   submitted  supplier sent/revised their numbers; yard's move
+//   countered  yard countered on one or more lines; supplier's move
+//   accepted   yard accepted the supplier's current numbers (terminal)
+//   declined   yard passed (terminal)
+model PriceSheetResponse {
+  id          String                   @id @default(uuid())
+  recipientId String                   @unique
+  status      String                   @default("submitted")
+  buyerNote   String?
+  dealerNote  String?
+  // Snapshot taken at acceptance. The agreed per-line prices sit on the
+  // lines, but the TOTAL is computed from weights × basis — freeze it so
+  // a later change to conversion logic can't silently restate what was
+  // agreed.
+  agreedTotal Float?
+  submittedAt DateTime                 @default(now())
+  respondedAt DateTime? // yard's last action
+  updatedAt   DateTime                 @updatedAt
+  recipient   PriceSheetRecipient      @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  lines       PriceSheetResponseLine[]
+}
+
+// One material the supplier actually has. `buyerPrice` null means "your
+// sheet price is fine"; a value means they're asking for more.
+// `dealerPrice` is the yard's counter on that line.
+model PriceSheetResponseLine {
+  id          String             @id @default(uuid())
+  responseId  String
+  itemId      String // the PriceSheetItem being answered
+  weight      Float
+  weightUnit  String             @default("lbs")
+  buyerPrice  Float?
+  dealerPrice Float?
+  response    PriceSheetResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+
+  @@index([responseId])
 }
