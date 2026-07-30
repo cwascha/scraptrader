@@ -259,6 +259,7 @@ export type UserWhereInput = {
   yardAddresses?: Prisma.YardAddressListRelationFilter
   contactGroups?: Prisma.ContactGroupListRelationFilter
   priceSheets?: Prisma.PriceSheetListRelationFilter
+  materialGrades?: Prisma.MaterialGradeListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -281,6 +282,7 @@ export type UserOrderByWithRelationInput = {
   yardAddresses?: Prisma.YardAddressOrderByRelationAggregateInput
   contactGroups?: Prisma.ContactGroupOrderByRelationAggregateInput
   priceSheets?: Prisma.PriceSheetOrderByRelationAggregateInput
+  materialGrades?: Prisma.MaterialGradeOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -306,6 +308,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   yardAddresses?: Prisma.YardAddressListRelationFilter
   contactGroups?: Prisma.ContactGroupListRelationFilter
   priceSheets?: Prisma.PriceSheetListRelationFilter
+  materialGrades?: Prisma.MaterialGradeListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -368,6 +371,7 @@ export type UserCreateInput = {
   yardAddresses?: Prisma.YardAddressCreateNestedManyWithoutUserInput
   contactGroups?: Prisma.ContactGroupCreateNestedManyWithoutUserInput
   priceSheets?: Prisma.PriceSheetCreateNestedManyWithoutUserInput
+  materialGrades?: Prisma.MaterialGradeCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -390,6 +394,7 @@ export type UserUncheckedCreateInput = {
   yardAddresses?: Prisma.YardAddressUncheckedCreateNestedManyWithoutUserInput
   contactGroups?: Prisma.ContactGroupUncheckedCreateNestedManyWithoutUserInput
   priceSheets?: Prisma.PriceSheetUncheckedCreateNestedManyWithoutUserInput
+  materialGrades?: Prisma.MaterialGradeUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -412,6 +417,7 @@ export type UserUpdateInput = {
   yardAddresses?: Prisma.YardAddressUpdateManyWithoutUserNestedInput
   contactGroups?: Prisma.ContactGroupUpdateManyWithoutUserNestedInput
   priceSheets?: Prisma.PriceSheetUpdateManyWithoutUserNestedInput
+  materialGrades?: Prisma.MaterialGradeUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -434,6 +440,7 @@ export type UserUncheckedUpdateInput = {
   yardAddresses?: Prisma.YardAddressUncheckedUpdateManyWithoutUserNestedInput
   contactGroups?: Prisma.ContactGroupUncheckedUpdateManyWithoutUserNestedInput
   priceSheets?: Prisma.PriceSheetUncheckedUpdateManyWithoutUserNestedInput
+  materialGrades?: Prisma.MaterialGradeUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -555,6 +562,20 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
+export type UserCreateNestedOneWithoutMaterialGradesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutMaterialGradesInput, Prisma.UserUncheckedCreateWithoutMaterialGradesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutMaterialGradesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutMaterialGradesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutMaterialGradesInput, Prisma.UserUncheckedCreateWithoutMaterialGradesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutMaterialGradesInput
+  upsert?: Prisma.UserUpsertWithoutMaterialGradesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutMaterialGradesInput, Prisma.UserUpdateWithoutMaterialGradesInput>, Prisma.UserUncheckedUpdateWithoutMaterialGradesInput>
+}
+
 export type UserCreateNestedOneWithoutContactsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutContactsInput, Prisma.UserUncheckedCreateWithoutContactsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutContactsInput
@@ -625,6 +646,110 @@ export type UserUpdateOneRequiredWithoutPriceSheetsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPriceSheetsInput, Prisma.UserUpdateWithoutPriceSheetsInput>, Prisma.UserUncheckedUpdateWithoutPriceSheetsInput>
 }
 
+export type UserCreateWithoutMaterialGradesInput = {
+  id?: string
+  email: string
+  name: string
+  companyName: string
+  passwordHash: string
+  encryptionKey: string
+  preferredWeightUnit?: string
+  logoUrl?: string | null
+  themeBrand?: string | null
+  themeBrandDark?: string | null
+  themeAccent?: string | null
+  themeMode?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deals?: Prisma.DealCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
+  yardAddresses?: Prisma.YardAddressCreateNestedManyWithoutUserInput
+  contactGroups?: Prisma.ContactGroupCreateNestedManyWithoutUserInput
+  priceSheets?: Prisma.PriceSheetCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutMaterialGradesInput = {
+  id?: string
+  email: string
+  name: string
+  companyName: string
+  passwordHash: string
+  encryptionKey: string
+  preferredWeightUnit?: string
+  logoUrl?: string | null
+  themeBrand?: string | null
+  themeBrandDark?: string | null
+  themeAccent?: string | null
+  themeMode?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deals?: Prisma.DealUncheckedCreateNestedManyWithoutUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
+  yardAddresses?: Prisma.YardAddressUncheckedCreateNestedManyWithoutUserInput
+  contactGroups?: Prisma.ContactGroupUncheckedCreateNestedManyWithoutUserInput
+  priceSheets?: Prisma.PriceSheetUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutMaterialGradesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutMaterialGradesInput, Prisma.UserUncheckedCreateWithoutMaterialGradesInput>
+}
+
+export type UserUpsertWithoutMaterialGradesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutMaterialGradesInput, Prisma.UserUncheckedUpdateWithoutMaterialGradesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutMaterialGradesInput, Prisma.UserUncheckedCreateWithoutMaterialGradesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutMaterialGradesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutMaterialGradesInput, Prisma.UserUncheckedUpdateWithoutMaterialGradesInput>
+}
+
+export type UserUpdateWithoutMaterialGradesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  companyName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deals?: Prisma.DealUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
+  yardAddresses?: Prisma.YardAddressUpdateManyWithoutUserNestedInput
+  contactGroups?: Prisma.ContactGroupUpdateManyWithoutUserNestedInput
+  priceSheets?: Prisma.PriceSheetUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutMaterialGradesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  companyName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  themeMode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deals?: Prisma.DealUncheckedUpdateManyWithoutUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
+  yardAddresses?: Prisma.YardAddressUncheckedUpdateManyWithoutUserNestedInput
+  contactGroups?: Prisma.ContactGroupUncheckedUpdateManyWithoutUserNestedInput
+  priceSheets?: Prisma.PriceSheetUncheckedUpdateManyWithoutUserNestedInput
+}
+
 export type UserCreateWithoutContactsInput = {
   id?: string
   email: string
@@ -644,6 +769,7 @@ export type UserCreateWithoutContactsInput = {
   yardAddresses?: Prisma.YardAddressCreateNestedManyWithoutUserInput
   contactGroups?: Prisma.ContactGroupCreateNestedManyWithoutUserInput
   priceSheets?: Prisma.PriceSheetCreateNestedManyWithoutUserInput
+  materialGrades?: Prisma.MaterialGradeCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContactsInput = {
@@ -665,6 +791,7 @@ export type UserUncheckedCreateWithoutContactsInput = {
   yardAddresses?: Prisma.YardAddressUncheckedCreateNestedManyWithoutUserInput
   contactGroups?: Prisma.ContactGroupUncheckedCreateNestedManyWithoutUserInput
   priceSheets?: Prisma.PriceSheetUncheckedCreateNestedManyWithoutUserInput
+  materialGrades?: Prisma.MaterialGradeUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContactsInput = {
@@ -702,6 +829,7 @@ export type UserUpdateWithoutContactsInput = {
   yardAddresses?: Prisma.YardAddressUpdateManyWithoutUserNestedInput
   contactGroups?: Prisma.ContactGroupUpdateManyWithoutUserNestedInput
   priceSheets?: Prisma.PriceSheetUpdateManyWithoutUserNestedInput
+  materialGrades?: Prisma.MaterialGradeUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactsInput = {
@@ -723,6 +851,7 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   yardAddresses?: Prisma.YardAddressUncheckedUpdateManyWithoutUserNestedInput
   contactGroups?: Prisma.ContactGroupUncheckedUpdateManyWithoutUserNestedInput
   priceSheets?: Prisma.PriceSheetUncheckedUpdateManyWithoutUserNestedInput
+  materialGrades?: Prisma.MaterialGradeUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutContactGroupsInput = {
@@ -744,6 +873,7 @@ export type UserCreateWithoutContactGroupsInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   yardAddresses?: Prisma.YardAddressCreateNestedManyWithoutUserInput
   priceSheets?: Prisma.PriceSheetCreateNestedManyWithoutUserInput
+  materialGrades?: Prisma.MaterialGradeCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContactGroupsInput = {
@@ -765,6 +895,7 @@ export type UserUncheckedCreateWithoutContactGroupsInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   yardAddresses?: Prisma.YardAddressUncheckedCreateNestedManyWithoutUserInput
   priceSheets?: Prisma.PriceSheetUncheckedCreateNestedManyWithoutUserInput
+  materialGrades?: Prisma.MaterialGradeUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContactGroupsInput = {
@@ -802,6 +933,7 @@ export type UserUpdateWithoutContactGroupsInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   yardAddresses?: Prisma.YardAddressUpdateManyWithoutUserNestedInput
   priceSheets?: Prisma.PriceSheetUpdateManyWithoutUserNestedInput
+  materialGrades?: Prisma.MaterialGradeUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactGroupsInput = {
@@ -823,6 +955,7 @@ export type UserUncheckedUpdateWithoutContactGroupsInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   yardAddresses?: Prisma.YardAddressUncheckedUpdateManyWithoutUserNestedInput
   priceSheets?: Prisma.PriceSheetUncheckedUpdateManyWithoutUserNestedInput
+  materialGrades?: Prisma.MaterialGradeUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutYardAddressesInput = {
@@ -844,6 +977,7 @@ export type UserCreateWithoutYardAddressesInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   contactGroups?: Prisma.ContactGroupCreateNestedManyWithoutUserInput
   priceSheets?: Prisma.PriceSheetCreateNestedManyWithoutUserInput
+  materialGrades?: Prisma.MaterialGradeCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutYardAddressesInput = {
@@ -865,6 +999,7 @@ export type UserUncheckedCreateWithoutYardAddressesInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   contactGroups?: Prisma.ContactGroupUncheckedCreateNestedManyWithoutUserInput
   priceSheets?: Prisma.PriceSheetUncheckedCreateNestedManyWithoutUserInput
+  materialGrades?: Prisma.MaterialGradeUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutYardAddressesInput = {
@@ -902,6 +1037,7 @@ export type UserUpdateWithoutYardAddressesInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   contactGroups?: Prisma.ContactGroupUpdateManyWithoutUserNestedInput
   priceSheets?: Prisma.PriceSheetUpdateManyWithoutUserNestedInput
+  materialGrades?: Prisma.MaterialGradeUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutYardAddressesInput = {
@@ -923,6 +1059,7 @@ export type UserUncheckedUpdateWithoutYardAddressesInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   contactGroups?: Prisma.ContactGroupUncheckedUpdateManyWithoutUserNestedInput
   priceSheets?: Prisma.PriceSheetUncheckedUpdateManyWithoutUserNestedInput
+  materialGrades?: Prisma.MaterialGradeUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutDealsInput = {
@@ -944,6 +1081,7 @@ export type UserCreateWithoutDealsInput = {
   yardAddresses?: Prisma.YardAddressCreateNestedManyWithoutUserInput
   contactGroups?: Prisma.ContactGroupCreateNestedManyWithoutUserInput
   priceSheets?: Prisma.PriceSheetCreateNestedManyWithoutUserInput
+  materialGrades?: Prisma.MaterialGradeCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutDealsInput = {
@@ -965,6 +1103,7 @@ export type UserUncheckedCreateWithoutDealsInput = {
   yardAddresses?: Prisma.YardAddressUncheckedCreateNestedManyWithoutUserInput
   contactGroups?: Prisma.ContactGroupUncheckedCreateNestedManyWithoutUserInput
   priceSheets?: Prisma.PriceSheetUncheckedCreateNestedManyWithoutUserInput
+  materialGrades?: Prisma.MaterialGradeUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutDealsInput = {
@@ -1002,6 +1141,7 @@ export type UserUpdateWithoutDealsInput = {
   yardAddresses?: Prisma.YardAddressUpdateManyWithoutUserNestedInput
   contactGroups?: Prisma.ContactGroupUpdateManyWithoutUserNestedInput
   priceSheets?: Prisma.PriceSheetUpdateManyWithoutUserNestedInput
+  materialGrades?: Prisma.MaterialGradeUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDealsInput = {
@@ -1023,6 +1163,7 @@ export type UserUncheckedUpdateWithoutDealsInput = {
   yardAddresses?: Prisma.YardAddressUncheckedUpdateManyWithoutUserNestedInput
   contactGroups?: Prisma.ContactGroupUncheckedUpdateManyWithoutUserNestedInput
   priceSheets?: Prisma.PriceSheetUncheckedUpdateManyWithoutUserNestedInput
+  materialGrades?: Prisma.MaterialGradeUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPriceSheetsInput = {
@@ -1044,6 +1185,7 @@ export type UserCreateWithoutPriceSheetsInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   yardAddresses?: Prisma.YardAddressCreateNestedManyWithoutUserInput
   contactGroups?: Prisma.ContactGroupCreateNestedManyWithoutUserInput
+  materialGrades?: Prisma.MaterialGradeCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPriceSheetsInput = {
@@ -1065,6 +1207,7 @@ export type UserUncheckedCreateWithoutPriceSheetsInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   yardAddresses?: Prisma.YardAddressUncheckedCreateNestedManyWithoutUserInput
   contactGroups?: Prisma.ContactGroupUncheckedCreateNestedManyWithoutUserInput
+  materialGrades?: Prisma.MaterialGradeUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPriceSheetsInput = {
@@ -1102,6 +1245,7 @@ export type UserUpdateWithoutPriceSheetsInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   yardAddresses?: Prisma.YardAddressUpdateManyWithoutUserNestedInput
   contactGroups?: Prisma.ContactGroupUpdateManyWithoutUserNestedInput
+  materialGrades?: Prisma.MaterialGradeUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPriceSheetsInput = {
@@ -1123,6 +1267,7 @@ export type UserUncheckedUpdateWithoutPriceSheetsInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   yardAddresses?: Prisma.YardAddressUncheckedUpdateManyWithoutUserNestedInput
   contactGroups?: Prisma.ContactGroupUncheckedUpdateManyWithoutUserNestedInput
+  materialGrades?: Prisma.MaterialGradeUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1136,6 +1281,7 @@ export type UserCountOutputType = {
   yardAddresses: number
   contactGroups: number
   priceSheets: number
+  materialGrades: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1144,6 +1290,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   yardAddresses?: boolean | UserCountOutputTypeCountYardAddressesArgs
   contactGroups?: boolean | UserCountOutputTypeCountContactGroupsArgs
   priceSheets?: boolean | UserCountOutputTypeCountPriceSheetsArgs
+  materialGrades?: boolean | UserCountOutputTypeCountMaterialGradesArgs
 }
 
 /**
@@ -1191,6 +1338,13 @@ export type UserCountOutputTypeCountPriceSheetsArgs<ExtArgs extends runtime.Type
   where?: Prisma.PriceSheetWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountMaterialGradesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MaterialGradeWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1212,6 +1366,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   yardAddresses?: boolean | Prisma.User$yardAddressesArgs<ExtArgs>
   contactGroups?: boolean | Prisma.User$contactGroupsArgs<ExtArgs>
   priceSheets?: boolean | Prisma.User$priceSheetsArgs<ExtArgs>
+  materialGrades?: boolean | Prisma.User$materialGradesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1273,6 +1428,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   yardAddresses?: boolean | Prisma.User$yardAddressesArgs<ExtArgs>
   contactGroups?: boolean | Prisma.User$contactGroupsArgs<ExtArgs>
   priceSheets?: boolean | Prisma.User$priceSheetsArgs<ExtArgs>
+  materialGrades?: boolean | Prisma.User$materialGradesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1286,6 +1442,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     yardAddresses: Prisma.$YardAddressPayload<ExtArgs>[]
     contactGroups: Prisma.$ContactGroupPayload<ExtArgs>[]
     priceSheets: Prisma.$PriceSheetPayload<ExtArgs>[]
+    materialGrades: Prisma.$MaterialGradePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1701,6 +1858,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   yardAddresses<T extends Prisma.User$yardAddressesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$yardAddressesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$YardAddressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   contactGroups<T extends Prisma.User$contactGroupsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$contactGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContactGroupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   priceSheets<T extends Prisma.User$priceSheetsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$priceSheetsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PriceSheetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  materialGrades<T extends Prisma.User$materialGradesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$materialGradesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialGradePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2252,6 +2410,30 @@ export type User$priceSheetsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.PriceSheetScalarFieldEnum | Prisma.PriceSheetScalarFieldEnum[]
+}
+
+/**
+ * User.materialGrades
+ */
+export type User$materialGradesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MaterialGrade
+   */
+  select?: Prisma.MaterialGradeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MaterialGrade
+   */
+  omit?: Prisma.MaterialGradeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MaterialGradeInclude<ExtArgs> | null
+  where?: Prisma.MaterialGradeWhereInput
+  orderBy?: Prisma.MaterialGradeOrderByWithRelationInput | Prisma.MaterialGradeOrderByWithRelationInput[]
+  cursor?: Prisma.MaterialGradeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MaterialGradeScalarFieldEnum | Prisma.MaterialGradeScalarFieldEnum[]
 }
 
 /**

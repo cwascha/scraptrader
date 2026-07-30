@@ -9,7 +9,9 @@
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "eslint",
-    "backfill:keys": "node --env-file=.env --import tsx scripts/backfill-keys.ts"
+    "backfill:keys": "node --env-file=.env --import tsx scripts/backfill-keys.ts",
+    "clean:deals": "node --env-file=.env --import tsx scripts/clean-orphan-deals.ts",
+    "set:company": "node --env-file=.env --import tsx scripts/set-company.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.3",

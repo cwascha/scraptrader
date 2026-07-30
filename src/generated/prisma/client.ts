@@ -47,6 +47,11 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model MaterialGrade
+ * 
+ */
+export type MaterialGrade = Prisma.MaterialGradeModel
+/**
  * Model Contact
  * 
  */

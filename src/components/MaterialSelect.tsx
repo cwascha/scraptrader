@@ -1,18 +1,26 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MATERIAL_CATEGORIES, materialLabel } from "@/lib/materials";
+import {
+  groupGrades,
+  type MaterialGradeItem,
+  type MaterialCategory,
+} from "@/lib/materials";
+import { fetchJson } from "@/lib/fetch-json";
 
-// Custom dropdown for ISRI materials: 8 main categories as collapsible rows
-// (all collapsed by default, so the 167-grade list never has to be scrolled
-// blind). Clicking a category NAME selects the category itself; clicking the
-// chevron expands it to show its ISRI-coded grades. Grade descriptions show
-// as hover tooltips.
+// Material picker, backed by the YARD'S OWN grade list (/api/materials)
+// rather than a static file. Categories are collapsible rows; clicking a
+// category name selects the category itself (a mixed load), clicking the
+// chevron expands it.
 //
-// The search box filters on code, grade name, AND description — dealers can
-// type trade slang like "bare bright" (which only appears in Barley's spec)
-// and still find the grade. While searching, matching categories auto-expand
-// to their matching grades.
+// Grades are per-user data now, so this component also lets the yard ADD a
+// grade without leaving the deal form — the moment you need a grade that
+// isn't listed is the moment you're creating a deal, and bouncing to a
+// settings page to add it loses the form.
+//
+// Search filters on grade name and category. There's no description field
+// any more: the grade names ARE the yard's own words, so there's nothing
+// to translate.
 export default function MaterialSelect({
   value,
   onChange,
@@ -23,7 +31,27 @@ export default function MaterialSelect({
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<string[]>([]);
   const [query, setQuery] = useState("");
+  const [grades, setGrades] = useState<MaterialGradeItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState<string | null>(null); // category name
+  const [newName, setNewName] = useState("");
+  const [addError, setAddError] = useState("");
   const ref = useRef<HTMLDivElement>(null);
+
+  async function load() {
+    try {
+      const g = await fetchJson<MaterialGradeItem[]>("/api/materials");
+      setGrades(Array.isArray(g) ? g : []);
+    } catch {
+      setGrades([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -44,7 +72,9 @@ export default function MaterialSelect({
   }, [open]);
 
   function openPanel() {
-    setQuery(""); // fresh search every time the panel opens
+    setQuery("");
+    setAdding(null);
+    setAddError("");
     setOpen(true);
   }
 
@@ -59,39 +89,54 @@ export default function MaterialSelect({
     setOpen(false);
   }
 
+  async function addGrade(category: string) {
+    const name = newName.trim();
+    if (!name) return;
+    setAddError("");
+    try {
+      const created = await fetchJson<MaterialGradeItem>("/api/materials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category, name }),
+      });
+      await load();
+      setNewName("");
+      setAdding(null);
+      // Adding a grade mid-deal almost always means you want it — select it.
+      select(created.name);
+    } catch (err) {
+      setAddError(err instanceof Error ? err.message : "Couldn't add that grade");
+    }
+  }
+
+  const all: MaterialCategory[] = groupGrades(grades);
   const q = query.trim().toLowerCase();
   const searching = q.length > 0;
 
-  // While searching: a category is visible if its name matches or it has
-  // matching grades, and its matching grades render auto-expanded. While
-  // browsing: all categories visible, grades render only when expanded.
-  const visibleCategories = MATERIAL_CATEGORIES.map((cat) => {
-    if (!searching) {
+  const visibleCategories = all
+    .map((cat) => {
+      if (!searching) {
+        return {
+          category: cat.category,
+          items: expanded.includes(cat.category) ? cat.items : [],
+          visible: true,
+          showChevron: true,
+          countLabel: `${cat.items.length}`,
+        };
+      }
+      const catMatches = cat.category.toLowerCase().includes(q);
+      const matched = cat.items.filter((i) =>
+        i.name.toLowerCase().includes(q)
+      );
       return {
         category: cat.category,
-        totalCount: cat.items.length,
-        items: expanded.includes(cat.category) ? cat.items : [],
-        visible: true,
-        showChevron: true,
-        countLabel: `${cat.items.length}`,
+        items: matched,
+        visible: catMatches || matched.length > 0,
+        showChevron: false,
+        countLabel: `${matched.length} match${matched.length === 1 ? "" : "es"}`,
       };
-    }
-    const catMatches = cat.category.toLowerCase().includes(q);
-    const matchedItems = cat.items.filter(
-      (i) =>
-        i.code.toLowerCase().includes(q) ||
-        i.name.toLowerCase().includes(q) ||
-        i.description.toLowerCase().includes(q)
-    );
-    return {
-      category: cat.category,
-      totalCount: cat.items.length,
-      items: matchedItems,
-      visible: catMatches || matchedItems.length > 0,
-      showChevron: false,
-      countLabel: `${matchedItems.length} match${matchedItems.length === 1 ? "" : "es"}`,
-    };
-  }).filter((c) => c.visible);
+    })
+    .filter((c) => c.visible);
 
   return (
     <div className="relative" ref={ref}>
@@ -101,7 +146,7 @@ export default function MaterialSelect({
         className="w-full px-3 py-2 border border-slate-300 rounded-lg text-left bg-white flex items-center justify-between gap-2 focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
       >
         <span className={value ? "text-slate-800" : "text-slate-400"}>
-          {value ? materialLabel(value) : "Select material..."}
+          {value || (loading ? "Loading grades..." : "Select material...")}
         </span>
         <span className="text-slate-400 text-xs flex-shrink-0">
           {open ? "▲" : "▼"}
@@ -115,16 +160,22 @@ export default function MaterialSelect({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search code, grade, or description..."
+              placeholder="Search grades..."
               autoFocus
               className="w-full px-3 py-1.5 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
             />
           </div>
 
           <div className="overflow-y-auto">
-            {visibleCategories.length === 0 ? (
+            {loading ? (
               <p className="px-4 py-6 text-sm text-slate-400 text-center">
-                No materials match &quot;{query.trim()}&quot;
+                Loading your grades...
+              </p>
+            ) : visibleCategories.length === 0 ? (
+              <p className="px-4 py-6 text-sm text-slate-400 text-center">
+                {searching
+                  ? `No grades match "${query.trim()}"`
+                  : "No grades yet."}
               </p>
             ) : (
               visibleCategories.map((cat) => (
@@ -152,11 +203,7 @@ export default function MaterialSelect({
                       onClick={() => select(cat.category)}
                       className={`flex-1 text-left py-2 pr-3 text-sm font-medium hover:bg-slate-50 ${
                         cat.showChevron ? "" : "pl-3"
-                      } ${
-                        value === cat.category
-                          ? "text-brand"
-                          : "text-slate-800"
-                      }`}
+                      } ${value === cat.category ? "text-brand" : "text-slate-800"}`}
                     >
                       {cat.category}
                       <span className="text-slate-400 font-normal ml-1.5">
@@ -169,23 +216,65 @@ export default function MaterialSelect({
                     <div className="pb-1">
                       {cat.items.map((item) => (
                         <button
-                          key={`${cat.category}:${item.code}`}
+                          key={item.id}
                           type="button"
-                          title={item.description}
-                          onClick={() => select(item.code)}
+                          onClick={() => select(item.name)}
                           className={`w-full text-left pl-9 pr-3 py-1.5 text-sm hover:bg-slate-50 ${
-                            value === item.code
+                            value === item.name
                               ? "bg-brand/5 text-brand"
                               : "text-slate-700"
                           }`}
                         >
-                          <span className="font-medium">{item.code}</span>
-                          <span className="text-slate-400">
-                            {" "}
-                            — {item.name}
-                          </span>
+                          {item.name}
                         </button>
                       ))}
+                    </div>
+                  )}
+
+                  {/* Add a grade to this category, in place. Only offered
+                      while browsing — mid-search the category is filtered
+                      and the affordance would be confusing. */}
+                  {!searching && expanded.includes(cat.category) && (
+                    <div className="pl-9 pr-3 pb-2">
+                      {adding === cat.category ? (
+                        <div className="flex gap-1.5">
+                          <input
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                addGrade(cat.category);
+                              }
+                            }}
+                            placeholder="New grade name"
+                            autoFocus
+                            className="flex-1 min-w-0 px-2 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:border-brand"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => addGrade(cat.category)}
+                            className="px-2 py-1 bg-brand text-white text-xs font-medium rounded hover:bg-brand-dark"
+                          >
+                            Add
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAdding(cat.category);
+                            setNewName("");
+                            setAddError("");
+                          }}
+                          className="text-xs text-brand hover:text-brand-dark font-medium"
+                        >
+                          + Add grade to {cat.category}
+                        </button>
+                      )}
+                      {addError && adding === cat.category && (
+                        <p className="text-xs text-red-500 mt-1">{addError}</p>
+                      )}
                     </div>
                   )}
                 </div>

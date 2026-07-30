@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  MaterialGrade: 'MaterialGrade',
   Contact: 'Contact',
   ContactGroup: 'ContactGroup',
   YardAddress: 'YardAddress',
@@ -412,7 +413,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "contact" | "contactGroup" | "yardAddress" | "deal" | "dealImage" | "dealRecipient" | "message" | "priceSheet" | "priceSheetItem" | "priceSheetRecipient" | "priceSheetResponse" | "priceSheetResponseLine"
+    modelProps: "user" | "materialGrade" | "contact" | "contactGroup" | "yardAddress" | "deal" | "dealImage" | "dealRecipient" | "message" | "priceSheet" | "priceSheetItem" | "priceSheetRecipient" | "priceSheetResponse" | "priceSheetResponseLine"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -487,6 +488,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    MaterialGrade: {
+      payload: Prisma.$MaterialGradePayload<ExtArgs>
+      fields: Prisma.MaterialGradeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MaterialGradeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialGradePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MaterialGradeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialGradePayload>
+        }
+        findFirst: {
+          args: Prisma.MaterialGradeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialGradePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MaterialGradeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialGradePayload>
+        }
+        findMany: {
+          args: Prisma.MaterialGradeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialGradePayload>[]
+        }
+        create: {
+          args: Prisma.MaterialGradeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialGradePayload>
+        }
+        createMany: {
+          args: Prisma.MaterialGradeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MaterialGradeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialGradePayload>[]
+        }
+        delete: {
+          args: Prisma.MaterialGradeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialGradePayload>
+        }
+        update: {
+          args: Prisma.MaterialGradeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialGradePayload>
+        }
+        deleteMany: {
+          args: Prisma.MaterialGradeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MaterialGradeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MaterialGradeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialGradePayload>[]
+        }
+        upsert: {
+          args: Prisma.MaterialGradeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialGradePayload>
+        }
+        aggregate: {
+          args: Prisma.MaterialGradeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMaterialGrade>
+        }
+        groupBy: {
+          args: Prisma.MaterialGradeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MaterialGradeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MaterialGradeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MaterialGradeCountAggregateOutputType> | number
         }
       }
     }
@@ -1434,6 +1509,18 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const MaterialGradeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  category: 'category',
+  name: 'name',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt'
+} as const
+
+export type MaterialGradeScalarFieldEnum = (typeof MaterialGradeScalarFieldEnum)[keyof typeof MaterialGradeScalarFieldEnum]
+
+
 export const ContactScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -1791,6 +1878,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  materialGrade?: Prisma.MaterialGradeOmit
   contact?: Prisma.ContactOmit
   contactGroup?: Prisma.ContactGroupOmit
   yardAddress?: Prisma.YardAddressOmit

@@ -30,6 +30,32 @@ model User {
   yardAddresses       YardAddress[]
   contactGroups       ContactGroup[]
   priceSheets         PriceSheet[]
+  materialGrades      MaterialGrade[]
+}
+
+// The yard's own list of material grades, used when creating deals.
+//
+// PER-USER DATA, not a static list: yards add their own grades ("Insulated
+// Al Wire", "Sealed Units w/ Copper"), and one yard's vocabulary isn't
+// another's. Seeded lazily from DEFAULT_GRADES (lib/materials.ts) the
+// first time a user's list is read, so existing accounts get it too.
+//
+// Deals SNAPSHOT the grade NAME into Deal.material rather than holding a
+// foreign key — same rule as address snapshots. Deleting or renaming a
+// grade must never rewrite the history of deals already published under
+// it. That's also why there's no rename: change the name and you'd have
+// two vocabularies, the deals' and the list's, silently disagreeing.
+model MaterialGrade {
+  id        String   @id @default(uuid())
+  userId    String
+  category  String
+  name      String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@index([userId])
 }
 
 model Contact {

@@ -9,6 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User'
+export type * from './models/MaterialGrade'
 export type * from './models/Contact'
 export type * from './models/ContactGroup'
 export type * from './models/YardAddress'

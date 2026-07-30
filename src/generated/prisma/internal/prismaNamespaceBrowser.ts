@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  MaterialGrade: 'MaterialGrade',
   Contact: 'Contact',
   ContactGroup: 'ContactGroup',
   YardAddress: 'YardAddress',
@@ -97,6 +98,18 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const MaterialGradeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  category: 'category',
+  name: 'name',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt'
+} as const
+
+export type MaterialGradeScalarFieldEnum = (typeof MaterialGradeScalarFieldEnum)[keyof typeof MaterialGradeScalarFieldEnum]
 
 
 export const ContactScalarFieldEnum = {

@@ -227,6 +227,10 @@ export async function PATCH(
       const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
       const sheetLink = `${baseUrl}/prices/${recipient.accessToken}`;
       const channel = recipient.channel;
+      // Same branding the price sheet itself went out with — a supplier
+      // shouldn't get a branded sheet and then an unbranded counter.
+      const logoAbsUrl = user.logoUrl ? `${baseUrl}${user.logoUrl}` : null;
+      const brandColor = user.themeBrand || "#2d5f8a";
 
       const emailLines = resolved.map((l) => ({
         name: l.name,
@@ -251,6 +255,8 @@ export async function PATCH(
           lines: emailLines,
           totalText,
           sheetLink,
+          brandColor,
+          logoUrl: logoAbsUrl,
         });
       } else if (channel === "sms" && decrypted.phone && isSmsConfigured()) {
         await sendOutcomeSms({

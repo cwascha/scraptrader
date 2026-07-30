@@ -8,7 +8,7 @@ import {
   WEIGHT_UNITS,
   buildDealTitle,
 } from "@/lib/deal-fields";
-import { MATERIAL_VALUES } from "@/lib/materials";
+import { isValidMaterial } from "@/lib/materials-server";
 import { parseAddressSnapshot, AddressSnapshot } from "@/lib/address";
 
 // Deal list with inbox data: each recipient carries the decrypted
@@ -119,10 +119,8 @@ export async function POST(req: NextRequest) {
 
   const errors: string[] = [];
   if (!material) errors.push("Material is required");
-  else if (!MATERIAL_VALUES.includes(material))
-    errors.push(
-      "Material must be an ISRI category or code from the materials list"
-    );
+  else if (!(await isValidMaterial(user.id, material)))
+    errors.push("Pick a material grade from your list");
   if (packaging.length === 0) errors.push("Select at least one packaging type");
   if (!Number.isInteger(numLoads) || numLoads < 1)
     errors.push("Number of loads must be a whole number of at least 1");

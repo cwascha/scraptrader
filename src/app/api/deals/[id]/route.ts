@@ -11,7 +11,7 @@ import {
   PRICE_UNITS,
   buildDealTitle,
 } from "@/lib/deal-fields";
-import { MATERIAL_VALUES } from "@/lib/materials";
+import { isValidMaterial } from "@/lib/materials-server";
 import { parseAddressSnapshot, AddressSnapshot } from "@/lib/address";
 
 export async function GET(
@@ -200,12 +200,15 @@ export async function PUT(
   // If Export isn't selected, port fields are cleared.
 
   if (!material) errors.push("Material is required");
-  // Only validate against the ISRI list when the material is being CHANGED —
-  // deals created before the ISRI list (e.g. "Copper") stay editable.
-  else if (body.material !== undefined && !MATERIAL_VALUES.includes(material))
-    errors.push(
-      "Material must be an ISRI category or code from the materials list"
-    );
+  // Only validate when the material is being CHANGED. Deals carry their
+  // grade as a snapshot, so one created under a since-retired grade (or
+  // under the old ISRI list) stays editable — you can fix its weight
+  // without being forced to re-pick a material that no longer exists.
+  else if (
+    body.material !== undefined &&
+    !(await isValidMaterial(user.id, material))
+  )
+    errors.push("Pick a material grade from your list");
   if (packaging.length === 0) errors.push("Select at least one packaging type");
   if (!Number.isInteger(numLoads) || numLoads < 1)
     errors.push("Number of loads must be a whole number of at least 1");

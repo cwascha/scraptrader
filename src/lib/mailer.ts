@@ -446,16 +446,20 @@ export interface PriceSheetOutcomeEmailOptions {
   lines: { name: string; detail: string }[];
   totalText: string | null;
   sheetLink: string;
+  brandColor: string; // hex — dealer theme or default
+  logoUrl: string | null; // absolute URL or null
 }
 
 // Tells the SUPPLIER the yard moved. Without this the negotiation is
 // one-way: they'd only discover a counter by revisiting their link on a
 // hunch, so counters go unanswered and offers die silently. Dealer
-// identity on the From, replies land in the dealer's inbox.
+// identity on the From, dealer BRANDING in the body — this is the yard
+// talking to their supplier, so it must look like the price sheet that
+// started the conversation, not like the platform.
 export async function sendPriceSheetOutcomeEmail(
   opts: PriceSheetOutcomeEmailOptions
 ): Promise<void> {
-  const brand = sanitizeBrand("#2d5f8a");
+  const brand = sanitizeBrand(opts.brandColor);
   const contactName = escapeHtml(opts.contactName);
   const sellerName = escapeHtml(opts.sellerName);
   const companyName = escapeHtml(opts.companyName);
@@ -506,7 +510,7 @@ export async function sendPriceSheetOutcomeEmail(
                 : ""
             }`;
 
-  const html = shell(headerHtml(null, companyName, brand), body);
+  const html = shell(headerHtml(opts.logoUrl, companyName, brand), body);
 
   const text = [
     `Hi ${opts.contactName},`,
