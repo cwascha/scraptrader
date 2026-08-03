@@ -20,14 +20,25 @@ export type PriceSheetModel = runtime.Types.Result.DefaultSelection<Prisma.$Pric
 
 export type AggregatePriceSheet = {
   _count: PriceSheetCountAggregateOutputType | null
+  _avg: PriceSheetAvgAggregateOutputType | null
+  _sum: PriceSheetSumAggregateOutputType | null
   _min: PriceSheetMinAggregateOutputType | null
   _max: PriceSheetMaxAggregateOutputType | null
+}
+
+export type PriceSheetAvgAggregateOutputType = {
+  comexBasis: number | null
+}
+
+export type PriceSheetSumAggregateOutputType = {
+  comexBasis: number | null
 }
 
 export type PriceSheetMinAggregateOutputType = {
   id: string | null
   userId: string | null
   title: string | null
+  comexBasis: number | null
   headerNote: string | null
   effectiveDate: Date | null
   expiresAt: Date | null
@@ -41,6 +52,7 @@ export type PriceSheetMaxAggregateOutputType = {
   id: string | null
   userId: string | null
   title: string | null
+  comexBasis: number | null
   headerNote: string | null
   effectiveDate: Date | null
   expiresAt: Date | null
@@ -54,6 +66,7 @@ export type PriceSheetCountAggregateOutputType = {
   id: number
   userId: number
   title: number
+  comexBasis: number
   headerNote: number
   effectiveDate: number
   expiresAt: number
@@ -65,10 +78,19 @@ export type PriceSheetCountAggregateOutputType = {
 }
 
 
+export type PriceSheetAvgAggregateInputType = {
+  comexBasis?: true
+}
+
+export type PriceSheetSumAggregateInputType = {
+  comexBasis?: true
+}
+
 export type PriceSheetMinAggregateInputType = {
   id?: true
   userId?: true
   title?: true
+  comexBasis?: true
   headerNote?: true
   effectiveDate?: true
   expiresAt?: true
@@ -82,6 +104,7 @@ export type PriceSheetMaxAggregateInputType = {
   id?: true
   userId?: true
   title?: true
+  comexBasis?: true
   headerNote?: true
   effectiveDate?: true
   expiresAt?: true
@@ -95,6 +118,7 @@ export type PriceSheetCountAggregateInputType = {
   id?: true
   userId?: true
   title?: true
+  comexBasis?: true
   headerNote?: true
   effectiveDate?: true
   expiresAt?: true
@@ -143,6 +167,18 @@ export type PriceSheetAggregateArgs<ExtArgs extends runtime.Types.Extensions.Int
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: PriceSheetAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: PriceSheetSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: PriceSheetMinAggregateInputType
@@ -173,6 +209,8 @@ export type PriceSheetGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   _count?: PriceSheetCountAggregateInputType | true
+  _avg?: PriceSheetAvgAggregateInputType
+  _sum?: PriceSheetSumAggregateInputType
   _min?: PriceSheetMinAggregateInputType
   _max?: PriceSheetMaxAggregateInputType
 }
@@ -181,6 +219,7 @@ export type PriceSheetGroupByOutputType = {
   id: string
   userId: string
   title: string
+  comexBasis: number | null
   headerNote: string | null
   effectiveDate: Date
   expiresAt: Date | null
@@ -189,6 +228,8 @@ export type PriceSheetGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   _count: PriceSheetCountAggregateOutputType | null
+  _avg: PriceSheetAvgAggregateOutputType | null
+  _sum: PriceSheetSumAggregateOutputType | null
   _min: PriceSheetMinAggregateOutputType | null
   _max: PriceSheetMaxAggregateOutputType | null
 }
@@ -215,6 +256,7 @@ export type PriceSheetWhereInput = {
   id?: Prisma.StringFilter<"PriceSheet"> | string
   userId?: Prisma.StringFilter<"PriceSheet"> | string
   title?: Prisma.StringFilter<"PriceSheet"> | string
+  comexBasis?: Prisma.FloatNullableFilter<"PriceSheet"> | number | null
   headerNote?: Prisma.StringNullableFilter<"PriceSheet"> | string | null
   effectiveDate?: Prisma.DateTimeFilter<"PriceSheet"> | Date | string
   expiresAt?: Prisma.DateTimeNullableFilter<"PriceSheet"> | Date | string | null
@@ -231,6 +273,7 @@ export type PriceSheetOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  comexBasis?: Prisma.SortOrderInput | Prisma.SortOrder
   headerNote?: Prisma.SortOrderInput | Prisma.SortOrder
   effectiveDate?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -250,6 +293,7 @@ export type PriceSheetWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.PriceSheetWhereInput | Prisma.PriceSheetWhereInput[]
   userId?: Prisma.StringFilter<"PriceSheet"> | string
   title?: Prisma.StringFilter<"PriceSheet"> | string
+  comexBasis?: Prisma.FloatNullableFilter<"PriceSheet"> | number | null
   headerNote?: Prisma.StringNullableFilter<"PriceSheet"> | string | null
   effectiveDate?: Prisma.DateTimeFilter<"PriceSheet"> | Date | string
   expiresAt?: Prisma.DateTimeNullableFilter<"PriceSheet"> | Date | string | null
@@ -266,6 +310,7 @@ export type PriceSheetOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  comexBasis?: Prisma.SortOrderInput | Prisma.SortOrder
   headerNote?: Prisma.SortOrderInput | Prisma.SortOrder
   effectiveDate?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -274,8 +319,10 @@ export type PriceSheetOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.PriceSheetCountOrderByAggregateInput
+  _avg?: Prisma.PriceSheetAvgOrderByAggregateInput
   _max?: Prisma.PriceSheetMaxOrderByAggregateInput
   _min?: Prisma.PriceSheetMinOrderByAggregateInput
+  _sum?: Prisma.PriceSheetSumOrderByAggregateInput
 }
 
 export type PriceSheetScalarWhereWithAggregatesInput = {
@@ -285,6 +332,7 @@ export type PriceSheetScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"PriceSheet"> | string
   userId?: Prisma.StringWithAggregatesFilter<"PriceSheet"> | string
   title?: Prisma.StringWithAggregatesFilter<"PriceSheet"> | string
+  comexBasis?: Prisma.FloatNullableWithAggregatesFilter<"PriceSheet"> | number | null
   headerNote?: Prisma.StringNullableWithAggregatesFilter<"PriceSheet"> | string | null
   effectiveDate?: Prisma.DateTimeWithAggregatesFilter<"PriceSheet"> | Date | string
   expiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PriceSheet"> | Date | string | null
@@ -297,6 +345,7 @@ export type PriceSheetScalarWhereWithAggregatesInput = {
 export type PriceSheetCreateInput = {
   id?: string
   title?: string
+  comexBasis?: number | null
   headerNote?: string | null
   effectiveDate: Date | string
   expiresAt?: Date | string | null
@@ -313,6 +362,7 @@ export type PriceSheetUncheckedCreateInput = {
   id?: string
   userId: string
   title?: string
+  comexBasis?: number | null
   headerNote?: string | null
   effectiveDate: Date | string
   expiresAt?: Date | string | null
@@ -327,6 +377,7 @@ export type PriceSheetUncheckedCreateInput = {
 export type PriceSheetUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  comexBasis?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   headerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -343,6 +394,7 @@ export type PriceSheetUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  comexBasis?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   headerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -358,6 +410,7 @@ export type PriceSheetCreateManyInput = {
   id?: string
   userId: string
   title?: string
+  comexBasis?: number | null
   headerNote?: string | null
   effectiveDate: Date | string
   expiresAt?: Date | string | null
@@ -370,6 +423,7 @@ export type PriceSheetCreateManyInput = {
 export type PriceSheetUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  comexBasis?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   headerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -383,6 +437,7 @@ export type PriceSheetUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  comexBasis?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   headerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -406,6 +461,7 @@ export type PriceSheetCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  comexBasis?: Prisma.SortOrder
   headerNote?: Prisma.SortOrder
   effectiveDate?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
@@ -415,10 +471,15 @@ export type PriceSheetCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type PriceSheetAvgOrderByAggregateInput = {
+  comexBasis?: Prisma.SortOrder
+}
+
 export type PriceSheetMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  comexBasis?: Prisma.SortOrder
   headerNote?: Prisma.SortOrder
   effectiveDate?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
@@ -432,6 +493,7 @@ export type PriceSheetMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  comexBasis?: Prisma.SortOrder
   headerNote?: Prisma.SortOrder
   effectiveDate?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
@@ -439,6 +501,10 @@ export type PriceSheetMinOrderByAggregateInput = {
   publishedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type PriceSheetSumOrderByAggregateInput = {
+  comexBasis?: Prisma.SortOrder
 }
 
 export type PriceSheetScalarRelationFilter = {
@@ -519,6 +585,7 @@ export type PriceSheetUpdateOneRequiredWithoutRecipientsNestedInput = {
 export type PriceSheetCreateWithoutUserInput = {
   id?: string
   title?: string
+  comexBasis?: number | null
   headerNote?: string | null
   effectiveDate: Date | string
   expiresAt?: Date | string | null
@@ -533,6 +600,7 @@ export type PriceSheetCreateWithoutUserInput = {
 export type PriceSheetUncheckedCreateWithoutUserInput = {
   id?: string
   title?: string
+  comexBasis?: number | null
   headerNote?: string | null
   effectiveDate: Date | string
   expiresAt?: Date | string | null
@@ -576,6 +644,7 @@ export type PriceSheetScalarWhereInput = {
   id?: Prisma.StringFilter<"PriceSheet"> | string
   userId?: Prisma.StringFilter<"PriceSheet"> | string
   title?: Prisma.StringFilter<"PriceSheet"> | string
+  comexBasis?: Prisma.FloatNullableFilter<"PriceSheet"> | number | null
   headerNote?: Prisma.StringNullableFilter<"PriceSheet"> | string | null
   effectiveDate?: Prisma.DateTimeFilter<"PriceSheet"> | Date | string
   expiresAt?: Prisma.DateTimeNullableFilter<"PriceSheet"> | Date | string | null
@@ -588,6 +657,7 @@ export type PriceSheetScalarWhereInput = {
 export type PriceSheetCreateWithoutItemsInput = {
   id?: string
   title?: string
+  comexBasis?: number | null
   headerNote?: string | null
   effectiveDate: Date | string
   expiresAt?: Date | string | null
@@ -603,6 +673,7 @@ export type PriceSheetUncheckedCreateWithoutItemsInput = {
   id?: string
   userId: string
   title?: string
+  comexBasis?: number | null
   headerNote?: string | null
   effectiveDate: Date | string
   expiresAt?: Date | string | null
@@ -632,6 +703,7 @@ export type PriceSheetUpdateToOneWithWhereWithoutItemsInput = {
 export type PriceSheetUpdateWithoutItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  comexBasis?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   headerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -647,6 +719,7 @@ export type PriceSheetUncheckedUpdateWithoutItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  comexBasis?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   headerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -660,6 +733,7 @@ export type PriceSheetUncheckedUpdateWithoutItemsInput = {
 export type PriceSheetCreateWithoutRecipientsInput = {
   id?: string
   title?: string
+  comexBasis?: number | null
   headerNote?: string | null
   effectiveDate: Date | string
   expiresAt?: Date | string | null
@@ -675,6 +749,7 @@ export type PriceSheetUncheckedCreateWithoutRecipientsInput = {
   id?: string
   userId: string
   title?: string
+  comexBasis?: number | null
   headerNote?: string | null
   effectiveDate: Date | string
   expiresAt?: Date | string | null
@@ -704,6 +779,7 @@ export type PriceSheetUpdateToOneWithWhereWithoutRecipientsInput = {
 export type PriceSheetUpdateWithoutRecipientsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  comexBasis?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   headerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -719,6 +795,7 @@ export type PriceSheetUncheckedUpdateWithoutRecipientsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  comexBasis?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   headerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -732,6 +809,7 @@ export type PriceSheetUncheckedUpdateWithoutRecipientsInput = {
 export type PriceSheetCreateManyUserInput = {
   id?: string
   title?: string
+  comexBasis?: number | null
   headerNote?: string | null
   effectiveDate: Date | string
   expiresAt?: Date | string | null
@@ -744,6 +822,7 @@ export type PriceSheetCreateManyUserInput = {
 export type PriceSheetUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  comexBasis?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   headerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -758,6 +837,7 @@ export type PriceSheetUpdateWithoutUserInput = {
 export type PriceSheetUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  comexBasis?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   headerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -772,6 +852,7 @@ export type PriceSheetUncheckedUpdateWithoutUserInput = {
 export type PriceSheetUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  comexBasis?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   headerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   effectiveDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -825,6 +906,7 @@ export type PriceSheetSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   id?: boolean
   userId?: boolean
   title?: boolean
+  comexBasis?: boolean
   headerNote?: boolean
   effectiveDate?: boolean
   expiresAt?: boolean
@@ -842,6 +924,7 @@ export type PriceSheetSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   id?: boolean
   userId?: boolean
   title?: boolean
+  comexBasis?: boolean
   headerNote?: boolean
   effectiveDate?: boolean
   expiresAt?: boolean
@@ -856,6 +939,7 @@ export type PriceSheetSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   id?: boolean
   userId?: boolean
   title?: boolean
+  comexBasis?: boolean
   headerNote?: boolean
   effectiveDate?: boolean
   expiresAt?: boolean
@@ -870,6 +954,7 @@ export type PriceSheetSelectScalar = {
   id?: boolean
   userId?: boolean
   title?: boolean
+  comexBasis?: boolean
   headerNote?: boolean
   effectiveDate?: boolean
   expiresAt?: boolean
@@ -879,7 +964,7 @@ export type PriceSheetSelectScalar = {
   updatedAt?: boolean
 }
 
-export type PriceSheetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "title" | "headerNote" | "effectiveDate" | "expiresAt" | "status" | "publishedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["priceSheet"]>
+export type PriceSheetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "title" | "comexBasis" | "headerNote" | "effectiveDate" | "expiresAt" | "status" | "publishedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["priceSheet"]>
 export type PriceSheetInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   items?: boolean | Prisma.PriceSheet$itemsArgs<ExtArgs>
@@ -904,6 +989,7 @@ export type $PriceSheetPayload<ExtArgs extends runtime.Types.Extensions.Internal
     id: string
     userId: string
     title: string
+    comexBasis: number | null
     headerNote: string | null
     effectiveDate: Date
     expiresAt: Date | null
@@ -1340,6 +1426,7 @@ export interface PriceSheetFieldRefs {
   readonly id: Prisma.FieldRef<"PriceSheet", 'String'>
   readonly userId: Prisma.FieldRef<"PriceSheet", 'String'>
   readonly title: Prisma.FieldRef<"PriceSheet", 'String'>
+  readonly comexBasis: Prisma.FieldRef<"PriceSheet", 'Float'>
   readonly headerNote: Prisma.FieldRef<"PriceSheet", 'String'>
   readonly effectiveDate: Prisma.FieldRef<"PriceSheet", 'DateTime'>
   readonly expiresAt: Prisma.FieldRef<"PriceSheet", 'DateTime'>

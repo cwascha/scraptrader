@@ -19,6 +19,12 @@ model User {
   // applied to the dealer's dashboard AND to buyer-facing deal pages.
   // Colors are all-or-nothing (themeBrand set implies all three).
   logoUrl             String?
+  // Square mark for the PWA home-screen icon. SEPARATE from logoUrl on
+  // purpose: a page header wants a horizontal wordmark, an app icon is
+  // masked to a rounded square at ~60px. Squeezing "RUBY RECYCLING" into
+  // that is an unreadable smear — they're two different assets, so the
+  // dealer uploads both.
+  appIconUrl          String?
   themeBrand          String?        // hex, e.g. "#2d5f8a"
   themeBrandDark      String?
   themeAccent         String?
@@ -65,6 +71,10 @@ model Contact {
   encryptedEmail    String?
   encryptedPhone    String?
   encryptedWhatsApp String?
+  // Encrypted like every other identity field — a buyer's employer is as
+  // much a business relationship as their phone number, and storing it in
+  // the clear beside encrypted columns would be an odd exception.
+  encryptedCompany  String?
   tags              String         @default("")
   // Contact-level buyer portal credential: one token per buyer (channel-
   // independent) opening /portal/{token} — a hub listing every deal sent
@@ -186,7 +196,16 @@ model DealRecipient {
   channel     String
   sentAt      DateTime?
   viewedAt    DateTime?
+  // queued  — waiting for the background sender (lib/send-queue.ts)
+  // sent    — dispatched on this channel
+  // failed  — attempts exhausted; the dealer shares the link by hand
+  // pending — nothing to dispatch (manual channel, unconfigured, no address)
+  // viewed  — buyer opened the link (overwrites the above)
   status      String    @default("pending")
+  // Last failure reason + attempt count: a failed send has to be
+  // diagnosable, and retries have to be bounded rather than looping.
+  sendError    String?
+  sendAttempts Int      @default(0)
   // Owner's read state for this conversation (inbox/unread tracking).
   // Unread = buyer messages with createdAt > ownerLastReadAt. Null =
   // never opened. Buyers have no equivalent (their page IS the thread).
@@ -253,8 +272,14 @@ model PriceSheet {
   id            String                @id @default(uuid())
   userId        String
   title         String                @default("Delivered Prices")
-  // Free-text line under the title for market basis / index reference,
-  // e.g. "Comex $4.49" or "Delivered to our yard".
+  // The COMEX copper basis ($/lb) this sheet was priced against. A
+  // dedicated numeric field rather than prose, because it does real work:
+  // it drives the staleness check that catches a sheet repriced against a
+  // market that has moved. Optional — a yard quoting off something else
+  // just leaves it empty.
+  comexBasis    Float?
+  // Free-text line under the title for anything else: "Delivered to our
+  // yard", terms, a note about grading. NOT the market basis.
   headerNote    String?
   effectiveDate DateTime
   // Optional cut-off. After this the public page still SHOWS the prices
@@ -262,7 +287,16 @@ model PriceSheet {
   // revisions — a locked snapshot with an unbounded lifetime is how you
   // end up honouring three-week-old copper.
   expiresAt     DateTime?
-  status        String                @default("draft") // draft -> published (locked)
+  // draft -> published (locked) -> deactivated (withdrawn)
+  //
+  // DEACTIVATED is a manual withdrawal, distinct from expiry: an expired
+  // sheet still SHOWS its prices (a supplier needs to see what lapsed)
+  // whereas a deactivated one hides them behind a "no longer valid"
+  // notice. Reversible — reactivating restores the sheet as published, so
+  // a misclick doesn't cost a duplicate. Existing negotiation threads stay
+  // readable and writable either way; withdrawing prices must not strand a
+  // conversation mid-flight.
+  status        String                @default("draft")
   publishedAt   DateTime?
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
@@ -301,10 +335,13 @@ model PriceSheetRecipient {
   contactId   String?
   accessToken String              @unique
   channel     String
-  // pending -> sent -> viewed -> responded
+  // Same send-state machine as DealRecipient (queued | sent | failed |
+  // pending | viewed), plus "responded" once the supplier submits.
   status      String              @default("pending")
   sentAt      DateTime?
   viewedAt    DateTime?
+  sendError    String?
+  sendAttempts Int                @default(0)
   // Same inbox semantics as DealRecipient: unread = supplier messages
   // newer than the marker; lastNudgeAt throttles Tier-3 email to one per
   // unread batch.

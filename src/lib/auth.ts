@@ -59,6 +59,14 @@ export async function getSession(): Promise<{ userId: string } | null> {
   }
 }
 
+// Returns the FULL user row — including `passwordHash` and
+// `encryptionKey`. That's deliberate (routes need the key to decrypt
+// contacts), but it makes this a loaded gun:
+//
+//   ⚠ NEVER return this object, or a spread of it, from a route.
+//     `NextResponse.json(user)` or `{ ...user }` leaks the bcrypt hash
+//     and the contact-decryption key in one line. Hand-pick fields — see
+//     /api/auth/me for the pattern.
 export async function getCurrentUser() {
   const session = await getSession();
   if (!session) return null;

@@ -63,12 +63,19 @@ export function decrypt(ciphertext: string, key: string): string {
 // key; the backfill script is the only other caller.
 
 export function encryptContact(
-  contact: { name: string; email?: string; phone?: string; whatsapp?: string },
+  contact: {
+    name: string;
+    company?: string;
+    email?: string;
+    phone?: string;
+    whatsapp?: string;
+  },
   storedKey: string
 ) {
   const key = unwrapKey(storedKey);
   return {
     encryptedName: encrypt(contact.name, key),
+    encryptedCompany: contact.company ? encrypt(contact.company, key) : null,
     encryptedEmail: contact.email ? encrypt(contact.email, key) : null,
     encryptedPhone: contact.phone ? encrypt(contact.phone, key) : null,
     encryptedWhatsApp: contact.whatsapp ? encrypt(contact.whatsapp, key) : null,
@@ -78,6 +85,9 @@ export function encryptContact(
 export function decryptContact(
   encrypted: {
     encryptedName: string;
+    // Optional so callers that select a narrower shape (e.g. accept-bid,
+    // which only needs the name and email) don't have to change.
+    encryptedCompany?: string | null;
     encryptedEmail: string | null;
     encryptedPhone: string | null;
     encryptedWhatsApp: string | null;
@@ -87,6 +97,9 @@ export function decryptContact(
   const key = unwrapKey(storedKey);
   return {
     name: decrypt(encrypted.encryptedName, key),
+    company: encrypted.encryptedCompany
+      ? decrypt(encrypted.encryptedCompany, key)
+      : null,
     email: encrypted.encryptedEmail
       ? decrypt(encrypted.encryptedEmail, key)
       : null,

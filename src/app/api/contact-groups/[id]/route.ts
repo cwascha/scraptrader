@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { enforceBodyLimit, JSON_BODY_LIMIT } from "@/lib/body-limit";
 
 // PUT: update a group. `contactIds` (if provided) REPLACES the membership
 // with the given list; `name` (if provided) renames the group. Contact ids
@@ -9,6 +10,9 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const tooLarge = enforceBodyLimit(req, JSON_BODY_LIMIT);
+  if (tooLarge) return tooLarge;
+
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,7 +27,15 @@ export async function PUT(
     return NextResponse.json({ error: "Group not found" }, { status: 404 });
   }
 
-  const body = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 }
+    );
+  }
 
   let name = group.name;
   if (body.name !== undefined) {

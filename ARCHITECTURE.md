@@ -1,16 +1,16 @@
 # ScrapTrader — Architecture
 
-> Last updated: 2026-07-30 (**buying price sheets** — second outgoing communication type, with supplier responses and counter-offers; **Twilio SMS/WhatsApp** wired but dormant until credentials land; security audit round 3 + envelope encryption). Update this file when the architecture changes.
+> Last updated: 2026-07-30 (**buying price sheets** with a fully-wired supplier negotiation — counter/accept/decline notified on the supplier's own channel, threads unified into the inbox; **yard-owned material grades** replacing the ISRI list; **Twilio SMS/WhatsApp** and **COMEX market data** both wired but dormant pending credentials). Update this file when the architecture changes.
 
 ## What this app is
 
 A private CRM for scrap metal dealers, with **two outgoing communication types**.
 
-**Deals (the dealer SELLS).** A dealer (the only account type) creates **deals** (ISRI material, packaging, loads, weight, shipping types, photos), keeps an **encrypted contact list** organized into **groups**, and **publishes** deals to selected groups and/or individual contacts (de-duplicated). Publishing creates a recipient record per contact per channel and shares a **per-deal link**; **email-channel recipients are emailed automatically when SMTP is configured**, SMS/WhatsApp send via Twilio when configured and otherwise degrade to manual link sharing. Buyers open the link — no account needed — view the deal **under the dealer's own branding**, and negotiate via chat with **text messages and USD bids with automatic weight-unit conversion**. No posted asking price — **price discovery happens in the bids**, and **accepting the latest bid from the other party closes the deal**. A **buyer portal** (contact-level link, reached from any deal page) lists every deal sent to a buyer, grouped Open/Won/Closed.
+**Deals (the dealer SELLS).** A dealer (the only account type) creates **deals** (material grade, packaging, loads, weight, shipping types, photos), keeps an **encrypted contact list** organized into **groups**, and **publishes** deals to selected groups and/or individual contacts (de-duplicated). Publishing creates a recipient record per contact per channel and shares a **per-deal link**; **email-channel recipients are emailed automatically when SMTP is configured**, SMS/WhatsApp send via Twilio when configured and otherwise degrade to manual link sharing. Buyers open the link — no account needed — view the deal **under the dealer's own branding**, and negotiate via chat with **text messages and USD bids with automatic weight-unit conversion**. No posted asking price — **price discovery happens in the bids**, and **accepting the latest bid from the other party closes the deal**. A **buyer portal** (contact-level link, reached from any deal page) lists every deal sent to a buyer, grouped Open/Won/Closed.
 
 **Buying price sheets (the dealer BUYS).** The yard publishes what it will **pay** per material grade, sends it to suppliers, and each supplier replies on their own copy with the tonnage they have and the price they want — which the yard then counters, accepts, or declines. **Direction is the mirror of deals**: here the recipient is the seller and the yard's money goes out.
 
-An **inbox** (Conversations) tracks unread buyer messages on deals, with **tab/desktop/email notifications**. There is **no public marketplace**.
+An **inbox** (Conversations) tracks unread buyer messages on deals, with **tab/desktop/email notifications**; **price-sheet negotiations feed the same unread counting and nudges**. There is **no public marketplace**.
 
 ## Stack
 
@@ -55,18 +55,19 @@ The visual identity comes from type, density, and structure — NOT from a fixed
 
 ## Inbox & unread tracking (owner side)
 
-`DealRecipient.ownerLastReadAt` is the read marker; **unread = buyer messages with `createdAt > ownerLastReadAt`** (null = never opened). Buyers have no equivalent (their page IS the thread).
+`DealRecipient.ownerLastReadAt` is the read marker; **unread = buyer messages with `createdAt > ownerLastReadAt`** (null = never opened). Buyers have no equivalent (their page IS the thread). **`PriceSheetRecipient` carries the same two columns and follows the same rule**, so a supplier's offer counts toward the badge and the nudge sweeper exactly like a buyer message.
 
 - **List data**: `GET /api/deals` recipients carry `contactName` (decrypted), `unreadCount`, and `lastMessage` — encrypted blobs and raw message arrays are stripped server-side. Unread is counted in JS (Prisma can't filter a `_count` against a per-row column); fine single-tenant.
 - **Conversations page = inbox**: one row per conversation (deal × contact × channel), sorted by last activity; unread dot + count, bid previews in mono, "You:" prefix, closed chip; 15s refresh. Rows deep-link to `/dashboard/deals/{id}?conversation={recipientId}`.
 - **Deal page**: honors `?conversation=` deep link, else auto-expands the most recently active thread. Unread pills on collapsed headers. **Reading marks read**: `POST /api/deals/[id]/mark-read {recipientId}` fires when the open conversation has unread (on expand or on arrival while open), optimistic local update, poll-resurrection self-heal. Copy button on each conversation's deal link.
-- **Nav badge**: `GET /api/unread-count` polled by DashboardNav on route change + every 30s (runs in hidden tabs too — browsers throttle to ~1/min there, fine); badge on Conversations tab (99+ cap). Dashboard deal cards show "N new".
+- **Nav badge**: `GET /api/unread-count` polled by DashboardNav on route change + every 30s (runs in hidden tabs too — browsers throttle to ~1/min there, fine); badge on Conversations tab (99+ cap). Dashboard deal cards show "N new". **Counts deals AND price-sheet threads.**
+- **Price-sheet threads are NOT yet rows on the Conversations page** — they surface via the badge, the nudge email, and the "N awaiting you" chip on the Prices list. That page builds its rows from `/api/deals`, so adding them needs its own data source (gap #36).
 
 ## Notifications (tiered)
 
 - **Tier 1 — tab title (shipped):** DashboardNav mirrors the unread count into `document.title` — `(3) ScrapTrader`. Strips/reapplies its own `(n) ` prefix so per-page titles and navigation survive.
 - **Tier 2 — desktop notifications (shipped):** when the unread count INCREASES while the tab is hidden and Notification permission is granted, the nav pops an OS toast (tag-deduped; click focuses the tab and routes to the inbox). Permission is requested only via the "Enable alerts" button in the nav (shown while permission is "default" — browsers want a user gesture). Dies with the tab by design; that's Tier 4's job.
-- **Tier 3 — email nudges (shipped):** `lib/notify.ts` runs a single in-process sweeper (60s interval, lazily started via `ensureNudgeSweeper()` from the public messages POST route and unread-count GET; HMR-safe global, overlap-guarded). Rule: when a conversation's OLDEST unread buyer message is **≥ 5 minutes old**, email the dealer once (`sendUnreadNudgeEmail` — ScrapTrader-branded, platform→user, deep link to the conversation), stamp `DealRecipient.lastNudgeAt`. **One email per unread batch**: no re-nudge until the dealer reads the conversation (`lastNudgeAt >= oldest unread` ⇒ skip). Send failures are stamped anyway (no retry storms; badge/inbox still show the unread). Single-process like the rate limiter; requires SMTP configured; skipped otherwise.
+- **Tier 3 — email digests (shipped):** `lib/notify.ts` runs a single in-process sweeper (60s interval, lazily started via `ensureNudgeSweeper()` from the deal messages POST, the price-sheet offer and messages POSTs, and unread-count GET; HMR-safe global, overlap-guarded). **ONE EMAIL PER DEALER, NOT PER CONVERSATION** — a digest listing everything waiting. Schedule: a thread QUALIFIES once its oldest unread is ≥ 15 minutes old (Tiers 1–2 cover live attention, so email doesn't need a hair trigger); a digest SENDS if anything qualifies and the dealer hasn't had one in 6 hours. Fast on the first thing that needs you, quiet on repeats; ceiling of ~4 emails per dealer per day. "Last digested" is derived as the max `lastNudgeAt` across the dealer's recipients — no extra column. Deal and price-sheet threads share the digest and both deep-link to the thread. Send failures are stamped anyway (no retry storms; badge/inbox still show the work). **Why a digest:** every dealer shares ONE Workspace sending account whose daily quota is mostly spent on publish emails, and a mailbox of "you have unread messages" trains the reader to ignore them. Requires SMTP; skipped otherwise.
 - **Tier 4 — PWA + Web Push + Badging API (TODO, deliberately deferred):** installable app with OS-level push and icon badges while closed. **Blocked on deploying at the real domain**: installs and push subscriptions are origin-bound, and quick-tunnel origins change per restart, which would orphan every install/subscription. Build at deployment time: manifest + service worker + VAPID keys + `PushSubscription` table + send hook + `setAppBadge`. Platform notes: Windows Chrome/Edge = full badges + toasts; iOS 16.4+ requires add-to-home-screen; Android = push yes, numeric badge no.
 
 ## Chat, bids, acceptance & live updates
@@ -90,9 +91,13 @@ The second outgoing communication type. A sheet lists what the yard will **pay**
 - **A line can be non-numeric.** The source sheet has "Dirty Brass — Need Pics", so `price` and `priceNote` are mutually exclusive (a usable number always wins, enforced server-side). `formatPrice()` in `lib/price-sheet-defaults.ts` is the single renderer shared by the editor, the public page, and email — so the three can't disagree.
 - **Recovery percentages live in the item name** ("#1 Heavy (87% basis)", "Irony Alum (50%)"). That's how yards write the grade; splitting them into a field would fight the domain.
 
-**Snapshot semantics.** Publishing LOCKS the sheet (server-enforced on PATCH, mirroring the closed-deal guard). A supplier's counter is meaningless unless the prices they were quoting against are frozen. New prices = a new sheet; **Duplicate** copies the line items forward so nobody retypes 48 rows. The `headerNote` (market basis, e.g. "Comex $4.49") is deliberately **NOT** duplicated — a copied index reading is wrong the moment it's copied.
+**Snapshot semantics.** Publishing LOCKS the sheet (server-enforced on PATCH, mirroring the closed-deal guard). A supplier's counter is meaningless unless the prices they were quoting against are frozen. New prices = a new sheet; the line items carry forward so nobody retypes 48 rows.
 
-**Seeding.** The first sheet is pre-filled from `STARTER_ITEMS`; every later one copies the dealer's most recent sheet.
+**The COMEX basis is its own numeric column** (`comexBasis`), not prose in the header note, because it does real work: it drives the staleness check. `headerNote` is free text for anything else (terms, "Delivered to our yard"). The editor links out to a public COMEX quote page rather than fetching — we link, never scrape.
+
+**Seeding.** The first sheet is pre-filled from `STARTER_ITEMS`. Every later one seeds from the most recent **published** sheet — categories, names, prices, notes, units and ordering, plus the title — falling back to any sheet if the dealer hasn't published one yet. Published is preferred deliberately: it's a known-good state, whereas an abandoned half-edited draft would propagate its blanked lines into every sheet after it. **Duplicate** on a specific row bypasses that and copies that exact sheet whatever its status.
+
+What is NOT carried forward: `comexBasis`, `headerNote`, `effectiveDate` (resets to today), and `expiresAt`. Everything that is a point-in-time statement is cleared; everything structural comes along. A blank basis on a new sheet isn't an omission — it forces the deliberate re-entry that the staleness check then compares the inherited prices against.
 
 **Per-recipient links.** `PriceSheetRecipient.accessToken` — one per contact per channel, like `DealRecipient`. A response has to be attributable, so there is no shared link. (An earlier design used one public token per sheet; it was replaced when responses were added.)
 
@@ -107,11 +112,41 @@ The second outgoing communication type. A sheet lists what the yard will **pay**
 
 Terminal states are enforced on **both** sides: the public route refuses further revisions, and the dealer route refuses further actions. A decision can't be silently reversed from a link still sitting in an inbox.
 
+**Both sides get told.** Submitting or revising an offer emails the yard (`sendPriceSheetResponseNotice`, platform-branded). Counter/accept/decline notifies the SUPPLIER on **the channel they were reached on** — a full `sendPriceSheetOutcomeEmail` with line detail and total, or a short SMS/WhatsApp with the link. Best-effort throughout: a send failure never blocks the decision. Without the supplier half the loop is one-way and counters die unanswered, which is exactly how it shipped for a few hours (gap #31).
+
+**Threads, not just numbers.** Every offer and every yard action also writes a `Message` on the recipient thread — the offer as a `senderType: "buyer"` row with a generated summary, the counter/accept/decline as `"owner"`. That one decision is what makes price sheets free: unread counting, the nav badge, and Tier-3 nudges all work with **no special-casing**, because an offer is literally an unread buyer message. Free-text chat runs on the same rows (`/api/public/prices/[token]/messages`, `/api/price-sheets/[id]/messages`) for everything the numbers can't carry.
+
+**Weight normalization.** A supplier may enter tons against a line quoted in $/lb. `weightInPriceUnit()` and `lineValue()` (in `price-sheet-defaults.ts`) convert to the LINE's basis before anything is displayed or summed — the dealer sees the weight in the quoted unit with "entered as 40 tons" underneath, plus a per-line dollar value. Totals are shown **only when every line can be valued**; a partial sum labelled "total" is worse than none, so per-each lines suppress it and say so.
+
+**Expiry.** `expiresAt` is optional. Past it the public page still SHOWS the prices (a supplier needs to see what lapsed) but POST refuses — a locked snapshot with an unbounded lifetime is how a yard ends up honouring three-week-old copper.
+
 **Channel split.** Email inlines the FULL price table (suppliers compare sheets side by side in their inbox); SMS/WhatsApp send the link only — 48 lines would be dozens of billable segments and unreadable on a phone.
 
 **Publishing guard.** If no selected contact has an address/number for the chosen channels, the route bails with a 400 **before** locking — otherwise a first publish that reached nobody would freeze the sheet and force a duplicate to fix a missing email address.
 
-**Estimated total** on the supplier page sums **per-lb lines only**; ton/each lines display but don't roll up, because mixing bases would produce a confidently wrong number.
+## Material grades (deals)
+
+**The ISRI specification list was REMOVED 2026-07-30.** ~180 formal codes ("Taint/Tabor", "Birch/Cliff") were replaced by the grades a yard actually trades, in the yard's own words, grouped the way a price sheet is grouped. Nobody picks "Taldon" from a dropdown. If formal codes are ever needed again — export contracts quote them — reintroduce them as an OPTIONAL cross-reference field on `MaterialGrade`, not as the primary vocabulary.
+
+**Per-user data, not a static file.** `MaterialGrade` rows, lazily seeded from `DEFAULT_GRADES` the first time a user's list is read (lazy so existing accounts get it without a backfill, and `createMany`+`skipDuplicates` makes concurrent reads safe). Yards add their own grades inline **from the deal form** — the moment you need a missing grade is while creating a deal, and bouncing to a settings page would lose the form.
+
+**One vocabulary for both subsystems.** `DEFAULT_GRADES` is *derived* from `STARTER_ITEMS` — the same list that seeds a price sheet — rather than being a second copy. "Romex" therefore means the same thing on a deal and on a price sheet by construction, and the two can't drift.
+
+**Deals snapshot the NAME, not a foreign key** (`Deal.material` is a string), same rule as address snapshots. Consequences, all deliberate: deleting a grade removes it from the picker but never rewrites deals published under it; there is no rename, because renaming would leave the deals and the list quietly disagreeing; and PUT validates the material **only when it's being changed**, so a deal carrying a retired grade stays editable (you can fix its weight without re-picking a material that no longer exists).
+
+`lib/materials.ts` is client-safe (imported by `MaterialSelect`); anything needing the DB lives in `lib/materials-server.ts` (`isValidMaterial`, which accepts any of the user's grade names OR category names). `npm run clean:deals` deletes deals whose material predates the switch, removing their upload directories too — a raw DB delete would orphan the files.
+
+## COMEX market data (dormant)
+
+`lib/market.ts` + `GET /api/market/copper` (authenticated — it spends a third-party quota) fetch a live COMEX copper basis, used for two things on a DRAFT price sheet: a **"Use current Comex"** button that prefills `headerNote`, and a **staleness warning**.
+
+**⚠ DORMANT.** Copper is premium-only on API Ninjas' free tier (which also rotates its free commodity list weekly), and that tier forbids commercial use regardless. With no `COMMODITY_API_KEY` the button and warning simply don't render. A paid plan is the only change needed.
+
+**Licensing posture.** CME licenses real-time, delayed AND end-of-day data, and powering an application with it is separately licensed as "non-display" use. The number therefore **prefills a field the dealer edits and publishes as their own stated reference** — exactly what they already do by hand. Keep it that way; an automatic unreviewed figure stamped on outgoing sheets is a different licensing question.
+
+**Staleness heuristic.** Rather than tracking provenance, the basis is inferred from the sheet itself: the highest per-pound line on a scrap buying sheet is essentially always bare bright copper at ~90% of COMEX, so dividing recovers what the sheet was written against. Past 15% divergence the editor warns, states its own assumption, and tells the operator to ignore it if their spreads differ. Catches both the starter template published unedited and last month's sheet duplicated after the market moved.
+
+**Provider evaluation is recorded in `market.ts`** — don't re-run it. The trap: most "copper APIs" sell LME-based SPOT per troy ounce or tonne, which is NOT the COMEX futures price in $/lb that a US scrap sheet means. metals.dev (lbma/lme/mcx/ibja only), Metals-API (LME-XCU per troy ounce) and Metal Sentinel (unofficial Kitco mirror, no exchange field) were all rejected on that basis.
 
 ## Rate limiting & auth hardening
 
@@ -166,6 +201,29 @@ Other auth measures: uniform "Invalid credentials" on login + **bcrypt timing eq
 
 **This is a first gate, not a guarantee** — `Content-Length` can be omitted or misstated on a chunked/streamed upload. The hard backstop is `client_max_body_size` at the reverse proxy (see gap #22).
 
+## COMEX basis (manual)
+
+A price sheet carries a **`comexBasis`** column — the COMEX copper $/lb it was priced against — entered by the dealer, with a **"Look up COMEX ↗"** link beside the field (`COMEX_LOOKUP_URL`) so the lookup isn't a memory test. We LINK, never scrape: comexlive.org isn't a licensed redistributor and its layout is not a contract.
+
+**Staleness check** (`checkBasis`) compares the sheet's IMPLIED basis against the one the dealer entered. Implied is inferred from the sheet itself — the highest per-pound line on a scrap buying sheet is essentially always bare bright copper at ~90% of COMEX, so dividing recovers what it was written against. Past 15% divergence the editor warns. Needs no market feed, and catches both directions: a sheet duplicated without repricing, and a basis updated without repricing the grades under it.
+
+**A live-fetch integration was built and then REMOVED (2026-07-30)** — `lib/market.ts` + `/api/market/copper` prefilled the field from an API. Deleted because the dedicated field plus the lookup link does the job with no dependency, no cost, and no licensing exposure. **Don't rebuild it without reading this first:**
+
+- **The trap:** most "copper APIs" sell LME-based SPOT priced per troy ounce or tonne, which is NOT the COMEX futures price in $/lb that a US scrap sheet means by "Comex". Labelling an LME-derived number "Comex" would be wrong in a way nobody would catch. Verify EXCHANGE and UNIT on a live response, not just that the provider says "copper".
+- **Providers evaluated:** API Ninjas — COMEX, USD/USX per lb, CORRECT contract, but copper is premium-only and the free tier forbids commercial use. metals.dev — authorities are lbma/lme/mcx/ibja, no COMEX, spot in troy ounces; rejected. Metals-API — LME-XCU per troy ounce; rejected. Metal Sentinel — unofficial Kitco mirror with no exchange field, so COMEX is unverifiable; rejected. OroTracker — gold/silver only.
+- **Licensing if revisited:** CME requires an Information License Agreement for real-time, delayed AND end-of-day data, and powering an application with it is separately licensed as "non-display" use. Keep any fetched number a PREFILL the dealer reviews and publishes as their own stated reference — never an automatic figure stamped on outgoing sheets.
+
+## Security headers
+
+Set in `next.config.ts` (not nginx) so they hold in dev, through a tunnel, and on any host:
+
+- **`Referrer-Policy: strict-origin-when-cross-origin`** — the significant one. Buyer/supplier pages carry a CREDENTIAL IN THE PATH (`/deal/{token}`, `/portal/{token}`, `/prices/{token}`). Any outbound link from those pages would otherwise leak the whole URL, token included, in the `Referer` header. Nothing links out today; this makes it safe when something does.
+- **`X-Frame-Options: DENY`** — nothing here is meant to be framed, and a framed dashboard invites clickjacking a Delete or Accept.
+- **`X-Content-Type-Options: nosniff`** — logos are stored as received (only deal photos are re-encoded), so a file that sniffs as HTML must not be served as HTML. Covers the `/uploads/*` half of gap #22 regardless of proxy.
+- **`Permissions-Policy`** — camera/mic/geolocation/payment denied; nothing uses them.
+
+No CSP yet — Next's inline styles/scripts make a strict one real work, and the dynamic `--brand-*` custom properties on buyer pages would need `style-src 'unsafe-inline'` or nonces. Worth doing before public launch, not before beta.
+
 ## Input bounds (per audit rounds 2–3)
 
 Server-side length caps everywhere untrusted (or bulky-when-encrypted) input is stored: messages 4000 (see Chat); contact name 200, contact email/phone/whatsapp 320 each (trimmed, then encrypted — `contacts` POST); registration email 320 / name 200 / companyName 200 and password 8–200; group names 100; addresses street 200 / city 100 / zip 20; state validated against the US code list. **Price sheets:** title 120, header note 200, category 60, item name 120, price note 60, **300 lines max**; supplier offers cap the note at 1000 and reject weight > 10,000,000 or price > 1,000,000 per line (fat-fingered-zero guard — 10M lbs is ~4,500 tons, far past any truckload). Numeric bounds: bid amount (0, 1e9], loads ≥ 1 integer, weight > 0. These are authenticated-input hygiene for the dealer's own account except the message cap, the register caps, and public-token limits, which are genuine abuse boundaries. Whole-request size is bounded separately — see Request body limits.
@@ -176,11 +234,11 @@ Server-side length caps everywhere untrusted (or bulky-when-encrypted) input is 
 
 ## Email (SMTP / Google Workspace)
 
-`lib/mailer.ts`: shared branded shell; `sendDealEmail()` + `sendBidAcceptedEmail()` + `sendPriceSheetEmail()` (dealer-identity From display name + Reply-To) + `sendUnreadNudgeEmail()` and `sendPriceSheetResponseNotice()` (platform→dealer, ScrapTrader-branded). Dealer logo renders in buyer-facing emails as a LINKED image (absolute URL from `NEXTAUTH_URL` + `user.logoUrl`) — recipients fetch it at open time, so it requires a reachable origin (tunnel in dev; permanent domain in prod). All user-controlled strings HTML-escaped; plain-text alternatives; failures never break publish/accept/nudge-sweep. **Both `sendDealEmail()` and `sendBidAcceptedEmail()` link to the specific deal** (`/deal/{accessToken}`); buyers reach their portal from the "All deals" link on that page. **`sendPriceSheetEmail()` inlines the full price table** and links to that supplier's own copy (`/prices/{accessToken}`) with a "Tell Us What You Have" CTA; **`sendPriceSheetResponseNotice()`** tells the dealer a supplier replied, and whether they took the quoted prices or are asking above them. Dev: links use `NEXTAUTH_URL` (tunnel: set it to the tunnel URL + restart; `allowedDevOrigins` in next.config.ts) — nudge deep links use it too.
+`lib/mailer.ts`: shared branded shell; `sendDealEmail()` + `sendBidAcceptedEmail()` + `sendPriceSheetEmail()` (dealer-identity From display name + Reply-To) + `sendUnreadNudgeEmail()` and `sendPriceSheetResponseNotice()` (platform→dealer, ScrapTrader-branded). Dealer logo renders in buyer-facing emails as a LINKED image (absolute URL from `NEXTAUTH_URL` + `user.logoUrl`) — recipients fetch it at open time, so it requires a reachable origin (tunnel in dev; permanent domain in prod). All user-controlled strings HTML-escaped; plain-text alternatives; failures never break publish/accept/nudge-sweep. **Both `sendDealEmail()` and `sendBidAcceptedEmail()` link to the specific deal** (`/deal/{accessToken}`); buyers reach their portal from the "All deals" link on that page. **`sendPriceSheetEmail()` inlines the full price table** and links to that supplier's own copy (`/prices/{accessToken}`) with a "Tell Us What You Have" CTA; **`sendPriceSheetResponseNotice()`** tells the dealer a supplier replied, and whether they took the quoted prices or are asking above them. **`sendPriceSheetOutcomeEmail()`** tells the SUPPLIER the yard countered/accepted/declined, with line detail and total — dealer identity AND dealer branding, because it must look like the sheet that opened the conversation. The two platform→dealer emails (nudge, response notice) stay ScrapTrader-branded on purpose: those are the app talking to its user. Dev: links use `NEXTAUTH_URL` (tunnel: set it to the tunnel URL + restart; `allowedDevOrigins` in next.config.ts) — nudge deep links use it too.
 
 ## SMS & WhatsApp (Twilio)
 
-`lib/sms.ts`: `sendDealSms()` / `sendDealWhatsApp()` / `sendPriceSheetSms()` / `sendPriceSheetWhatsApp()` via Twilio's Messages REST endpoint. **Mirrors the mailer pattern deliberately — configuration is detected from env, and an unconfigured channel silently degrades to manual link sharing. There is no feature flag: add the vars and restart.** SMS and WhatsApp are detected INDEPENDENTLY (`isSmsConfigured()` / `isWhatsAppConfigured()`) because Twilio approves them separately and one usually lands first.
+`lib/sms.ts`: `sendDealSms()` / `sendDealWhatsApp()` / `sendPriceSheetSms()` / `sendPriceSheetWhatsApp()` / `sendOutcomeSms()` / `sendOutcomeWhatsApp()` via Twilio's Messages REST endpoint. **Mirrors the mailer pattern deliberately — configuration is detected from env, and an unconfigured channel silently degrades to manual link sharing. There is no feature flag: add the vars and restart.** SMS and WhatsApp are detected INDEPENDENTLY (`isSmsConfigured()` / `isWhatsAppConfigured()`) because Twilio approves them separately and one usually lands first.
 
 **No `twilio` SDK dependency** — the endpoint is one form-encoded POST with basic auth, and this project blocks package install scripts (`allowScripts`). Twilio's `{code, message}` error body is surfaced verbatim to the dealer so "unverified number" is actionable rather than a bare 400.
 
@@ -203,7 +261,10 @@ SMS body is kept to one line (`{seller} at {company} sent you a deal: {title}. V
 
 ```
 prisma/ + prisma.config.ts + next.config.ts (allowedDevOrigins for tunnels)
-scripts/backfill-keys.ts   # one-off, idempotent: wrap account keys + normalize legacy ciphertext
+scripts/
+  backfill-keys.ts         # one-off, idempotent: wrap account keys + normalize legacy ciphertext
+  clean-orphan-deals.ts    # delete deals whose material predates the yard-grade switch (+ upload dirs)
+  set-company.ts           # set User.companyName (dealer trading name, not the platform name)
 src/
   proxy.ts                 # JWT check on /dashboard/*
   lib/
@@ -211,12 +272,15 @@ src/
     encryption.ts           # AES-256-GCM (Node crypto); v2 only, legacy reader removed
     master-key.ts           # envelope encryption: wrap/unwrap account keys under ENCRYPTION_MASTER_KEY
     body-limit.ts           # enforceBodyLimit + per-route size caps (413)
-    deal-fields.ts / materials.ts / theme-extract.ts
+    deal-fields.ts / theme-extract.ts
+    materials.ts            # DEFAULT_GRADES (derived from STARTER_ITEMS), groupGrades — CLIENT-SAFE
+    materials-server.ts     # isValidMaterial (DB) — server only, keeps Prisma out of the client bundle
+    market.ts               # COMEX copper fetch + provider evaluation notes (DORMANT)
     bids.ts                # conversion + parseIncomingMessage (MAX_MESSAGE_LENGTH) + buildBidConfirmText
     accept-bid.ts          # finalizeAcceptedBid (atomic close + notices + winner email)
     notify.ts              # Tier-3 nudge sweeper (in-process, ensureNudgeSweeper)
     portal.ts              # ensurePortalToken / rotatePortalToken / revokePortalToken (caller proves ownership)
-    price-sheet-defaults.ts # STARTER_ITEMS (Ruby sheet), PRICE_UNITS, shared formatPrice()
+    price-sheet-defaults.ts # STARTER_ITEMS (Ruby sheet), PRICE_UNITS, formatPrice, weight/basis math, staleness check
     time.ts / rate-limit.ts / fetch-json.ts
     mailer.ts              # deal + bid-accepted + price-sheet emails; nudge + offer notices
     sms.ts                 # Twilio SMS/WhatsApp; env-detected per channel, no SDK
@@ -254,7 +318,12 @@ src/
       price-sheets/route.ts           # GET list (+awaitingYou) / POST create (duplicate or seed)
       price-sheets/[id]/route.ts      # GET (items+responses) / PATCH (DRAFT ONLY — locked after publish) / DELETE
       price-sheets/[id]/publish/route.ts          # per-recipient tokens; locks sheet; bails before lock if nothing sent
-      price-sheets/[id]/responses/[responseId]    # PATCH counter | accept | decline (terminal states enforced)
+      price-sheets/[id]/responses/[responseId]    # PATCH counter | accept | decline (terminal states enforced;
+                                                  # notifies the supplier on their own channel)
+      price-sheets/[id]/messages/route.ts         # POST dealer message | markRead
+      materials/route.ts              # GET (lazy-seeds the yard's grades) / POST add
+      materials/[id]/route.ts         # DELETE (picker only — deals keep their snapshot)
+      market/copper/route.ts          # GET COMEX basis; authed; dormant without COMMODITY_API_KEY
       public/deal/[token]/(route|messages|accept-bid)  # RATE LIMITED + body-capped;
                                                        # "You" masking; images projected to {id,url};
                                                        # returns portalToken for the "All deals" link;
@@ -263,6 +332,7 @@ src/
       public/prices/[token]/route.ts                   # RATE LIMITED + body-capped;
                                                        # GET supplier's own copy (resumable form state)
                                                        # POST submit/revise offer; notifies dealer
+      public/prices/[token]/messages/route.ts          # RATE LIMITED; supplier free-text thread
 public/uploads/{dealId}/ + public/uploads/branding/{userId}/  # gitignored
 ```
 
@@ -273,12 +343,13 @@ public/uploads/{dealId}/ + public/uploads/branding/{userId}/  # gitignored
 - **ContactGroup / YardAddress** — labels/addresses (plaintext).
 - **Deal** — title/material/packaging/loads/weights/shipping, address snapshots, status draft→published→closed, accepted-* snapshot. `askingPrice`/`priceUnit`/`location` vestigial.
 - **DealRecipient** — contact × channel; `accessToken` = buyer credential+identity; status pending/sent/viewed; **`ownerLastReadAt?`** = owner read marker; **`lastNudgeAt?`** = last Tier-3 email about this conversation (one per unread batch).
-- **Message** — senderType incl. "system"; type message|bid; buyer senderName server-derived, masked "You" publicly.
+- **Message** — **polymorphic since 2026-07-30**: belongs to EITHER a `DealRecipient` OR a `PriceSheetRecipient` (exactly one FK set, both nullable). senderType incl. "system"; type message|bid; buyer senderName server-derived, masked "You" publicly. Generalized so price-sheet negotiations reuse the inbox rather than forming a parallel silo.
+- **MaterialGrade** — the yard's own grade vocabulary: `category` + `name` + `sortOrder`, unique per `[userId, name]`. Lazily seeded from `DEFAULT_GRADES` on first read; extensible by the yard.
 - **DealImage** — photos (re-encoded .jpg; `filename` keeps the original upload name for display).
-- **PriceSheet** — buying prices; `title`, `headerNote` (market basis), `effectiveDate`, status draft→published (**locked on publish**).
+- **PriceSheet** — buying prices; `title`, `headerNote` (market basis), `effectiveDate`, **`expiresAt?`** (past it the page still shows prices but refuses offers), status draft→published (**locked on publish**).
 - **PriceSheetItem** — one grade: `category` + `name` + `sortOrder`, and EITHER `price` OR `priceNote` ("Need Pics"), `unit` lb/ton/each.
-- **PriceSheetRecipient** — contact × channel; `accessToken` = the supplier's own link; status pending/sent/viewed/responded.
-- **PriceSheetResponse** — one per recipient (revisions update in place); status submitted→countered→…→accepted|declined; `buyerNote`/`dealerNote`.
+- **PriceSheetRecipient** — contact × channel; `accessToken` = the supplier's own link; status pending/sent/viewed/responded; **`ownerLastReadAt?`/`lastNudgeAt?`** mirroring DealRecipient so the inbox machinery works unchanged.
+- **PriceSheetResponse** — one per recipient (revisions update in place); status submitted→countered→…→accepted|declined; `buyerNote`/`dealerNote`; **`agreedTotal?`** frozen at acceptance so later changes to conversion logic can't restate what was agreed.
 - **PriceSheetResponseLine** — what the supplier has: `weight`+`weightUnit`, `buyerPrice` (their ask; null = accepts quoted), `dealerPrice` (yard's counter).
 
 ## Publish flows / Auth
@@ -291,13 +362,15 @@ public/uploads/{dealId}/ + public/uploads/branding/{userId}/  # gitignored
 
 ## Environment variables
 
-`NEXTAUTH_SECRET` (JWT; **required in production — boot fails without it**), **`ENCRYPTION_MASTER_KEY`** (wraps every account's contact-encryption key; **required in production, no dev fallback, 32+ chars — losing it makes contact PII unrecoverable, so back it up off-host**), `NEXTAUTH_URL` (links/emails/nudge deep links/logo URLs), `DATABASE_URL` (or `TURSO_*`), `SMTP_USER`/`SMTP_PASS` (+ optional `SMTP_HOST`/`SMTP_PORT`/`SMTP_FROM`), `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN` + `TWILIO_SMS_FROM` and/or `TWILIO_WHATSAPP_FROM` (each channel independently optional — absent = manual link sharing).
+`NEXTAUTH_SECRET` (JWT; **required in production — boot fails without it**), **`ENCRYPTION_MASTER_KEY`** (wraps every account's contact-encryption key; **required in production, no dev fallback, 32+ chars — losing it makes contact PII unrecoverable, so back it up off-host**), `NEXTAUTH_URL` (links/emails/nudge deep links/logo URLs), `DATABASE_URL` (or `TURSO_*`), `SMTP_USER`/`SMTP_PASS` (+ optional `SMTP_HOST`/`SMTP_PORT`/`SMTP_FROM`), `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN` + `TWILIO_SMS_FROM` and/or `TWILIO_WHATSAPP_FROM` (each channel independently optional — absent = manual link sharing), `COMMODITY_API_KEY` (optional; COMEX basis prefill + staleness warning — absent = the feature doesn't render).
 
 ## Commands
 
 ```
 npm run dev / build / lint
 npm run backfill:keys [-- --dry]       # wrap account keys + normalize legacy ciphertext
+npm run clean:deals [-- --dry]         # delete deals whose material predates the yard-grade switch
+npm run set:company -- "Name" [email]  # set the dealer's trading name
 npx prisma migrate dev --name <name>   # STOP dev server first on Windows
 ```
 
@@ -329,6 +402,16 @@ npx prisma migrate dev --name <name>   # STOP dev server first on Windows
 
 3. **Dealer-to-dealer account linking ("Received deals").** *(flagged 2026-07-17; current = no linkage whatsoever)* Today, publishing to an email that belongs to another registered ScrapTrader dealer treats them as any anonymous buyer: token-only identity, nothing in their dashboard or inbox, sessions never consulted on buyer pages, both parties' data fully partitioned under their own encryption keys. (Cosmetic quirk: a dealer-recipient gets your deal emails and their own nudge emails from the same platform address, different display names.) The debate: should incoming deals surface inside a recipient dealer's account — a "Received deals" section, unified inbox across sent + received, network effects between dealers? Arguments for: it's the natural network feature; dealers ARE each other's buyers in real brokerage chains; one login instead of a pile of emailed links. Arguments against, both structural: (a) **it collides with the contact-encryption promise** — matching recipients to accounts requires comparing emails the platform deliberately cannot read; the workaround (store an email hash on DealRecipient at publish time) is a real weakening of the privacy posture and enables cross-dealer correlation the current design makes impossible; (b) **it drifts toward the marketplace this product explicitly is not** — once dealers see inbound flow in-app, pressure follows for discovery, profiles, ratings. Middle ground worth tabling: opt-in linking (a dealer chooses to associate their email hash for receiving), keeping non-consenting users invisible. No implementation until the team decides; touches schema, publish flow, and the privacy model, so it's the heaviest of the three open decisions.
 
+## Deployment
+
+`deploy/` holds the production setup: systemd unit (+ launch wrapper), nginx site and proxy snippet, deploy/rollback scripts, nightly backup, and a step-by-step README. Target is a single DigitalOcean droplet (~$15/mo all-in): one Node process, SQLite on local disk, nginx terminating TLS.
+
+**Single process is architectural, not a cost saving.** In-memory rate-limit buckets and the nudge sweeper mean a second worker would duplicate every digest email and multiply rate-limit ceilings. The systemd unit says so; see gap #43 for the order things break as yards are added.
+
+Key properties: master key injected via systemd `LoadCredential` (never in `.env`, never in a snapshot — gap #29); nginx **overwrites** `X-Forwarded-For` so per-IP limits can't be spoofed (gap #22); uploads live at `/var/scraptrader/uploads` outside the release directories, so a deploy can't wipe deal photos (gap #3); timestamped releases with a `current` symlink, so rollback is a symlink swap (code only — not migrations).
+
+**Vercel was considered and rejected**: ephemeral filesystem (uploads vanish), no persistent process (rate limiter and sweeper both break), and Hobby is non-commercial so a real beta means $20/mo before rewriting three subsystems.
+
 ## Known gaps / tech debt (as of 2026-07-30)
 
 1. ~~Encryption key stored beside the data~~ — **RESOLVED 2026-07-26**: envelope encryption. `User.encryptionKey` is stored wrapped (`w1:`, AES-256-GCM) under `ENCRYPTION_MASTER_KEY` from the environment, so a database dump alone no longer yields contact PII. See "PII encryption". **Residual risk, by design:** the master key currently sits in `.env` on the same host as the app, so a full host compromise still reads everything — moving it to a systemd credential, a mounted secret, or KMS is the next increment, and `master-key.ts` is the only file that changes. Also: **back the value up off-host** — losing it destroys all contact data.
@@ -336,9 +419,9 @@ npx prisma migrate dev --name <name>   # STOP dev server first on Windows
 3. **Uploads won't survive serverless** — droplet deploy preferred (also SQLite).
 4. **Chat "live" updates are polling**, not push.
 5. **Accepted `npm audit` moderates (non-runtime)** — npm "fixes" are major downgrades, do NOT apply; `npm audit fix --force` banned.
-6. **Vestigial:** `expiresAt`, `Contact.tags`, `Deal.askingPrice`/`priceUnit`/`location` (one future cleanup migration incl. PRICE_UNITS + buyer asking-price block), no contact/address/company-name edit endpoints, legacy material values; pre-email recipients falsely "sent".
+6. **Vestigial:** `Contact.tags`, `Deal.askingPrice`/`priceUnit`/`location` (one future cleanup migration incl. PRICE_UNITS + buyer asking-price block), no contact/address edit endpoints; pre-email recipients falsely "sent". (`Deal.expiresAt` was vestigial and remains so — note `PriceSheet.expiresAt` is a DIFFERENT, live column.) Company name has no UI — use `npm run set:company`.
 7. ~~Register route leaks String(error)~~ — **RESOLVED 2026-07-17**: generic 500, real error server-logged.
-8. **Buyer page shows raw material code.**
+8. ~~Buyer page shows raw material code~~ — **RESOLVED 2026-07-30** as a side effect of dropping ISRI: `Deal.material` now stores a human grade name ("Clean Auto Rads"), so there's nothing to translate. `materialLabel()` is an identity function, kept only so call sites don't have to care if a cross-reference field is ever added.
 9. **No server-side contrast enforcement on theme colors.**
 10. **No email bounce tracking.**
 11. **Dark mode is a slate remap** — new slate classes need `.theme-dark` rules.
@@ -352,9 +435,9 @@ npx prisma migrate dev --name <name>   # STOP dev server first on Windows
 19. **TODO: Tier-4 notifications (PWA + Web Push + Badging)** — deferred until deployed at the real domain with TLS (origin-bound installs/subscriptions). See "Notifications" for the build list and platform matrix.
 20. **Photos uploaded before the sharp pipeline keep their original bytes** (full size + EXIF/GPS intact) — dev test data only; delete/re-upload if it matters.
 21. **JWT sessions aren't revocable before expiry** (7 days) — logout clears the cookie only; a stolen token stays valid. Standard tradeoff for stateless sessions; a server-side session table is the fix if it ever matters.
-22. **At deployment: configure nginx** to (a) OVERWRITE `X-Forwarded-For` with the real client IP (strip client-supplied values) so per-IP rate limits regain teeth, (b) set `client_max_body_size` per location — small for JSON routes, ~12 MB for `api/deals/[id]/images` — as the hard backstop behind `lib/body-limit.ts`, and (c) send `X-Content-Type-Options: nosniff` on `/uploads/*`.
+22. **At deployment: configure nginx** to (a) OVERWRITE `X-Forwarded-For` with the real client IP (strip client-supplied values) so per-IP rate limits regain teeth, (b) set `client_max_body_size` per location — small for JSON routes, ~12 MB for `api/deals/[id]/images` — as the hard backstop behind `lib/body-limit.ts`, and (c) send `X-Content-Type-Options: nosniff` on `/uploads/*`. **Do gaps #29 (master key off the app host) and #39 (transactional email) in the same session** — all four are deployment-time config, not code.
 
-23. ~~Landing-page claim overstates the encryption model~~ — **RESOLVED 2026-07-26**: `src/app/page.tsx` no longer claims "Even we can't read your contacts"; it now states the real posture (AES-256-GCM at rest under a per-account key, decrypted only to send published deals, never sold/shared/visible to another dealer). The "Secure Pass-Through — your data stays in your hands" card went with it: the platform stores every contact, deal, price, and message, so "conduit" was false. Replaced with a commitment that's keepable (no selling, no market-intelligence mining, no cross-dealer visibility). Both survive the envelope-encryption change unedited. Also de-staled: step 2 said each contact gets "a unique deal link" (it's their portal now) and step 1 listed "pricing" as an input (vestigial — price discovery is in the bids).
+23. ~~Landing-page claim overstates the encryption model~~ — **RESOLVED 2026-07-26**, with a **second instance found and fixed 2026-07-30**: the Contacts page subtitle still read "Even ScrapTrader cannot read your contact list" long after the landing page was corrected. Both now state the real posture (AES-256-GCM at rest under a per-account key, decrypted only server-side, never sold/shared/cross-visible). **If this claim reappears anywhere, it's wrong** — the server must decrypt contacts to send publish emails and run the nudge sweeper, so "we can't read them" can never be true without giving up automated email.
 
 24. **Logo URLs embed the dealer's internal `userId`** (`/uploads/branding/{userId}/…`) and are served to buyers on every deal/portal page. Cosmetic ID disclosure, not an access-control hole (the ID grants nothing on its own). Fixing it means a storage-layout change — a random per-logo directory — not a projection tweak.
 
@@ -370,14 +453,50 @@ npx prisma migrate dev --name <name>   # STOP dev server first on Windows
 
 30. **Twilio: unproven, plus three things to settle before switching it on.** The code path is written and dormant (no credentials = manual sharing), so it is UNTESTED against the live API — the first real publish is the first real test. (a) **WhatsApp templates**: free-form messages only reach buyers inside a 24h window; cold outreach needs a Meta-approved template, which is a separate approval AND a code change (template SID + variables instead of a `Body`). (b) **Cost**: unlike email, every message bills. Publishing to a 200-contact group fires 200 SMS with no confirmation step — consider a spend guard or a "this will send N texts" confirmation. (c) **Consent/TCPA**: US commercial SMS needs prior express consent, and contacts were imported by dealers with no consent field anywhere in the schema. Twilio auto-handles STOP on US numbers, but the consent record is the dealer's problem and the product currently gives them nowhere to keep it.
 
-31. **⚠ THE SUPPLIER IS NEVER TOLD THE YARD RESPONDED — the negotiation loop is only half-wired.** Submitting an offer emails the dealer (`sendPriceSheetResponseNotice`). Counter, accept, and decline send the supplier **nothing**. They only find out by revisiting their link on a hunch, so in practice a counter goes unanswered and the deal dies silently. This is the highest-value price-sheet fix: a `sendPriceSheetCounterEmail` / accepted / declined trio using the dealer-identity From, fired from the responses PATCH route, best-effort like every other send. Until then, counters need a phone call to land.
+31. ~~The supplier is never told the yard responded~~ — **RESOLVED 2026-07-30**: counter/accept/decline notify the supplier on the channel they were reached on (`sendPriceSheetOutcomeEmail` with line detail and total, or a short SMS/WhatsApp). Best-effort; a send failure never blocks the decision.
 
-32. **Price-sheet negotiations are invisible to the inbox.** Conversations, unread counts, the nav badge, and Tier-3 nudges all key off `Message` + `DealRecipient`, so an offer sitting at `submitted` produces no badge, no nudge, and no inbox row — only the "N awaiting you" chip on the Prices list, which a dealer has to go looking for. Also no free-text chat on a response: the counter loop carries one note per side per round and nothing else, so "can you do $4.02 if I bring three loads?" has nowhere to go. Unifying means making `Message.dealRecipientId` nullable and adding `priceSheetRecipientId` (existing deal queries all filter on the former, so it's additive), then widening the inbox queries.
+32. ~~Price-sheet negotiations are invisible to the inbox~~ — **RESOLVED 2026-07-30**: `Message` is polymorphic (`dealRecipientId` OR `priceSheetRecipientId`), offers and yard actions are written as thread messages, and `PriceSheetRecipient` carries `ownerLastReadAt`/`lastNudgeAt`. Nav badge and Tier-3 nudges now cover both. Free-text chat added on both sides. **Residual: still no rows on the Conversations page — see gap #36.**
 
-33. **Weight units aren't normalized against the quoted basis.** A supplier can enter tons on a line the yard quoted in $/lb, and the dealer's Offers panel shows "40 tons" next to "$3.99" with no conversion — the reader has to do the 2,000× in their head, on a screen where getting it wrong is a five-figure error. The supplier-side estimate sidesteps this by summing per-lb lines only, which is safe but silently omits ton/each lines from the total. Fix: normalize to the item's unit on display (the conversion helpers already exist in `lib/bids.ts`), and show both figures.
+33. ~~Weight units aren't normalized against the quoted basis~~ — **RESOLVED 2026-07-30**: `weightInPriceUnit()`/`lineValue()` convert to the line's basis before display or summation; the dealer sees the quoted unit with the entered figure beneath it, plus a per-line value. Totals appear only when every line can be valued.
 
-34. **An accepted offer is a dead end.** `status = "accepted"` is the whole record — nothing schedules a delivery, produces a purchase record, or feeds anything downstream. Fine while the yard runs fulfillment on paper; worth revisiting if price sheets become a primary channel.
+34. ~~An accepted offer is a dead end~~ — **PARTLY RESOLVED 2026-07-30**: acceptance freezes `agreedTotal` on the response and both sides display it, so there's a durable record of what was agreed. Still nothing schedules a delivery or produces a purchase record — fine while fulfillment runs on paper.
 
-35. **`effectiveDate` is decorative.** Nothing expires a sheet or stops a supplier submitting against three-week-old copper prices. Deliberate for now (the yard controls who gets links), but the pairing of a locked snapshot with an unbounded lifetime is exactly the shape of an eventual dispute. Interacts with open decision #2 (retention).
+35. ~~`effectiveDate` is decorative~~ — **RESOLVED 2026-07-30**: optional `PriceSheet.expiresAt`. Past it the page still shows prices (a supplier needs to see what lapsed) but submissions are refused server-side.
 
-Resolved (2026-07-15/17/26): upload validation; deal form overhaul; yard addresses; state validation; contact groups + de-dupe; dual addresses; ISRI materials; white-label theme engine + dark mode; SMTP dealer-identity email; dependency cleanup; conversation names; chat polling; bids + unit conversion; timestamps; rate limiting; fetch hardening; buyer identity from token; shipping city/state; Pricing card bid stats; contact-name privacy; bid acceptance flow; Active/Closed sections; buyer portal; design language Phase 1; inbox + unread tracking Phase 2; notifications Tiers 1–3; responsive floor for phones; image pipeline + deal-delete disk cleanup; security audit round 1 (closed-publish guard, auth throttling + timing equalizer, register hygiene, prod secret enforcement); **security audit round 2 — full-codebase read: message-length DoS cap (4000) + contact-field length clamps; confirmed clean on IDOR, SQL injection, secret leakage, stored XSS, CSS injection**; **security audit round 3 — crypto-js → AES-256-GCM (Node crypto) with legacy-format reader and the dependency dropped; request body caps (`lib/body-limit.ts`) on all public/auth/upload POSTs; buyer image projection narrowed to `{id, url}`; register/login defensive JSON parse + field caps + password upper bound + P2002 race; `contacts` GET and the publish loop degrade per-row instead of failing the whole request**; **portal auto-share (open decision #1) with rotate/revoke controls (gap #16)**; **landing-page security claims corrected to match the real posture (gap #23)**; **envelope encryption — account data keys wrapped under `ENCRYPTION_MASTER_KEY`, closing the long-standing key-custody gap #1**; **Twilio SMS/WhatsApp send path (dormant until credentials)**; **buying price sheets — snapshot sheets seeded from a starter grade list, per-recipient links, supplier offers with weights + counter prices, and a counter/accept/decline loop**.
+36. **Price-sheet threads aren't rows on the Conversations page.** The badge, the nudge email, and the "N awaiting you" chip all cover them, so nothing is missed — but the inbox itself still lists deals only, because that page builds rows from `/api/deals`. Needs its own data source (or a unified endpoint) to merge the two. Do this before the inbox is the dealer's primary surface.
+
+37. **The starter grade template is anchored to a stale basis.** `STARTER_ITEMS` came from Ruby's 2025-09-02 sheet at Comex $4.49; copper has moved a long way since. A first-time dealer gets copper grades priced ~40% low. On a BUYING sheet that errs toward underpaying (so it costs nothing directly), and the staleness warning catches it — but only when market data is configured, which it currently isn't (gap #38). Consider labelling the values as placeholders in the editor.
+
+38. **COMEX market data is dormant** — copper is premium-only on API Ninjas' free tier, whose free commodity list also rotates weekly, and that tier forbids commercial use. So the basis prefill and the staleness warning don't render. `lib/market.ts` works as-is against a paid plan; the provider survey (and why metals.dev / Metals-API / Metal Sentinel were rejected) is recorded in that file so it isn't repeated.
+
+39. **TODO — MOVE TRANSACTIONAL EMAIL OFF WORKSPACE SMTP.** *(deferred 2026-07-30; do it with the nginx work in gap #22, and before a second yard onboards)*
+
+    **Why.** Every dealer sends through ONE Google Workspace account (`SMTP_USER`), sharing its ~2,000/day external recipient cap. The dominant consumer is **publishing**, not notifications: one sheet to a 200-contact group is 200 emails in a single click, so a handful of yards exhausts the quota. Tier-3 digests (~4/dealer/day) are a rounding error by comparison. Workspace then refuses sends and nothing surfaces why — the dealer sees "12 failed to send" with no reason (gap #10).
+
+    **Decision already made: a sending SUBDOMAIN we control, NOT per-dealer domains.** Per-dealer domains would mean each yard adding DKIM/SPF/return-path records at their own registrar. Scrap yards frequently don't know where their DNS lives, the login often sits with whoever built their site years ago, and a subtly wrong record doesn't bounce — it lands in spam silently, so nobody notices until a supplier says the sheet never arrived. Not a reasonable ask. Dealer identity is already carried by the From display name + Reply-To (suppliers see "Ross (Ruby Recycling)" and replies reach Ross), which is the part that actually matters. Offer per-dealer domains later as an upgrade for yards big enough to have someone who owns their DNS.
+
+    **Steps.** DNS for `thescraptrader.com` is at **GoDaddy** (nameservers `ns63/ns64.domaincontrol.com`). 1) Pick a provider — Postmark (easiest, best transactional deliverability, clear webhooks) or SES (far cheaper at volume, needs an AWS account + production-access request out of sandbox). 2) Add `mail.thescraptrader.com` as a sending domain there; it generates the DKIM / SPF / return-path records. 3) Paste them into GoDaddy. 4) Verify. 5) Point `SMTP_HOST`/`PORT`/`USER`/`PASS` at the provider and set `SMTP_FROM` to `ScrapTrader <deals@mail.thescraptrader.com>`. **No code change** — `lib/mailer.ts` is plain SMTP either way. ~30-60 min, mostly waiting.
+
+    **Two traps.** GoDaddy's **Name** field is RELATIVE and it appends the domain: type `mail`, not `mail.thescraptrader.com`, or you silently create `mail.thescraptrader.com.thescraptrader.com` and verification fails with no useful error. And **never add a second `v=spf1` TXT to the root** — a domain may have exactly one, and a second breaks SPF for ALL mail including Workspace inbound; merge an `include:` into the existing record instead. Keeping everything on the `mail.` subdomain avoids both, and leaves the root MX (Google Workspace inbound for `deals@thescraptrader.com`) untouched.
+
+    **Do gap #10 at the same time** — a provider with delivery webhooks is what makes "why did this fail" answerable, and that's a better reason to switch than the raw volume.
+
+40. **`undefined` in a Prisma WHERE means "no filter" — a whole bug class, found and fixed 2026-07-30.** `deleteMany({ where: { id, userId } })` with `id === undefined` collapses to `deleteMany({ where: { userId } })` and destroys every row the dealer owns, returning success. Three endpoints had it (`contacts`, `contact-groups`, `yard-addresses` DELETE); `deals/[id]/images` DELETE had the milder form, where `findFirst` matched an ARBITRARY image and deleted it. All now require a non-empty string id and 404 on no match. **Rule for any new endpoint: never let a client-supplied id reach a Prisma filter without a `typeof x === "string"` guard.** Prefer `deleteMany` + `result.count === 0 → 404` over `delete`, which throws on miss. There is no soft delete and no undo anywhere in this app.
+
+41. **Uploaded deal photos are permanently public to anyone with the URL.** `/uploads/{dealId}/{uuid}.jpg` is served straight off disk by the static handler — no session check, no token check, no expiry. UUID filenames make them unguessable, and the buyer projection no longer leaks the original filename (gap #5), so the practical exposure is limited to whoever was legitimately sent the URL. But note what it means: **revoking a portal or closing a deal does NOT revoke image access.** A buyer who saved a photo URL keeps it forever, and so does anyone they forwarded it to. Fixing properly means serving images through an authorizing route (`/api/images/{id}` checking session-or-token) instead of `public/`, which also costs the static-file performance. Acceptable for yard photos; revisit if anything sensitive is ever attached to a deal.
+
+42. **`GET /api/materials` performs a write.** It lazily seeds the yard's 48 default grades on first read. A GET that mutates is CSRF-reachable under `SameSite=Lax` (top-level navigation sends the cookie) and isn't cacheable. Impact is nil — it seeds defaults for an account that has none, and is idempotent — but it's the wrong shape. Move the seed to registration, or to an explicit POST, if the endpoint ever grows.
+
+43. **SCALING ORDER — what breaks first, and it isn't the box.** *(logged 2026-07-30)* A $12 droplet handles dozens of yards on compute; scrap dealing is low-traffic and resizing is a reboot. Compute is not the constraint. The actual sequence:
+
+    **(a) Email volume — first, around 5-10 active yards.** See gap #39. One 200-contact publish is 200 emails through a shared Workspace account.
+
+    **(b) Synchronous publishing — next, and a CUSTOMER will find this, not a metric.** `POST /api/deals/[id]/publish` and the price-sheet equivalent send every email inside the request. That's why `deploy/scraptrader-proxy.conf` sets a 120s `proxy_read_timeout`. At ~500 contacts the request times out mid-send, leaving recipients created and some emails unsent — with no retry path. Fix: move sending to a job queue (or at minimum respond immediately and send in the background with a status the dealer can poll).
+
+    **(c) In-process singletons — blocking at ~10 yards.** `lib/rate-limit.ts` buckets and the `lib/notify.ts` sweeper live in module memory. Consequences today: every deploy resets rate-limit state, every restart is a nudge gap until a request re-warms the sweeper, and **horizontal scaling is impossible** — two processes means two sweepers and duplicate digests to every dealer. This is why `deploy/scraptrader.service` forbids multiple workers. Fix: Redis for buckets, a real cron/worker for the sweeper.
+
+    **(d) SQLite — a redundancy limit, not a performance one.** Two app servers can't share a local SQLite file, so the first time you want a second box (failover, zero-downtime deploys) you migrate. The Prisma schema ports to Postgres nearly unchanged — a day's work, but a day you can't do casually with live customer data. **Cheaper hedge:** `lib/db.ts` already uses the libSQL adapter, so hosted **Turso** is close to a config change (`TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` are already read) and buys replication without leaving SQLite.
+
+    Nothing here is fixed by a bigger droplet. Treat the first sign of email trouble as the trigger to start (a), and do (b) before onboarding a yard with a large contact list.
+
+Resolved (2026-07-15/17/26): upload validation; deal form overhaul; yard addresses; state validation; contact groups + de-dupe; dual addresses; ISRI materials; white-label theme engine + dark mode; SMTP dealer-identity email; dependency cleanup; conversation names; chat polling; bids + unit conversion; timestamps; rate limiting; fetch hardening; buyer identity from token; shipping city/state; Pricing card bid stats; contact-name privacy; bid acceptance flow; Active/Closed sections; buyer portal; design language Phase 1; inbox + unread tracking Phase 2; notifications Tiers 1–3; responsive floor for phones; image pipeline + deal-delete disk cleanup; security audit round 1 (closed-publish guard, auth throttling + timing equalizer, register hygiene, prod secret enforcement); **security audit round 2 — full-codebase read: message-length DoS cap (4000) + contact-field length clamps; confirmed clean on IDOR, SQL injection, secret leakage, stored XSS, CSS injection**; **security audit round 3 — crypto-js → AES-256-GCM (Node crypto) with legacy-format reader and the dependency dropped; request body caps (`lib/body-limit.ts`) on all public/auth/upload POSTs; buyer image projection narrowed to `{id, url}`; register/login defensive JSON parse + field caps + password upper bound + P2002 race; `contacts` GET and the publish loop degrade per-row instead of failing the whole request**; **portal auto-share (open decision #1) with rotate/revoke controls (gap #16)**; **landing-page security claims corrected to match the real posture (gap #23)**; **envelope encryption — account data keys wrapped under `ENCRYPTION_MASTER_KEY`, closing the long-standing key-custody gap #1**; **Twilio SMS/WhatsApp send path (dormant until credentials)**; **buying price sheets — snapshot sheets seeded from a starter grade list, per-recipient links, supplier offers with weights + counter prices, and a counter/accept/decline loop**; **price-sheet negotiation completed — supplier notified on their own channel, `Message` generalized so offers feed the inbox/badge/nudges, free-text chat both sides, weight normalized to the quoted basis, agreed total frozen at acceptance, optional sheet expiry (gaps #31–35)**; **ISRI list replaced by yard-owned, extensible material grades sharing one vocabulary with price sheets (gap #8)**.

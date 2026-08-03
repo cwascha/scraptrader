@@ -367,11 +367,11 @@ export default function PublicDealPage({
                 </div>
                 <div className="bg-slate-50 p-3 rounded-lg">
                   <span className="text-slate-500">Quantity</span>
-                  <p className="font-semibold text-slate-800">
+                  <p className="data font-semibold text-slate-800">
                     {deal.numLoads} load{deal.numLoads === 1 ? "" : "s"} ×{" "}
                     {formatWeight(deal.weightPerLoad)} {deal.weightUnit}
                   </p>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="data text-xs text-slate-500 mt-0.5">
                     {formatWeight(totalWeight)} {deal.weightUnit} total
                   </p>
                 </div>
@@ -402,7 +402,7 @@ export default function PublicDealPage({
                 {deal.askingPrice !== null && (
                   <div className="bg-slate-50 p-3 rounded-lg">
                     <span className="text-slate-500">Asking Price</span>
-                    <p className="font-semibold text-slate-800">
+                    <p className="data font-semibold text-slate-800">
                       ${deal.askingPrice.toFixed(2)} {deal.priceUnit}
                     </p>
                   </div>
@@ -500,14 +500,14 @@ export default function PublicDealPage({
                           </p>
                           {isBid ? (
                             <>
-                              <p className="font-bold text-base">
+                              <p className="data font-bold text-base">
                                 {formatBid(
                                   msg.bidAmount as number,
                                   msg.bidUnit as string
                                 )}
                               </p>
                               {converted !== null && (
-                                <p className="text-xs opacity-80 mt-0.5">
+                                <p className="data text-xs opacity-80 mt-0.5">
                                   ≈ {formatBid(converted, deal.weightUnit)}
                                 </p>
                               )}
@@ -524,7 +524,7 @@ export default function PublicDealPage({
                           ) : (
                             <p>{msg.content}</p>
                           )}
-                          <p className="text-[10px] opacity-60 mt-1 text-right">
+                          <p className="data text-[10px] opacity-60 mt-1 text-right">
                             {formatMessageTime(msg.createdAt)}
                           </p>
                         </div>
@@ -594,12 +594,13 @@ export default function PublicDealPage({
                       </span>
                       <input
                         type="number"
+                        inputMode="decimal"
                         min={0}
                         step="0.0001"
                         value={bidAmount}
                         onChange={(e) => setBidAmount(e.target.value)}
                         placeholder="2.50"
-                        className="w-full pl-6 pr-2 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+                        className="data w-full pl-6 pr-2 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
                         required
                       />
                     </div>

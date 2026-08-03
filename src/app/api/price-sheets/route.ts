@@ -19,6 +19,9 @@ export async function GET() {
       title: true,
       headerNote: true,
       effectiveDate: true,
+      // Needed client-side to sort a sheet into Active vs Inactive —
+      // expiry is a timestamp comparison, not a status value.
+      expiresAt: true,
       status: true,
       publishedAt: true,
       createdAt: true,
@@ -44,10 +47,10 @@ export async function GET() {
 }
 
 // POST — create a draft. Body: { duplicateOf?: string }.
-//   duplicateOf  copy that sheet's items (the normal path — prices move
-//                daily and nobody retypes 48 rows)
-//   otherwise    seed from the dealer's most recent sheet, or from the
-//                starter template if this is their first
+//   duplicateOf  copy that exact sheet's items whatever its status (the
+//                "branch off an older one" path)
+//   otherwise    seed from the most recent PUBLISHED sheet, falling back
+//                to any sheet, then to the starter template
 export async function POST(req: NextRequest) {
   const tooLarge = enforceBodyLimit(req, JSON_BODY_LIMIT);
   if (tooLarge) return tooLarge;
@@ -67,19 +70,46 @@ export async function POST(req: NextRequest) {
   const duplicateOf =
     typeof body.duplicateOf === "string" ? body.duplicateOf : null;
 
-  const source = await prisma.priceSheet.findFirst({
-    where: duplicateOf
-      ? { id: duplicateOf, userId: user.id }
-      : { userId: user.id },
-    orderBy: [{ effectiveDate: "desc" }, { createdAt: "desc" }],
-    include: { items: { orderBy: { sortOrder: "asc" } } },
-  });
+  const withItems = { items: { orderBy: { sortOrder: "asc" as const } } };
+  const newestFirst = [
+    { effectiveDate: "desc" as const },
+    { createdAt: "desc" as const },
+  ];
 
-  if (duplicateOf && !source) {
-    return NextResponse.json(
-      { error: "Price sheet not found" },
-      { status: 404 }
-    );
+  let source = null;
+
+  if (duplicateOf) {
+    // Explicit target: copy that sheet regardless of status.
+    source = await prisma.priceSheet.findFirst({
+      where: { id: duplicateOf, userId: user.id },
+      include: withItems,
+    });
+    if (!source) {
+      return NextResponse.json(
+        { error: "Price sheet not found" },
+        { status: 404 }
+      );
+    }
+  } else {
+    // Prefer the most recent PUBLISHED sheet. A published sheet is a
+    // known-good state; a draft is by definition unfinished, so seeding
+    // from an abandoned half-edited one would propagate blanked lines
+    // into every sheet after it.
+    source = await prisma.priceSheet.findFirst({
+      where: { userId: user.id, status: "published" },
+      orderBy: newestFirst,
+      include: withItems,
+    });
+
+    // Nothing published yet — a dealer still working on their first sheet
+    // should still inherit their own line items rather than the template.
+    if (!source) {
+      source = await prisma.priceSheet.findFirst({
+        where: { userId: user.id },
+        orderBy: newestFirst,
+        include: withItems,
+      });
+    }
   }
 
   const items = source
@@ -104,8 +134,11 @@ export async function POST(req: NextRequest) {
     data: {
       userId: user.id,
       title: source?.title ?? "Delivered Prices",
-      // The header note carries a market index ("Comex $4.49") that is
-      // stale the moment it's copied — deliberately NOT carried forward.
+      // Neither the COMEX basis nor the header note is carried forward:
+      // a copied index reading is wrong the moment it's copied, and
+      // leaving it blank forces a deliberate re-entry (which is what the
+      // staleness check compares against).
+      comexBasis: null,
       headerNote: null,
       effectiveDate: new Date(),
       status: "draft",

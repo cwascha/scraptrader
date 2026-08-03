@@ -6,7 +6,7 @@ import { writeFile, mkdir, unlink } from "fs/promises";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import sharp from "sharp";
-import { enforceBodyLimit, IMAGE_BODY_LIMIT } from "@/lib/body-limit";
+import { enforceBodyLimit, IMAGE_BODY_LIMIT, JSON_BODY_LIMIT } from "@/lib/body-limit";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB per image (input; output is far smaller)
 const MAX_IMAGES_PER_DEAL = 10;
@@ -140,13 +140,37 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const tooLarge = enforceBodyLimit(req, JSON_BODY_LIMIT);
+  if (tooLarge) return tooLarge;
+
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-  const { imageId } = await req.json();
+
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 }
+    );
+  }
+
+  // ⚠ Must be a non-empty string. Prisma drops `undefined` filters, so
+  // `findFirst({ where: { id: undefined, deal: {…} } })` would return the
+  // deal's FIRST image — and the line below would delete it. A malformed
+  // request would silently destroy the wrong photo instead of 404ing.
+  const imageId = typeof body.imageId === "string" ? body.imageId.trim() : "";
+  if (!imageId) {
+    return NextResponse.json(
+      { error: "Image id is required" },
+      { status: 400 }
+    );
+  }
 
   const image = await prisma.dealImage.findFirst({
     where: {

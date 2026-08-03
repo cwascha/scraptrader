@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { decryptContact } from "@/lib/encryption";
 import { parseIncomingMessage } from "@/lib/bids";
+import { enforceBodyLimit, JSON_BODY_LIMIT } from "@/lib/body-limit";
 
 export async function GET(
   req: NextRequest,
@@ -57,14 +58,30 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const tooLarge = enforceBodyLimit(req, JSON_BODY_LIMIT);
+  if (tooLarge) return tooLarge;
+
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-  const body = await req.json();
-  const { recipientId } = body;
+
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 }
+    );
+  }
+
+  // Type-check before it reaches Prisma: a non-string id makes the query
+  // throw a 500 instead of returning the 404 this route means.
+  const recipientId =
+    typeof body.recipientId === "string" ? body.recipientId : "";
 
   const recipient = await prisma.dealRecipient.findFirst({
     where: {

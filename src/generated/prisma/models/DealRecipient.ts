@@ -20,8 +20,18 @@ export type DealRecipientModel = runtime.Types.Result.DefaultSelection<Prisma.$D
 
 export type AggregateDealRecipient = {
   _count: DealRecipientCountAggregateOutputType | null
+  _avg: DealRecipientAvgAggregateOutputType | null
+  _sum: DealRecipientSumAggregateOutputType | null
   _min: DealRecipientMinAggregateOutputType | null
   _max: DealRecipientMaxAggregateOutputType | null
+}
+
+export type DealRecipientAvgAggregateOutputType = {
+  sendAttempts: number | null
+}
+
+export type DealRecipientSumAggregateOutputType = {
+  sendAttempts: number | null
 }
 
 export type DealRecipientMinAggregateOutputType = {
@@ -33,6 +43,8 @@ export type DealRecipientMinAggregateOutputType = {
   sentAt: Date | null
   viewedAt: Date | null
   status: string | null
+  sendError: string | null
+  sendAttempts: number | null
   ownerLastReadAt: Date | null
   lastNudgeAt: Date | null
   createdAt: Date | null
@@ -47,6 +59,8 @@ export type DealRecipientMaxAggregateOutputType = {
   sentAt: Date | null
   viewedAt: Date | null
   status: string | null
+  sendError: string | null
+  sendAttempts: number | null
   ownerLastReadAt: Date | null
   lastNudgeAt: Date | null
   createdAt: Date | null
@@ -61,12 +75,22 @@ export type DealRecipientCountAggregateOutputType = {
   sentAt: number
   viewedAt: number
   status: number
+  sendError: number
+  sendAttempts: number
   ownerLastReadAt: number
   lastNudgeAt: number
   createdAt: number
   _all: number
 }
 
+
+export type DealRecipientAvgAggregateInputType = {
+  sendAttempts?: true
+}
+
+export type DealRecipientSumAggregateInputType = {
+  sendAttempts?: true
+}
 
 export type DealRecipientMinAggregateInputType = {
   id?: true
@@ -77,6 +101,8 @@ export type DealRecipientMinAggregateInputType = {
   sentAt?: true
   viewedAt?: true
   status?: true
+  sendError?: true
+  sendAttempts?: true
   ownerLastReadAt?: true
   lastNudgeAt?: true
   createdAt?: true
@@ -91,6 +117,8 @@ export type DealRecipientMaxAggregateInputType = {
   sentAt?: true
   viewedAt?: true
   status?: true
+  sendError?: true
+  sendAttempts?: true
   ownerLastReadAt?: true
   lastNudgeAt?: true
   createdAt?: true
@@ -105,6 +133,8 @@ export type DealRecipientCountAggregateInputType = {
   sentAt?: true
   viewedAt?: true
   status?: true
+  sendError?: true
+  sendAttempts?: true
   ownerLastReadAt?: true
   lastNudgeAt?: true
   createdAt?: true
@@ -149,6 +179,18 @@ export type DealRecipientAggregateArgs<ExtArgs extends runtime.Types.Extensions.
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: DealRecipientAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: DealRecipientSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: DealRecipientMinAggregateInputType
@@ -179,6 +221,8 @@ export type DealRecipientGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   _count?: DealRecipientCountAggregateInputType | true
+  _avg?: DealRecipientAvgAggregateInputType
+  _sum?: DealRecipientSumAggregateInputType
   _min?: DealRecipientMinAggregateInputType
   _max?: DealRecipientMaxAggregateInputType
 }
@@ -192,10 +236,14 @@ export type DealRecipientGroupByOutputType = {
   sentAt: Date | null
   viewedAt: Date | null
   status: string
+  sendError: string | null
+  sendAttempts: number
   ownerLastReadAt: Date | null
   lastNudgeAt: Date | null
   createdAt: Date
   _count: DealRecipientCountAggregateOutputType | null
+  _avg: DealRecipientAvgAggregateOutputType | null
+  _sum: DealRecipientSumAggregateOutputType | null
   _min: DealRecipientMinAggregateOutputType | null
   _max: DealRecipientMaxAggregateOutputType | null
 }
@@ -227,6 +275,8 @@ export type DealRecipientWhereInput = {
   sentAt?: Prisma.DateTimeNullableFilter<"DealRecipient"> | Date | string | null
   viewedAt?: Prisma.DateTimeNullableFilter<"DealRecipient"> | Date | string | null
   status?: Prisma.StringFilter<"DealRecipient"> | string
+  sendError?: Prisma.StringNullableFilter<"DealRecipient"> | string | null
+  sendAttempts?: Prisma.IntFilter<"DealRecipient"> | number
   ownerLastReadAt?: Prisma.DateTimeNullableFilter<"DealRecipient"> | Date | string | null
   lastNudgeAt?: Prisma.DateTimeNullableFilter<"DealRecipient"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"DealRecipient"> | Date | string
@@ -244,6 +294,8 @@ export type DealRecipientOrderByWithRelationInput = {
   sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   viewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  sendError?: Prisma.SortOrderInput | Prisma.SortOrder
+  sendAttempts?: Prisma.SortOrder
   ownerLastReadAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastNudgeAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -264,6 +316,8 @@ export type DealRecipientWhereUniqueInput = Prisma.AtLeast<{
   sentAt?: Prisma.DateTimeNullableFilter<"DealRecipient"> | Date | string | null
   viewedAt?: Prisma.DateTimeNullableFilter<"DealRecipient"> | Date | string | null
   status?: Prisma.StringFilter<"DealRecipient"> | string
+  sendError?: Prisma.StringNullableFilter<"DealRecipient"> | string | null
+  sendAttempts?: Prisma.IntFilter<"DealRecipient"> | number
   ownerLastReadAt?: Prisma.DateTimeNullableFilter<"DealRecipient"> | Date | string | null
   lastNudgeAt?: Prisma.DateTimeNullableFilter<"DealRecipient"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"DealRecipient"> | Date | string
@@ -281,12 +335,16 @@ export type DealRecipientOrderByWithAggregationInput = {
   sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   viewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  sendError?: Prisma.SortOrderInput | Prisma.SortOrder
+  sendAttempts?: Prisma.SortOrder
   ownerLastReadAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastNudgeAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.DealRecipientCountOrderByAggregateInput
+  _avg?: Prisma.DealRecipientAvgOrderByAggregateInput
   _max?: Prisma.DealRecipientMaxOrderByAggregateInput
   _min?: Prisma.DealRecipientMinOrderByAggregateInput
+  _sum?: Prisma.DealRecipientSumOrderByAggregateInput
 }
 
 export type DealRecipientScalarWhereWithAggregatesInput = {
@@ -301,6 +359,8 @@ export type DealRecipientScalarWhereWithAggregatesInput = {
   sentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"DealRecipient"> | Date | string | null
   viewedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"DealRecipient"> | Date | string | null
   status?: Prisma.StringWithAggregatesFilter<"DealRecipient"> | string
+  sendError?: Prisma.StringNullableWithAggregatesFilter<"DealRecipient"> | string | null
+  sendAttempts?: Prisma.IntWithAggregatesFilter<"DealRecipient"> | number
   ownerLastReadAt?: Prisma.DateTimeNullableWithAggregatesFilter<"DealRecipient"> | Date | string | null
   lastNudgeAt?: Prisma.DateTimeNullableWithAggregatesFilter<"DealRecipient"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"DealRecipient"> | Date | string
@@ -313,6 +373,8 @@ export type DealRecipientCreateInput = {
   sentAt?: Date | string | null
   viewedAt?: Date | string | null
   status?: string
+  sendError?: string | null
+  sendAttempts?: number
   ownerLastReadAt?: Date | string | null
   lastNudgeAt?: Date | string | null
   createdAt?: Date | string
@@ -330,6 +392,8 @@ export type DealRecipientUncheckedCreateInput = {
   sentAt?: Date | string | null
   viewedAt?: Date | string | null
   status?: string
+  sendError?: string | null
+  sendAttempts?: number
   ownerLastReadAt?: Date | string | null
   lastNudgeAt?: Date | string | null
   createdAt?: Date | string
@@ -343,6 +407,8 @@ export type DealRecipientUpdateInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   viewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  sendError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   ownerLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastNudgeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -360,6 +426,8 @@ export type DealRecipientUncheckedUpdateInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   viewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  sendError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   ownerLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastNudgeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -375,6 +443,8 @@ export type DealRecipientCreateManyInput = {
   sentAt?: Date | string | null
   viewedAt?: Date | string | null
   status?: string
+  sendError?: string | null
+  sendAttempts?: number
   ownerLastReadAt?: Date | string | null
   lastNudgeAt?: Date | string | null
   createdAt?: Date | string
@@ -387,6 +457,8 @@ export type DealRecipientUpdateManyMutationInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   viewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  sendError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   ownerLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastNudgeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -401,6 +473,8 @@ export type DealRecipientUncheckedUpdateManyInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   viewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  sendError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   ownerLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastNudgeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -425,9 +499,15 @@ export type DealRecipientCountOrderByAggregateInput = {
   sentAt?: Prisma.SortOrder
   viewedAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  sendError?: Prisma.SortOrder
+  sendAttempts?: Prisma.SortOrder
   ownerLastReadAt?: Prisma.SortOrder
   lastNudgeAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+}
+
+export type DealRecipientAvgOrderByAggregateInput = {
+  sendAttempts?: Prisma.SortOrder
 }
 
 export type DealRecipientMaxOrderByAggregateInput = {
@@ -439,6 +519,8 @@ export type DealRecipientMaxOrderByAggregateInput = {
   sentAt?: Prisma.SortOrder
   viewedAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  sendError?: Prisma.SortOrder
+  sendAttempts?: Prisma.SortOrder
   ownerLastReadAt?: Prisma.SortOrder
   lastNudgeAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -453,9 +535,15 @@ export type DealRecipientMinOrderByAggregateInput = {
   sentAt?: Prisma.SortOrder
   viewedAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  sendError?: Prisma.SortOrder
+  sendAttempts?: Prisma.SortOrder
   ownerLastReadAt?: Prisma.SortOrder
   lastNudgeAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+}
+
+export type DealRecipientSumOrderByAggregateInput = {
+  sendAttempts?: Prisma.SortOrder
 }
 
 export type DealRecipientNullableScalarRelationFilter = {
@@ -570,6 +658,8 @@ export type DealRecipientCreateWithoutContactInput = {
   sentAt?: Date | string | null
   viewedAt?: Date | string | null
   status?: string
+  sendError?: string | null
+  sendAttempts?: number
   ownerLastReadAt?: Date | string | null
   lastNudgeAt?: Date | string | null
   createdAt?: Date | string
@@ -585,6 +675,8 @@ export type DealRecipientUncheckedCreateWithoutContactInput = {
   sentAt?: Date | string | null
   viewedAt?: Date | string | null
   status?: string
+  sendError?: string | null
+  sendAttempts?: number
   ownerLastReadAt?: Date | string | null
   lastNudgeAt?: Date | string | null
   createdAt?: Date | string
@@ -628,6 +720,8 @@ export type DealRecipientScalarWhereInput = {
   sentAt?: Prisma.DateTimeNullableFilter<"DealRecipient"> | Date | string | null
   viewedAt?: Prisma.DateTimeNullableFilter<"DealRecipient"> | Date | string | null
   status?: Prisma.StringFilter<"DealRecipient"> | string
+  sendError?: Prisma.StringNullableFilter<"DealRecipient"> | string | null
+  sendAttempts?: Prisma.IntFilter<"DealRecipient"> | number
   ownerLastReadAt?: Prisma.DateTimeNullableFilter<"DealRecipient"> | Date | string | null
   lastNudgeAt?: Prisma.DateTimeNullableFilter<"DealRecipient"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"DealRecipient"> | Date | string
@@ -640,6 +734,8 @@ export type DealRecipientCreateWithoutDealInput = {
   sentAt?: Date | string | null
   viewedAt?: Date | string | null
   status?: string
+  sendError?: string | null
+  sendAttempts?: number
   ownerLastReadAt?: Date | string | null
   lastNudgeAt?: Date | string | null
   createdAt?: Date | string
@@ -655,6 +751,8 @@ export type DealRecipientUncheckedCreateWithoutDealInput = {
   sentAt?: Date | string | null
   viewedAt?: Date | string | null
   status?: string
+  sendError?: string | null
+  sendAttempts?: number
   ownerLastReadAt?: Date | string | null
   lastNudgeAt?: Date | string | null
   createdAt?: Date | string
@@ -693,6 +791,8 @@ export type DealRecipientCreateWithoutMessagesInput = {
   sentAt?: Date | string | null
   viewedAt?: Date | string | null
   status?: string
+  sendError?: string | null
+  sendAttempts?: number
   ownerLastReadAt?: Date | string | null
   lastNudgeAt?: Date | string | null
   createdAt?: Date | string
@@ -709,6 +809,8 @@ export type DealRecipientUncheckedCreateWithoutMessagesInput = {
   sentAt?: Date | string | null
   viewedAt?: Date | string | null
   status?: string
+  sendError?: string | null
+  sendAttempts?: number
   ownerLastReadAt?: Date | string | null
   lastNudgeAt?: Date | string | null
   createdAt?: Date | string
@@ -737,6 +839,8 @@ export type DealRecipientUpdateWithoutMessagesInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   viewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  sendError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   ownerLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastNudgeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -753,6 +857,8 @@ export type DealRecipientUncheckedUpdateWithoutMessagesInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   viewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  sendError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   ownerLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastNudgeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -766,6 +872,8 @@ export type DealRecipientCreateManyContactInput = {
   sentAt?: Date | string | null
   viewedAt?: Date | string | null
   status?: string
+  sendError?: string | null
+  sendAttempts?: number
   ownerLastReadAt?: Date | string | null
   lastNudgeAt?: Date | string | null
   createdAt?: Date | string
@@ -778,6 +886,8 @@ export type DealRecipientUpdateWithoutContactInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   viewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  sendError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   ownerLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastNudgeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -793,6 +903,8 @@ export type DealRecipientUncheckedUpdateWithoutContactInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   viewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  sendError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   ownerLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastNudgeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -807,6 +919,8 @@ export type DealRecipientUncheckedUpdateManyWithoutContactInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   viewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  sendError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   ownerLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastNudgeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -820,6 +934,8 @@ export type DealRecipientCreateManyDealInput = {
   sentAt?: Date | string | null
   viewedAt?: Date | string | null
   status?: string
+  sendError?: string | null
+  sendAttempts?: number
   ownerLastReadAt?: Date | string | null
   lastNudgeAt?: Date | string | null
   createdAt?: Date | string
@@ -832,6 +948,8 @@ export type DealRecipientUpdateWithoutDealInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   viewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  sendError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   ownerLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastNudgeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -847,6 +965,8 @@ export type DealRecipientUncheckedUpdateWithoutDealInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   viewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  sendError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   ownerLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastNudgeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -861,6 +981,8 @@ export type DealRecipientUncheckedUpdateManyWithoutDealInput = {
   sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   viewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  sendError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sendAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   ownerLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastNudgeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -906,6 +1028,8 @@ export type DealRecipientSelect<ExtArgs extends runtime.Types.Extensions.Interna
   sentAt?: boolean
   viewedAt?: boolean
   status?: boolean
+  sendError?: boolean
+  sendAttempts?: boolean
   ownerLastReadAt?: boolean
   lastNudgeAt?: boolean
   createdAt?: boolean
@@ -924,6 +1048,8 @@ export type DealRecipientSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   sentAt?: boolean
   viewedAt?: boolean
   status?: boolean
+  sendError?: boolean
+  sendAttempts?: boolean
   ownerLastReadAt?: boolean
   lastNudgeAt?: boolean
   createdAt?: boolean
@@ -940,6 +1066,8 @@ export type DealRecipientSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   sentAt?: boolean
   viewedAt?: boolean
   status?: boolean
+  sendError?: boolean
+  sendAttempts?: boolean
   ownerLastReadAt?: boolean
   lastNudgeAt?: boolean
   createdAt?: boolean
@@ -956,12 +1084,14 @@ export type DealRecipientSelectScalar = {
   sentAt?: boolean
   viewedAt?: boolean
   status?: boolean
+  sendError?: boolean
+  sendAttempts?: boolean
   ownerLastReadAt?: boolean
   lastNudgeAt?: boolean
   createdAt?: boolean
 }
 
-export type DealRecipientOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "dealId" | "contactId" | "accessToken" | "channel" | "sentAt" | "viewedAt" | "status" | "ownerLastReadAt" | "lastNudgeAt" | "createdAt", ExtArgs["result"]["dealRecipient"]>
+export type DealRecipientOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "dealId" | "contactId" | "accessToken" | "channel" | "sentAt" | "viewedAt" | "status" | "sendError" | "sendAttempts" | "ownerLastReadAt" | "lastNudgeAt" | "createdAt", ExtArgs["result"]["dealRecipient"]>
 export type DealRecipientInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   deal?: boolean | Prisma.DealDefaultArgs<ExtArgs>
   contact?: boolean | Prisma.DealRecipient$contactArgs<ExtArgs>
@@ -993,6 +1123,8 @@ export type $DealRecipientPayload<ExtArgs extends runtime.Types.Extensions.Inter
     sentAt: Date | null
     viewedAt: Date | null
     status: string
+    sendError: string | null
+    sendAttempts: number
     ownerLastReadAt: Date | null
     lastNudgeAt: Date | null
     createdAt: Date
@@ -1430,6 +1562,8 @@ export interface DealRecipientFieldRefs {
   readonly sentAt: Prisma.FieldRef<"DealRecipient", 'DateTime'>
   readonly viewedAt: Prisma.FieldRef<"DealRecipient", 'DateTime'>
   readonly status: Prisma.FieldRef<"DealRecipient", 'String'>
+  readonly sendError: Prisma.FieldRef<"DealRecipient", 'String'>
+  readonly sendAttempts: Prisma.FieldRef<"DealRecipient", 'Int'>
   readonly ownerLastReadAt: Prisma.FieldRef<"DealRecipient", 'DateTime'>
   readonly lastNudgeAt: Prisma.FieldRef<"DealRecipient", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"DealRecipient", 'DateTime'>

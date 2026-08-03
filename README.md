@@ -2,11 +2,13 @@
 
 The private CRM and negotiating platform for scrap metal trading. Two directions of trade, one contact list.
 
-**Selling — deals.** Dealers create deals (ISRI material, packaging, loads, weight, photos), maintain an encrypted contact list organized into groups, and publish to selected contacts. Each buyer gets a private link to that specific deal — emailed automatically when SMTP is configured, sent by SMS or WhatsApp when Twilio is configured, or shared by hand otherwise. From any deal page they can jump to their own **portal**: one page listing every deal that dealer has sent them, grouped into Open, Won, and Closed. Portal links can be rotated or revoked if one leaks.
+**Selling — deals.** Dealers create deals (material grade, packaging, loads, weight, photos), maintain an encrypted contact list organized into groups, and publish to selected contacts. Each buyer gets a private link to that specific deal — emailed automatically when SMTP is configured, sent by SMS or WhatsApp when Twilio is configured, or shared by hand otherwise. From any deal page they can jump to their own **portal**: one page listing every deal that dealer has sent them, grouped into Open, Won, and Closed. Portal links can be rotated or revoked if one leaks.
 
 Buyers open the link — no account required — see the deal under the dealer's own branding, and negotiate in built-in chat with text messages and USD bids (weight units convert automatically). There's no posted asking price: price discovery happens in the bids, and accepting the other party's latest bid closes the deal.
 
-**Buying — price sheets.** Dealers publish what the yard will **pay** per material grade, starting from a pre-filled grade list so the first sheet is editing numbers rather than typing names. Each supplier receives their own link, enters the tonnage they have, and either takes the quoted price or names their own. The yard then counters line by line, accepts, or declines. Publishing locks a sheet, so suppliers are always quoting against fixed numbers — new prices mean a new sheet, duplicated from the last one.
+**Buying — price sheets.** Dealers publish what the yard will **pay** per material grade, starting from a pre-filled grade list so the first sheet is editing numbers rather than typing names. Each supplier receives their own link, enters the tonnage they have, and either takes the quoted price or names their own. The yard then counters line by line, accepts, or declines — and the supplier is notified each time on the channel they were reached on. Both sides can message freely alongside the numbers, and offers show up in the dealer's unread badge and email nudges like any other conversation. Publishing locks a sheet, so suppliers are always quoting against fixed numbers — new prices mean a new sheet, duplicated from the last one, optionally with an expiry date.
+
+**Material grades are yours.** Deals and price sheets share one vocabulary: the grades a yard actually trades, in its own words, grouped by type. Add your own from the deal form as you go.
 
 There is no public marketplace — nothing is visible except to people holding a link.
 
@@ -72,6 +74,8 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Prisma 7 
 | `npm run start` | Serve the production build |
 | `npm run lint` | ESLint (Next core-web-vitals + TypeScript) |
 | `npm run backfill:keys` | Wrap existing account keys under the master key + normalize legacy ciphertext (idempotent; `-- --dry` to preview) |
+| `npm run clean:deals` | Delete deals whose material predates the yard-grade switch, including their upload directories (`-- --dry` to preview) |
+| `npm run set:company -- "Name"` | Set the dealer's trading name (shown to buyers and suppliers; not the platform name) |
 | `npx prisma migrate dev --name <name>` | Apply a schema change as a new migration |
 
 ## Notes

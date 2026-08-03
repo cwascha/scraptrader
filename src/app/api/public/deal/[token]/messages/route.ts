@@ -72,9 +72,17 @@ export async function POST(
     }
   }
 
-  const body = await req.json();
+  let parsedBody;
+  try {
+    parsedBody = await req.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 }
+    );
+  }
 
-  const parsed = parseIncomingMessage(body);
+  const parsed = parseIncomingMessage(parsedBody);
   if (!parsed.ok) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
@@ -98,8 +106,18 @@ export async function POST(
     },
   });
 
-  // Don't echo the stored contact name back to the buyer.
-  return NextResponse.json({ ...message, senderName: "You" });
+  // Don't echo the stored contact name back to the buyer, and don't echo
+  // internal FKs either.
+  return NextResponse.json({
+    id: message.id,
+    senderType: message.senderType,
+    senderName: "You",
+    type: message.type,
+    content: message.content,
+    bidAmount: message.bidAmount,
+    bidUnit: message.bidUnit,
+    createdAt: message.createdAt,
+  });
 }
 
 export async function GET(
@@ -129,11 +147,21 @@ export async function GET(
   // contact name — rewrite to "You" so it never reaches the buyer.
   // biddingClosed rides along so the polling client can hide the bid
   // composer as soon as the deal closes.
+  //
+  // Whitelisted projection, not a spread: Message gained
+  // `priceSheetRecipientId` when it went polymorphic, and internal FKs
+  // have no business in a buyer-facing payload.
   return NextResponse.json({
     biddingClosed: recipient.deal.status === "closed",
     messages: recipient.messages.map((m) => ({
-      ...m,
+      id: m.id,
+      senderType: m.senderType,
       senderName: m.senderType === "buyer" ? "You" : m.senderName,
+      type: m.type,
+      content: m.content,
+      bidAmount: m.bidAmount,
+      bidUnit: m.bidUnit,
+      createdAt: m.createdAt,
     })),
   });
 }

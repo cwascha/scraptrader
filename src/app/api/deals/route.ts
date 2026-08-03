@@ -10,6 +10,7 @@ import {
 } from "@/lib/deal-fields";
 import { isValidMaterial } from "@/lib/materials-server";
 import { parseAddressSnapshot, AddressSnapshot } from "@/lib/address";
+import { enforceBodyLimit, JSON_BODY_LIMIT } from "@/lib/body-limit";
 
 // Deal list with inbox data: each recipient carries the decrypted
 // contactName, the latest message (preview), and unreadCount (buyer
@@ -88,12 +89,25 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const tooLarge = enforceBodyLimit(req, JSON_BODY_LIMIT);
+  if (tooLarge) return tooLarge;
+
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
+  // Defensive parse, matching every other POST in the app — malformed
+  // JSON should be a 400, not an unhandled 500.
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 }
+    );
+  }
 
   const material =
     typeof body.material === "string" ? body.material.trim() : "";

@@ -33,6 +33,7 @@ export type UserMinAggregateOutputType = {
   encryptionKey: string | null
   preferredWeightUnit: string | null
   logoUrl: string | null
+  appIconUrl: string | null
   themeBrand: string | null
   themeBrandDark: string | null
   themeAccent: string | null
@@ -50,6 +51,7 @@ export type UserMaxAggregateOutputType = {
   encryptionKey: string | null
   preferredWeightUnit: string | null
   logoUrl: string | null
+  appIconUrl: string | null
   themeBrand: string | null
   themeBrandDark: string | null
   themeAccent: string | null
@@ -67,6 +69,7 @@ export type UserCountAggregateOutputType = {
   encryptionKey: number
   preferredWeightUnit: number
   logoUrl: number
+  appIconUrl: number
   themeBrand: number
   themeBrandDark: number
   themeAccent: number
@@ -86,6 +89,7 @@ export type UserMinAggregateInputType = {
   encryptionKey?: true
   preferredWeightUnit?: true
   logoUrl?: true
+  appIconUrl?: true
   themeBrand?: true
   themeBrandDark?: true
   themeAccent?: true
@@ -103,6 +107,7 @@ export type UserMaxAggregateInputType = {
   encryptionKey?: true
   preferredWeightUnit?: true
   logoUrl?: true
+  appIconUrl?: true
   themeBrand?: true
   themeBrandDark?: true
   themeAccent?: true
@@ -120,6 +125,7 @@ export type UserCountAggregateInputType = {
   encryptionKey?: true
   preferredWeightUnit?: true
   logoUrl?: true
+  appIconUrl?: true
   themeBrand?: true
   themeBrandDark?: true
   themeAccent?: true
@@ -210,6 +216,7 @@ export type UserGroupByOutputType = {
   encryptionKey: string
   preferredWeightUnit: string
   logoUrl: string | null
+  appIconUrl: string | null
   themeBrand: string | null
   themeBrandDark: string | null
   themeAccent: string | null
@@ -248,6 +255,7 @@ export type UserWhereInput = {
   encryptionKey?: Prisma.StringFilter<"User"> | string
   preferredWeightUnit?: Prisma.StringFilter<"User"> | string
   logoUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  appIconUrl?: Prisma.StringNullableFilter<"User"> | string | null
   themeBrand?: Prisma.StringNullableFilter<"User"> | string | null
   themeBrandDark?: Prisma.StringNullableFilter<"User"> | string | null
   themeAccent?: Prisma.StringNullableFilter<"User"> | string | null
@@ -271,6 +279,7 @@ export type UserOrderByWithRelationInput = {
   encryptionKey?: Prisma.SortOrder
   preferredWeightUnit?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  appIconUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   themeBrand?: Prisma.SortOrderInput | Prisma.SortOrder
   themeBrandDark?: Prisma.SortOrderInput | Prisma.SortOrder
   themeAccent?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -297,6 +306,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   encryptionKey?: Prisma.StringFilter<"User"> | string
   preferredWeightUnit?: Prisma.StringFilter<"User"> | string
   logoUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  appIconUrl?: Prisma.StringNullableFilter<"User"> | string | null
   themeBrand?: Prisma.StringNullableFilter<"User"> | string | null
   themeBrandDark?: Prisma.StringNullableFilter<"User"> | string | null
   themeAccent?: Prisma.StringNullableFilter<"User"> | string | null
@@ -320,6 +330,7 @@ export type UserOrderByWithAggregationInput = {
   encryptionKey?: Prisma.SortOrder
   preferredWeightUnit?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  appIconUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   themeBrand?: Prisma.SortOrderInput | Prisma.SortOrder
   themeBrandDark?: Prisma.SortOrderInput | Prisma.SortOrder
   themeAccent?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -343,6 +354,7 @@ export type UserScalarWhereWithAggregatesInput = {
   encryptionKey?: Prisma.StringWithAggregatesFilter<"User"> | string
   preferredWeightUnit?: Prisma.StringWithAggregatesFilter<"User"> | string
   logoUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  appIconUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   themeBrand?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   themeBrandDark?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   themeAccent?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -360,6 +372,7 @@ export type UserCreateInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -383,6 +396,7 @@ export type UserUncheckedCreateInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -406,6 +420,7 @@ export type UserUpdateInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -429,6 +444,7 @@ export type UserUncheckedUpdateInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -452,6 +468,7 @@ export type UserCreateManyInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -469,6 +486,7 @@ export type UserUpdateManyMutationInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -486,6 +504,7 @@ export type UserUncheckedUpdateManyInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -503,6 +522,7 @@ export type UserCountOrderByAggregateInput = {
   encryptionKey?: Prisma.SortOrder
   preferredWeightUnit?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
+  appIconUrl?: Prisma.SortOrder
   themeBrand?: Prisma.SortOrder
   themeBrandDark?: Prisma.SortOrder
   themeAccent?: Prisma.SortOrder
@@ -520,6 +540,7 @@ export type UserMaxOrderByAggregateInput = {
   encryptionKey?: Prisma.SortOrder
   preferredWeightUnit?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
+  appIconUrl?: Prisma.SortOrder
   themeBrand?: Prisma.SortOrder
   themeBrandDark?: Prisma.SortOrder
   themeAccent?: Prisma.SortOrder
@@ -537,6 +558,7 @@ export type UserMinOrderByAggregateInput = {
   encryptionKey?: Prisma.SortOrder
   preferredWeightUnit?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
+  appIconUrl?: Prisma.SortOrder
   themeBrand?: Prisma.SortOrder
   themeBrandDark?: Prisma.SortOrder
   themeAccent?: Prisma.SortOrder
@@ -655,6 +677,7 @@ export type UserCreateWithoutMaterialGradesInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -677,6 +700,7 @@ export type UserUncheckedCreateWithoutMaterialGradesInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -715,6 +739,7 @@ export type UserUpdateWithoutMaterialGradesInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -737,6 +762,7 @@ export type UserUncheckedUpdateWithoutMaterialGradesInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -759,6 +785,7 @@ export type UserCreateWithoutContactsInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -781,6 +808,7 @@ export type UserUncheckedCreateWithoutContactsInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -819,6 +847,7 @@ export type UserUpdateWithoutContactsInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -841,6 +870,7 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -863,6 +893,7 @@ export type UserCreateWithoutContactGroupsInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -885,6 +916,7 @@ export type UserUncheckedCreateWithoutContactGroupsInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -923,6 +955,7 @@ export type UserUpdateWithoutContactGroupsInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -945,6 +978,7 @@ export type UserUncheckedUpdateWithoutContactGroupsInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -967,6 +1001,7 @@ export type UserCreateWithoutYardAddressesInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -989,6 +1024,7 @@ export type UserUncheckedCreateWithoutYardAddressesInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -1027,6 +1063,7 @@ export type UserUpdateWithoutYardAddressesInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1049,6 +1086,7 @@ export type UserUncheckedUpdateWithoutYardAddressesInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1071,6 +1109,7 @@ export type UserCreateWithoutDealsInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -1093,6 +1132,7 @@ export type UserUncheckedCreateWithoutDealsInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -1131,6 +1171,7 @@ export type UserUpdateWithoutDealsInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1153,6 +1194,7 @@ export type UserUncheckedUpdateWithoutDealsInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1175,6 +1217,7 @@ export type UserCreateWithoutPriceSheetsInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -1197,6 +1240,7 @@ export type UserUncheckedCreateWithoutPriceSheetsInput = {
   encryptionKey: string
   preferredWeightUnit?: string
   logoUrl?: string | null
+  appIconUrl?: string | null
   themeBrand?: string | null
   themeBrandDark?: string | null
   themeAccent?: string | null
@@ -1235,6 +1279,7 @@ export type UserUpdateWithoutPriceSheetsInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1257,6 +1302,7 @@ export type UserUncheckedUpdateWithoutPriceSheetsInput = {
   encryptionKey?: Prisma.StringFieldUpdateOperationsInput | string
   preferredWeightUnit?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeBrandDark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   themeAccent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1355,6 +1401,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   encryptionKey?: boolean
   preferredWeightUnit?: boolean
   logoUrl?: boolean
+  appIconUrl?: boolean
   themeBrand?: boolean
   themeBrandDark?: boolean
   themeAccent?: boolean
@@ -1379,6 +1426,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   encryptionKey?: boolean
   preferredWeightUnit?: boolean
   logoUrl?: boolean
+  appIconUrl?: boolean
   themeBrand?: boolean
   themeBrandDark?: boolean
   themeAccent?: boolean
@@ -1396,6 +1444,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   encryptionKey?: boolean
   preferredWeightUnit?: boolean
   logoUrl?: boolean
+  appIconUrl?: boolean
   themeBrand?: boolean
   themeBrandDark?: boolean
   themeAccent?: boolean
@@ -1413,6 +1462,7 @@ export type UserSelectScalar = {
   encryptionKey?: boolean
   preferredWeightUnit?: boolean
   logoUrl?: boolean
+  appIconUrl?: boolean
   themeBrand?: boolean
   themeBrandDark?: boolean
   themeAccent?: boolean
@@ -1421,7 +1471,7 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "companyName" | "passwordHash" | "encryptionKey" | "preferredWeightUnit" | "logoUrl" | "themeBrand" | "themeBrandDark" | "themeAccent" | "themeMode" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "companyName" | "passwordHash" | "encryptionKey" | "preferredWeightUnit" | "logoUrl" | "appIconUrl" | "themeBrand" | "themeBrandDark" | "themeAccent" | "themeMode" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   deals?: boolean | Prisma.User$dealsArgs<ExtArgs>
   contacts?: boolean | Prisma.User$contactsArgs<ExtArgs>
@@ -1453,6 +1503,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     encryptionKey: string
     preferredWeightUnit: string
     logoUrl: string | null
+    appIconUrl: string | null
     themeBrand: string | null
     themeBrandDark: string | null
     themeAccent: string | null
@@ -1896,6 +1947,7 @@ export interface UserFieldRefs {
   readonly encryptionKey: Prisma.FieldRef<"User", 'String'>
   readonly preferredWeightUnit: Prisma.FieldRef<"User", 'String'>
   readonly logoUrl: Prisma.FieldRef<"User", 'String'>
+  readonly appIconUrl: Prisma.FieldRef<"User", 'String'>
   readonly themeBrand: Prisma.FieldRef<"User", 'String'>
   readonly themeBrandDark: Prisma.FieldRef<"User", 'String'>
   readonly themeAccent: Prisma.FieldRef<"User", 'String'>

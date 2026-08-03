@@ -148,10 +148,11 @@ function AddressBlock({
           </label>
           <input
             type="text"
+            inputMode="numeric"
             value={value.zip}
             onChange={(e) => onChange({ ...value, zip: e.target.value })}
             placeholder="13827"
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+            className="data w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
           />
         </div>
       </div>
@@ -384,7 +385,7 @@ export default function NewDealPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-xl border border-slate-200 p-6 space-y-5"
+        className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 space-y-5"
       >
         {error && (
           <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg">
@@ -401,8 +402,9 @@ export default function NewDealPage() {
             onChange={(v) => setForm({ ...form, material: v })}
           />
           <p className="text-xs text-slate-400 mt-1">
-            Official ISRI nonferrous categories. Pick a main category or expand
-            it to choose a specific grade — hover a grade for its full spec.
+            Your yard&apos;s grades, grouped by type. Pick a category for a
+            mixed load, or expand it for a specific grade — you can add your
+            own from the list.
           </p>
         </div>
 
@@ -438,12 +440,13 @@ export default function NewDealPage() {
           </label>
           <input
             type="number"
+            inputMode="numeric"
             min={1}
             step={1}
             value={form.numLoads}
             onChange={(e) => setForm({ ...form, numLoads: e.target.value })}
             placeholder="4"
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+            className="data w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
             required
           />
         </div>
@@ -455,6 +458,7 @@ export default function NewDealPage() {
           <div className="flex gap-3">
             <input
               type="number"
+              inputMode="decimal"
               min={0}
               step="any"
               value={form.weightPerLoad}
@@ -462,22 +466,32 @@ export default function NewDealPage() {
                 setForm({ ...form, weightPerLoad: e.target.value })
               }
               placeholder="42000"
-              className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+              className="data flex-1 min-w-0 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
               required
             />
-            <select
-              value={form.weightUnit}
-              onChange={(e) =>
-                setForm({ ...form, weightUnit: e.target.value })
-              }
-              className="w-40 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
-            >
-              {WEIGHT_UNITS.map((u) => (
-                <option key={u} value={u}>
-                  {u}
-                </option>
-              ))}
-            </select>
+            {/* appearance-none + our own caret: iOS draws a native
+                stepper-style control on <select> that ignores the width
+                and spills out of the row. min-w-0 on the input above lets
+                it actually shrink — a flex child defaults to min-width
+                auto, which is what forces the overflow. */}
+            <div className="relative w-24 sm:w-40 flex-shrink-0">
+              <select
+                value={form.weightUnit}
+                onChange={(e) =>
+                  setForm({ ...form, weightUnit: e.target.value })
+                }
+                className="w-full appearance-none bg-white px-3 pr-8 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+              >
+                {WEIGHT_UNITS.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]">
+                ▼
+              </span>
+            </div>
           </div>
         </div>
 

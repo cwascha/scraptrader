@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { fetchJson } from "@/lib/fetch-json";
 
 interface Group {
@@ -12,6 +12,7 @@ interface Group {
 interface Contact {
   id: string;
   name: string;
+  company: string | null;
   email: string | null;
   phone: string | null;
   whatsapp: string | null;
@@ -19,13 +20,18 @@ interface Contact {
   groups: { id: string; name: string }[];
 }
 
+type SortKey = "name" | "company" | "email" | "phone" | "whatsapp" | "groups";
+
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  // null = the form is creating; an id = the form is editing that contact.
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
+    company: "",
     email: "",
     phone: "",
     whatsapp: "",
@@ -34,6 +40,25 @@ export default function ContactsPage() {
   const [saving, setSaving] = useState(false);
   const [contactError, setContactError] = useState("");
   const [portalCopied, setPortalCopied] = useState<string | null>(null);
+  // Which row has its portal actions expanded. Copy/Rotate/Revoke are one
+  // concept (the portal token's lifecycle), so they collapse behind a
+  // single control instead of eating five columns of row width.
+  const [portalOpenFor, setPortalOpenFor] = useState<string | null>(null);
+
+  // Sorting is CLIENT-SIDE by necessity, not by choice: name/company/email
+  // /phone are stored encrypted, so the database has only ciphertext to
+  // ORDER BY. The list can only be ordered once it's been decrypted.
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortAsc, setSortAsc] = useState(true);
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortAsc((v) => !v);
+    } else {
+      setSortKey(key);
+      setSortAsc(true);
+    }
+  }
 
   // Groups section state
   const [newGroupName, setNewGroupName] = useState("");
@@ -57,23 +82,65 @@ export default function ContactsPage() {
     setLoading(false);
   }
 
+  function closeForm() {
+    setShowAdd(false);
+    setEditingId(null);
+    setForm({ name: "", company: "", email: "", phone: "", whatsapp: "" });
+    setFormGroupIds([]);
+    setContactError("");
+  }
+
+  function openCreate() {
+    closeForm();
+    setShowAdd(true);
+  }
+
+  function openEdit(c: Contact) {
+    setEditingId(c.id);
+    setForm({
+      name: c.name,
+      company: c.company ?? "",
+      email: c.email ?? "",
+      phone: c.phone ?? "",
+      whatsapp: c.whatsapp ?? "",
+    });
+    setFormGroupIds(c.groups.map((g) => g.id));
+    setContactError("");
+    setShowAdd(true);
+    // The form sits above the table; bring it into view on long lists.
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setContactError("");
     try {
-      await fetchJson("/api/contacts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, groupIds: formGroupIds }),
-      });
-      setForm({ name: "", email: "", phone: "", whatsapp: "" });
-      setFormGroupIds([]);
-      setShowAdd(false);
+      if (editingId) {
+        // PUT keeps the contact's id — and therefore its portal token and
+        // every deal/price-sheet thread attached to it. Delete-and-recreate
+        // would silently orphan all of that.
+        await fetchJson(`/api/contacts/${editingId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...form, groupIds: formGroupIds }),
+        });
+      } else {
+        await fetchJson("/api/contacts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...form, groupIds: formGroupIds }),
+        });
+      }
+      closeForm();
       await loadAll();
     } catch (err) {
       setContactError(
-        err instanceof Error ? err.message : "Failed to add contact"
+        err instanceof Error
+          ? err.message
+          : editingId
+            ? "Failed to save changes"
+            : "Failed to add contact"
       );
     } finally {
       setSaving(false);
@@ -284,6 +351,55 @@ export default function ContactsPage() {
     );
   }
 
+  // Blank fields always sink to the bottom regardless of direction — a
+  // screenful of "—" at the top is never what you wanted when you clicked
+  // "Phone". Groups sorts by COUNT (finding ungrouped contacts is the
+  // reason you'd click it), with name as the tiebreak.
+  const collator = new Intl.Collator("en", {
+    sensitivity: "base",
+    numeric: true,
+  });
+
+  const sortedContacts = [...contacts].sort((a, b) => {
+    const dir = sortAsc ? 1 : -1;
+
+    if (sortKey === "groups") {
+      const diff = a.groups.length - b.groups.length;
+      if (diff !== 0) return diff * dir;
+      return collator.compare(a.name, b.name);
+    }
+
+    const av = a[sortKey] ?? "";
+    const bv = b[sortKey] ?? "";
+    if (!av && !bv) return collator.compare(a.name, b.name);
+    if (!av) return 1;
+    if (!bv) return -1;
+    return collator.compare(av, bv) * dir;
+  });
+
+  const sortHeader = (label: string, key: SortKey) => {
+    const active = sortKey === key;
+    return (
+      <th className="text-left px-5 py-3">
+        <button
+          onClick={() => toggleSort(key)}
+          className={`inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wide transition-colors ${
+            active ? "text-brand" : "text-slate-500 hover:text-slate-700"
+          }`}
+          aria-sort={active ? (sortAsc ? "ascending" : "descending") : "none"}
+        >
+          {label}
+          <span
+            className={`text-[9px] ${active ? "opacity-100" : "opacity-30"}`}
+            aria-hidden="true"
+          >
+            {active && !sortAsc ? "\u25b2" : "\u25bc"}
+          </span>
+        </button>
+      </th>
+    );
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6 gap-3">
@@ -292,12 +408,12 @@ export default function ContactsPage() {
             Contacts
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            All contact data is encrypted. Even ScrapTrader cannot read your
-            contact list.
+            Contact details are encrypted at rest under a key unique to your
+            account &mdash; never sold, shared, or visible to another dealer.
           </p>
         </div>
         <button
-          onClick={() => setShowAdd(true)}
+          onClick={openCreate}
           className="px-5 py-2.5 bg-brand text-white font-medium rounded-lg hover:bg-brand-dark transition-colors flex-shrink-0"
         >
           + Add Contact
@@ -314,7 +430,7 @@ export default function ContactsPage() {
       {showAdd && (
         <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
           <h2 className="text-lg font-semibold text-slate-800 mb-4">
-            Add Contact
+            {editingId ? "Edit Contact" : "Add Contact"}
           </h2>
           <form onSubmit={handleAdd} className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
@@ -332,10 +448,27 @@ export default function ContactsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Company
+                </label>
+                <input
+                  type="text"
+                  value={form.company}
+                  onChange={(e) =>
+                    setForm({ ...form, company: e.target.value })
+                  }
+                  placeholder="e.g. Midwest Metals"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
                   Email
                 </label>
                 <input
                   type="email"
+                  inputMode="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
@@ -347,6 +480,7 @@ export default function ContactsPage() {
                 </label>
                 <input
                   type="tel"
+                  inputMode="tel"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
@@ -358,6 +492,7 @@ export default function ContactsPage() {
                 </label>
                 <input
                   type="tel"
+                  inputMode="tel"
                   value={form.whatsapp}
                   onChange={(e) =>
                     setForm({ ...form, whatsapp: e.target.value })
@@ -405,11 +540,15 @@ export default function ContactsPage() {
                 disabled={saving}
                 className="px-6 py-2 bg-brand text-white font-medium rounded-lg hover:bg-brand-dark transition-colors disabled:opacity-50"
               >
-                {saving ? "Saving..." : "Save Contact"}
+                {saving
+                  ? "Saving..."
+                  : editingId
+                    ? "Save Changes"
+                    : "Save Contact"}
               </button>
               <button
                 type="button"
-                onClick={() => setShowAdd(false)}
+                onClick={closeForm}
                 className="px-6 py-2 text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 Cancel
@@ -429,7 +568,7 @@ export default function ContactsPage() {
             Add contacts to start publishing deals. All data is encrypted.
           </p>
           <button
-            onClick={() => setShowAdd(true)}
+            onClick={openCreate}
             className="px-6 py-2.5 bg-brand text-white font-medium rounded-lg hover:bg-brand-dark transition-colors"
           >
             Add First Contact
@@ -442,29 +581,24 @@ export default function ContactsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-200">
-                <th className="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">
-                  Name
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">
-                  Email
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">
-                  Phone
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">
-                  WhatsApp
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">
-                  Groups
-                </th>
+                {sortHeader("Name", "name")}
+                {sortHeader("Company", "company")}
+                {sortHeader("Email", "email")}
+                {sortHeader("Phone", "phone")}
+                {sortHeader("WhatsApp", "whatsapp")}
+                {sortHeader("Groups", "groups")}
                 <th></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {contacts.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50">
+              {sortedContacts.map((c) => (
+                <Fragment key={c.id}>
+                <tr className="hover:bg-slate-50">
                   <td className="px-5 py-3 text-sm font-medium text-slate-800">
                     {c.name}
+                  </td>
+                  <td className="px-5 py-3 text-sm text-slate-600">
+                    {c.company || "—"}
                   </td>
                   <td className="px-5 py-3 text-sm text-slate-600">
                     {c.email || "—"}
@@ -492,41 +626,82 @@ export default function ContactsPage() {
                     )}
                   </td>
                   <td className="px-5 py-3">
-                    <div className="flex gap-3 whitespace-nowrap justify-end">
+                    <div className="flex gap-3 whitespace-nowrap justify-end items-center">
                       <button
-                        onClick={() => handlePortalLink(c.id)}
+                        onClick={() => openEdit(c)}
                         className="text-brand hover:text-brand-dark text-sm font-medium"
-                        title="Copy this buyer's portal link — one page listing every deal you've sent them"
                       >
-                        {portalCopied === c.id ? "✓ Copied!" : "Portal link"}
+                        Edit
                       </button>
-                      {c.hasPortalToken && (
-                        <>
-                          <button
-                            onClick={() => handleRotatePortal(c.id)}
-                            className="text-slate-500 hover:text-slate-700 text-sm"
-                            title="Mint a new portal link and kill the old one — use if the link may have leaked"
-                          >
-                            Rotate
-                          </button>
-                          <button
-                            onClick={() => handleRevokePortal(c.id)}
-                            className="text-slate-500 hover:text-slate-700 text-sm"
-                            title="Kill this buyer's portal link entirely until a new one is issued"
-                          >
-                            Revoke
-                          </button>
-                        </>
-                      )}
+                      <button
+                        onClick={() =>
+                          setPortalOpenFor(
+                            portalOpenFor === c.id ? null : c.id
+                          )
+                        }
+                        className="text-brand hover:text-brand-dark text-sm font-medium inline-flex items-center gap-1"
+                        title="Copy, rotate, or revoke this buyer's portal link"
+                      >
+                        {portalCopied === c.id ? "✓ Copied!" : "Portal"}
+                        <span className="text-[10px]" aria-hidden="true">
+                          {portalOpenFor === c.id ? "▲" : "▼"}
+                        </span>
+                      </button>
                       <button
                         onClick={() => handleDelete(c.id)}
-                        className="text-red-400 hover:text-red-600 text-sm"
+                        className="btn-danger text-sm"
                       >
                         Remove
                       </button>
                     </div>
                   </td>
                 </tr>
+
+                {/* Expanded inline rather than a dropdown: the table sits
+                    in an overflow-x-auto container, which would clip an
+                    absolutely-positioned menu. Also leaves room to say what
+                    Rotate and Revoke actually do. */}
+                {portalOpenFor === c.id && (
+                  <tr className="bg-slate-50">
+                    <td colSpan={7} className="px-5 py-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs text-slate-500 mr-1">
+                          Portal link — one page listing every deal sent to{" "}
+                          {c.name}:
+                        </span>
+                        <button
+                          onClick={() => handlePortalLink(c.id)}
+                          className="px-2.5 py-1 text-sm font-medium text-brand border border-brand/30 rounded-md hover:bg-brand/5 transition-colors"
+                        >
+                          {portalCopied === c.id ? "✓ Copied" : "Copy link"}
+                        </button>
+                        {c.hasPortalToken && (
+                          <>
+                            <button
+                              onClick={() => handleRotatePortal(c.id)}
+                              className="px-2.5 py-1 text-sm text-slate-600 border border-slate-300 rounded-md hover:bg-white transition-colors"
+                            >
+                              Rotate
+                              <span className="text-slate-400 ml-1.5">
+                                new link, old one dies
+                              </span>
+                            </button>
+                            <button
+                              onClick={() => handleRevokePortal(c.id)}
+                              className="px-2.5 py-1 text-sm text-slate-600 border border-slate-300 rounded-md hover:bg-white transition-colors"
+                            >
+                              Revoke
+                              <span className="text-slate-400 ml-1.5">
+                                no access until re-issued
+                              </span>
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               ))}
             </tbody>
           </table>
@@ -594,7 +769,7 @@ export default function ContactsPage() {
                     </button>
                     <button
                       onClick={() => handleDeleteGroup(g.id, g.name)}
-                      className="text-sm text-red-500 hover:text-red-700"
+                      className="btn-danger text-sm"
                     >
                       Delete
                     </button>

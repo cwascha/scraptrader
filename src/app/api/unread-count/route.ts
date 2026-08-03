@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { ensureNudgeSweeper } from "@/lib/notify";
+import { ensureSendWorker } from "@/lib/send-queue";
 
 // Total unread buyer messages across all of the user's conversations —
 // powers the nav badge. Lightweight select: read markers + buyer message
@@ -10,7 +11,12 @@ import { ensureNudgeSweeper } from "@/lib/notify";
 export async function GET() {
   // Dealer presence also warms the Tier-3 nudge sweeper (no-op after the
   // first call) — covers the server-restarted-while-unread-exists case.
+  // Warm both background workers. This endpoint is polled by every
+  // dashboard page, so it's the reliable place to guarantee they're
+  // running — in particular it means a restart mid-publish resumes the
+  // send queue as soon as the dealer's browser next polls.
   ensureNudgeSweeper();
+  ensureSendWorker();
 
   const user = await getCurrentUser();
   if (!user) {

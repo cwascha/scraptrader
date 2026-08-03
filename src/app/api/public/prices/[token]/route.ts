@@ -4,11 +4,14 @@ import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { enforceBodyLimit, JSON_BODY_LIMIT } from "@/lib/body-limit";
 import { decryptContact } from "@/lib/encryption";
 import { isEmailConfigured, sendPriceSheetResponseNotice } from "@/lib/mailer";
+import { ensureNudgeSweeper } from "@/lib/notify";
 import {
   formatPrice,
   formatUsd,
+  formatUnitPrice,
   formatWeightWithUnit,
   lineValue,
+  roundPrice,
   toLbs,
 } from "@/lib/price-sheet-defaults";
 
@@ -67,12 +70,18 @@ export async function GET(
     },
   });
 
-  if (!recipient || recipient.sheet.status !== "published") {
+  if (
+    !recipient ||
+    (recipient.sheet.status !== "published" &&
+      recipient.sheet.status !== "deactivated")
+  ) {
     return NextResponse.json(
       { error: "Price sheet not found" },
       { status: 404 }
     );
   }
+
+  const deactivated = recipient.sheet.status === "deactivated";
 
   if (!recipient.viewedAt) {
     await prisma.priceSheetRecipient.update({
@@ -126,15 +135,21 @@ export async function GET(
   return NextResponse.json({
     sheet: {
       title: sheet.title,
-      headerNote: sheet.headerNote,
+      // Withdrawn: the prices are no longer on offer, so they are NOT
+      // sent to the client at all. Hiding them in the UI while shipping
+      // them in the payload would still let someone quote off numbers the
+      // yard has retracted.
+      comexBasis: deactivated ? null : sheet.comexBasis,
+      headerNote: deactivated ? null : sheet.headerNote,
       effectiveDate: sheet.effectiveDate,
       expiresAt: sheet.expiresAt,
+      deactivated,
       // Expired sheets still SHOW their prices — a supplier needs to see
       // what lapsed — but the form goes read-only and POST refuses.
       expired: Boolean(sheet.expiresAt && sheet.expiresAt.getTime() < Date.now()),
       company: sheet.user.companyName,
       seller: sheet.user.name,
-      categories,
+      categories: deactivated ? [] : categories,
     },
     response: recipient.response
       ? {
@@ -165,6 +180,13 @@ export async function POST(
 ) {
   const tooLarge = enforceBodyLimit(req, JSON_BODY_LIMIT);
   if (tooLarge) return tooLarge;
+
+  // An offer creates unread work for the yard, so this is exactly the
+  // moment the nudge sweeper must be running. Without this, a server that
+  // restarted and has seen only price-sheet traffic would never chase an
+  // ignored offer — backwards, since the nudge exists for when nobody's
+  // watching the dashboard.
+  ensureNudgeSweeper();
 
   const { token } = await params;
 
@@ -200,10 +222,29 @@ export async function POST(
     },
   });
 
-  if (!recipient || recipient.sheet.status !== "published") {
+  // Deactivated sheets are FOUND here (not 404) so the supplier gets the
+  // real reason below rather than a dead link.
+  if (
+    !recipient ||
+    (recipient.sheet.status !== "published" &&
+      recipient.sheet.status !== "deactivated")
+  ) {
     return NextResponse.json(
       { error: "Price sheet not found" },
       { status: 404 }
+    );
+  }
+
+  // Withdrawn prices can't be quoted against. The thread stays open (see
+  // the messages route) so an in-flight negotiation isn't stranded — but
+  // no new offer can be pinned to numbers the yard has retracted.
+  if (recipient.sheet.status === "deactivated") {
+    return NextResponse.json(
+      {
+        error:
+          "These prices are no longer valid. Contact the yard for current pricing.",
+      },
+      { status: 400 }
     );
   }
 
@@ -300,7 +341,9 @@ export async function POST(
         r.weightUnit === "tons" || r.weightUnit === "kg"
           ? (r.weightUnit as string)
           : "lbs",
-      buyerPrice: hasPrice ? rawPrice : null,
+      // Stored at display precision so the printed price × weight always
+      // equals the printed total.
+      buyerPrice: hasPrice ? roundPrice(rawPrice) : null,
     });
   }
 
@@ -341,7 +384,7 @@ export async function POST(
     if (value === null) allValued = false;
     else total += value;
     return `${item?.name ?? "line"}: ${formatWeightWithUnit(l.weight, l.weightUnit)}${
-      price !== null ? ` @ $${price.toFixed(2)}/${unit}` : ""
+      price !== null ? ` @ ${formatUnitPrice(price)}/${unit}` : ""
     }${l.buyerPrice !== null ? " (their ask)" : ""}`;
   });
   const totalText = allValued && lines.length > 0 ? formatUsd(total) : null;
@@ -406,7 +449,6 @@ export async function POST(
         dealerName: recipient.sheet.user.name,
         contactName: supplierName,
         sheetTitle: recipient.sheet.title,
-        lineCount: lines.length,
         totalWeightText: `${Math.round(totalLbs).toLocaleString("en-US")} lbs across ${lines.length} grade${lines.length === 1 ? "" : "s"}`,
         hasCounters: lines.some((l) => l.buyerPrice !== null),
         responseUrl: `${baseUrl}/dashboard/prices/${recipient.sheetId}`,

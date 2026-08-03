@@ -2,27 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { decryptContact } from "@/lib/encryption";
-import { isEmailConfigured, sendDealEmail } from "@/lib/mailer";
-import {
-  isSmsConfigured,
-  isWhatsAppConfigured,
-  sendDealSms,
-  sendDealWhatsApp,
-} from "@/lib/sms";
-import { materialLabel } from "@/lib/materials";
+import { isEmailConfigured } from "@/lib/mailer";
+import { isSmsConfigured, isWhatsAppConfigured } from "@/lib/sms";
 import { ensurePortalToken } from "@/lib/portal";
-import { formatWeight } from "@/lib/deal-fields";
+import { kickSendQueue } from "@/lib/send-queue";
+import { enforceBodyLimit, JSON_BODY_LIMIT } from "@/lib/body-limit";
 import { v4 as uuidv4 } from "uuid";
 
+// Publishing CREATES RECIPIENTS AND RETURNS. It no longer sends anything
+// inline — messages are queued and drained by lib/send-queue.ts.
+//
+// Why: publishing to 500 contacts meant 500 sequential SMTP round-trips
+// inside one HTTP request, which blows past the reverse proxy's read
+// timeout. The connection died mid-send, leaving recipients created, an
+// unknown number of emails delivered, and no retry path (gap #43b). The
+// dealer saw a failed request and couldn't tell who had been reached.
+//
 // Status semantics:
-//   pending — link created, nothing dispatched (channel unconfigured, no
-//             usable address/number, or the send failed)
-//   sent    — a message was actually dispatched on that channel
+//   queued  — will be sent by the background worker
+//   sent    — dispatched on that channel
+//   failed  — attempts exhausted; share the link by hand
+//   pending — nothing to dispatch (channel unconfigured, or no address)
 //   viewed  — buyer opened the link
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const tooLarge = enforceBodyLimit(req, JSON_BODY_LIMIT);
+  if (tooLarge) return tooLarge;
+
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -49,16 +57,42 @@ export async function POST(
     );
   }
 
-  const { contactIds, channels } = await req.json();
+  let body: { contactIds?: unknown; channels?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 }
+    );
+  }
 
   // De-dupe incoming ids (group + individual selections can overlap).
-  const uniqueContactIds: string[] = Array.isArray(contactIds)
-    ? [...new Set(contactIds.filter((x: unknown): x is string => typeof x === "string"))]
+  const uniqueContactIds: string[] = Array.isArray(body.contactIds)
+    ? [
+        ...new Set(
+          body.contactIds.filter((x: unknown): x is string => typeof x === "string")
+        ),
+      ]
     : [];
 
   if (uniqueContactIds.length === 0) {
     return NextResponse.json(
       { error: "Select at least one contact" },
+      { status: 400 }
+    );
+  }
+
+  const selectedChannels: string[] = Array.isArray(body.channels)
+    ? body.channels.filter(
+        (c: unknown): c is string =>
+          c === "email" || c === "sms" || c === "whatsapp"
+      )
+    : ["email"];
+
+  if (selectedChannels.length === 0) {
+    return NextResponse.json(
+      { error: "Select at least one channel" },
       { status: 400 }
     );
   }
@@ -78,49 +112,32 @@ export async function POST(
   );
 
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-  // Each channel sends for real only when its credentials are present;
-  // otherwise it degrades to link-sharing. Twilio approves SMS and
-  // WhatsApp separately, so they're detected independently.
+  // Each channel dispatches only when its credentials are present;
+  // otherwise the recipient is created as `pending` and the dealer shares
+  // the link by hand. Twilio approves SMS and WhatsApp separately, so
+  // they're detected independently.
   const enabled: Record<string, boolean> = {
     email: isEmailConfigured(),
     sms: isSmsConfigured(),
     whatsapp: isWhatsAppConfigured(),
   };
 
-  // Shared email content pieces for this deal.
-  const materialText = materialLabel(deal.material);
-  const quantityText = `${deal.numLoads} load${deal.numLoads === 1 ? "" : "s"} × ${formatWeight(deal.weightPerLoad)} ${deal.weightUnit}`;
-  const priceText =
-    deal.askingPrice !== null
-      ? `$${deal.askingPrice.toFixed(2)} ${deal.priceUnit}`
-      : null;
-  const logoAbsUrl = user.logoUrl ? `${baseUrl}${user.logoUrl}` : null;
-  const brandColor = user.themeBrand || "#2d5f8a";
-
-  // Explicitly typed and explicitly projected. Spreading the whole
-  // DealRecipient row here would (a) leave TS inferring an evolving any[]
-  // that breaks once it's read inside a callback below, and (b) ship
-  // internal columns to the client by default — the same whitelist rule
-  // the public routes follow.
   const recipients: {
     id: string;
     contactName: string;
     channel: string;
     status: string;
     dealLink: string;
-    sent: boolean;
-    sendError?: string;
   }[] = [];
   let skipped = 0;
-  let sentCount = 0;
-  let failedCount = 0;
+  let queuedCount = 0;
+  let manualCount = 0;
   let unreadable = 0;
 
   for (const contact of contacts) {
     // One undecryptable contact must not abort the whole publish. AES-GCM
-    // throws on a tampered or wrong-key value (the old unauthenticated CBC
-    // quietly returned ""), so skip just this recipient and report it in
-    // the summary — every other decrypt site degrades the same way.
+    // throws on a tampered or wrong-key value, so skip just this recipient
+    // and report it — every other decrypt site degrades the same way.
     let decrypted: ReturnType<typeof decryptContact>;
     try {
       decrypted = decryptContact(contact, user.encryptionKey);
@@ -130,104 +147,49 @@ export async function POST(
     }
 
     // Mint the buyer's portal token if they don't have one yet. We don't
-    // SEND it — the per-deal link below is what goes out, since the email
-    // is about one specific deal and should open it. But the deal page
-    // offers an "All deals" link back to the portal, which needs the token
-    // to exist. `contacts` was fetched with all scalar fields, so an
-    // existing token costs no extra query.
+    // SEND it — the per-deal link is what goes out — but the deal page
+    // offers an "All deals" link back to the portal, which needs it.
     if (!contact.portalToken) await ensurePortalToken(contact.id);
 
-    const selectedChannels = channels || ["email"];
-
     for (const channel of selectedChannels) {
-      let hasChannel = false;
-      if (channel === "email" && decrypted.email) hasChannel = true;
-      if (channel === "sms" && decrypted.phone) hasChannel = true;
-      if (channel === "whatsapp" && decrypted.whatsapp) hasChannel = true;
-
-      if (!hasChannel) continue;
+      const target =
+        channel === "email"
+          ? decrypted.email
+          : channel === "sms"
+            ? decrypted.phone
+            : decrypted.whatsapp;
+      if (!target) continue;
 
       if (alreadySent.has(`${contact.id}:${channel}`)) {
         skipped++;
         continue;
       }
 
+      // Queue only what can actually be dispatched; everything else is
+      // `pending` so the worker doesn't burn retries on a channel that has
+      // no credentials configured.
+      const willSend = enabled[channel];
       const accessToken = uuidv4();
-      let recipient = await prisma.dealRecipient.create({
+      const recipient = await prisma.dealRecipient.create({
         data: {
           dealId: id,
           contactId: contact.id,
           accessToken,
           channel,
-          status: "pending",
+          status: willSend ? "queued" : "pending",
         },
       });
       alreadySent.add(`${contact.id}:${channel}`);
 
-      const dealLink = `${baseUrl}/deal/${accessToken}`;
-      let sent = false;
-      let sendError: string | undefined;
-
-      // Dispatch on whichever channel this recipient is for, when that
-      // channel is configured. A send failure NEVER fails the publish —
-      // the recipient and link still exist, and the summary tells the
-      // dealer which ones to share by hand.
-      const canSend =
-        enabled[channel] &&
-        ((channel === "email" && decrypted.email) ||
-          (channel === "sms" && decrypted.phone) ||
-          (channel === "whatsapp" && decrypted.whatsapp));
-
-      if (canSend) {
-        try {
-          if (channel === "email") {
-            await sendDealEmail({
-              to: decrypted.email!,
-              contactName: decrypted.name,
-              sellerName: user.name,
-              companyName: user.companyName,
-              // Replies go to the dealer's own inbox, not the platform address.
-              replyTo: user.email,
-              dealTitle: deal.title,
-              materialText,
-              quantityText,
-              priceText,
-              dealLink,
-              brandColor,
-              logoUrl: logoAbsUrl,
-            });
-          } else {
-            const text = {
-              to: (channel === "sms" ? decrypted.phone : decrypted.whatsapp)!,
-              sellerName: user.name,
-              companyName: user.companyName,
-              dealTitle: deal.title,
-              dealLink,
-            };
-            if (channel === "sms") await sendDealSms(text);
-            else await sendDealWhatsApp(text);
-          }
-
-          recipient = await prisma.dealRecipient.update({
-            where: { id: recipient.id },
-            data: { status: "sent", sentAt: new Date() },
-          });
-          sent = true;
-          sentCount++;
-        } catch (err) {
-          sendError = err instanceof Error ? err.message : "Send failed";
-          failedCount++;
-        }
-      }
+      if (willSend) queuedCount++;
+      else manualCount++;
 
       recipients.push({
         id: recipient.id,
         contactName: decrypted.name,
         channel: recipient.channel,
         status: recipient.status,
-        dealLink,
-        sent,
-        sendError,
+        dealLink: `${baseUrl}/deal/${accessToken}`,
       });
     }
   }
@@ -240,13 +202,14 @@ export async function POST(
     data: { status: "published" },
   });
 
+  // Fire-and-forget: starts draining now rather than waiting for the next
+  // sweep. Deliberately NOT awaited — that's the entire point.
+  if (queuedCount > 0) kickSendQueue();
+
   const parts = [`Deal published to ${recipients.length} recipient(s).`];
-  if (sentCount > 0) {
-    parts.push(`${sentCount} message(s) sent automatically.`);
-  }
-  if (failedCount > 0) {
+  if (queuedCount > 0) {
     parts.push(
-      `${failedCount} failed to send — share those links manually.`
+      `${queuedCount} message(s) sending now — this page updates as they go out.`
     );
   }
   // Name the unconfigured channels explicitly: "nothing sent" is confusing
@@ -281,8 +244,8 @@ export async function POST(
     recipients,
     skipped,
     unreadable,
-    sent: sentCount,
-    failed: failedCount,
+    queued: queuedCount,
+    manual: manualCount,
     message: parts.join(" "),
   });
 }

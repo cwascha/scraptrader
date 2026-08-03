@@ -14,6 +14,7 @@ import {
 import { formatMessageTime } from "@/lib/time";
 import { fetchJson } from "@/lib/fetch-json";
 import { IconCopy, IconCheck } from "@/components/icons";
+import SendProgress from "@/components/SendProgress";
 
 interface DealImage {
   id: string;
@@ -94,8 +95,7 @@ interface PublishRecipientResult {
   contactName: string;
   dealLink: string;
   channel: string;
-  sent?: boolean;
-  sendError?: string;
+  status: string;
 }
 
 interface PublishResponse {
@@ -605,7 +605,7 @@ export default function DealDetailPage({
               </h2>
               <button
                 onClick={handleDelete}
-                className="text-sm text-red-500 hover:text-red-700"
+                className="btn-danger text-sm"
               >
                 Delete
               </button>
@@ -924,6 +924,21 @@ export default function DealDetailPage({
                 <div className="p-3 bg-green-50 text-green-700 text-sm rounded-lg mb-4">
                   {publishResult.message || "Deal published successfully!"}
                 </div>
+
+                {/* Live send progress. Publishing is asynchronous now, so
+                    this is the only place a failed send surfaces — without
+                    it the dealer is told "sending" and never learns what
+                    happened. Refreshes the deal when draining finishes so
+                    recipient statuses are current. */}
+                <div className="mb-4">
+                  <SendProgress
+                    endpoint={`/api/deals/${id}/send-status`}
+                    onSettled={() => {
+                      void refetchDeal();
+                    }}
+                  />
+                </div>
+
                 <div className="space-y-3">
                   {publishResult.recipients.map((r, i) => (
                     <div
@@ -934,38 +949,27 @@ export default function DealDetailPage({
                         <p className="font-medium text-slate-800">
                           {r.contactName}
                         </p>
-                        {r.sent && (
-                          <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full flex-shrink-0">
-                            ✓ Sent
-                          </span>
-                        )}
-                        {r.sendError && (
-                          <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-full flex-shrink-0">
-                            Send failed
-                          </span>
-                        )}
+                        <span className="text-xs text-slate-400 flex-shrink-0">
+                          {r.channel}
+                        </span>
                       </div>
-                      <p className="text-slate-500 text-xs mt-0.5">
-                        via {r.channel}
-                      </p>
-                      {r.sendError && (
-                        <p className="text-xs text-red-500 mt-1">
-                          {r.sendError}
-                        </p>
+                      {/* Queued recipients are being emailed — only the
+                          manual ones need a link to copy. */}
+                      {r.status !== "queued" && (
+                        <div className="mt-2">
+                          <p className="text-xs text-slate-400 mb-1">
+                            Share this link:
+                          </p>
+                          <input
+                            readOnly
+                            value={r.dealLink}
+                            className="data w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                            onClick={(e) =>
+                              (e.target as HTMLInputElement).select()
+                            }
+                          />
+                        </div>
                       )}
-                      <div className="mt-2">
-                        <p className="text-xs text-slate-400 mb-1">
-                          {r.sent
-                            ? "Sent them this link:"
-                            : "Share this link:"}
-                        </p>
-                        <input
-                          readOnly
-                          value={r.dealLink}
-                          className="data w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
-                          onClick={(e) => (e.target as HTMLInputElement).select()}
-                        />
-                      </div>
                     </div>
                   ))}
                 </div>

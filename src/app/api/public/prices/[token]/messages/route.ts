@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { enforceBodyLimit, JSON_BODY_LIMIT } from "@/lib/body-limit";
 import { decryptContact } from "@/lib/encryption";
+import { ensureNudgeSweeper } from "@/lib/notify";
 
 // Free-text thread on a price-sheet negotiation. The counter loop carries
 // the numbers; this carries everything else ("can you do $4.02 if I bring
@@ -62,6 +63,9 @@ export async function POST(
   const tooLarge = enforceBodyLimit(req, JSON_BODY_LIMIT);
   if (tooLarge) return tooLarge;
 
+  // Supplier messages are unread work too — keep the sweeper warm.
+  ensureNudgeSweeper();
+
   const { token } = await params;
 
   // Two buckets, same as deal chat: per-token stops one supplier flooding
@@ -95,7 +99,14 @@ export async function POST(
     },
   });
 
-  if (!recipient || recipient.sheet.status !== "published") {
+  // Threads survive deactivation on purpose: withdrawing prices must not
+  // strand a negotiation that's already under way. Only NEW offers are
+  // blocked (see the offer route).
+  if (
+    !recipient ||
+    (recipient.sheet.status !== "published" &&
+      recipient.sheet.status !== "deactivated")
+  ) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

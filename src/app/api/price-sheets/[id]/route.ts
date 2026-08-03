@@ -3,6 +3,11 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { decryptContact } from "@/lib/encryption";
 import { enforceBodyLimit, JSON_BODY_LIMIT } from "@/lib/body-limit";
+import {
+  MIN_COMEX_BASIS,
+  MAX_COMEX_BASIS,
+  roundPrice,
+} from "@/lib/price-sheet-defaults";
 
 const MAX_ITEMS = 300;
 const MAX_NAME = 120;
@@ -161,6 +166,7 @@ export async function PATCH(
 
   let body: {
     title?: unknown;
+    comexBasis?: unknown;
     headerNote?: unknown;
     effectiveDate?: unknown;
     expiresAt?: unknown;
@@ -177,6 +183,7 @@ export async function PATCH(
 
   const data: {
     title?: string;
+    comexBasis?: number | null;
     headerNote?: string | null;
     effectiveDate?: Date;
     expiresAt?: Date | null;
@@ -188,6 +195,33 @@ export async function PATCH(
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
     data.title = t;
+  }
+
+  // Empty string / null clears the basis. Out-of-band values are a typo,
+  // not a quote — reject rather than store something that would make the
+  // staleness check nonsense.
+  if (body.comexBasis === null || body.comexBasis === "") {
+    data.comexBasis = null;
+  } else if (body.comexBasis !== undefined) {
+    const n =
+      typeof body.comexBasis === "number"
+        ? body.comexBasis
+        : typeof body.comexBasis === "string"
+          ? Number.parseFloat(body.comexBasis)
+          : NaN;
+    if (
+      !Number.isFinite(n) ||
+      n < MIN_COMEX_BASIS ||
+      n > MAX_COMEX_BASIS
+    ) {
+      return NextResponse.json(
+        {
+          error: `COMEX basis should be between $${MIN_COMEX_BASIS.toFixed(2)} and $${MAX_COMEX_BASIS.toFixed(2)} per lb`,
+        },
+        { status: 400 }
+      );
+    }
+    data.comexBasis = n;
   }
 
   if (typeof body.headerNote === "string") {
@@ -265,7 +299,9 @@ export async function PATCH(
       items.push({
         category: category || "Uncategorized",
         name,
-        price: hasPrice ? rawPrice : null,
+        // Stored at display precision — a quoted grade price is a figure
+        // the supplier multiplies by hand.
+        price: hasPrice ? roundPrice(rawPrice) : null,
         priceNote: hasPrice
           ? null
           : typeof r.priceNote === "string"

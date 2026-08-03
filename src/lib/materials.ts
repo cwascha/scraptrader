@@ -29,12 +29,6 @@ export const DEFAULT_GRADES: GradeSeed[] = STARTER_ITEMS.map((i) => ({
   name: i.name,
 }));
 
-// Category order for a freshly seeded list. Taken from the order grades
-// appear in STARTER_ITEMS so the dropdown matches the printed sheet.
-export const DEFAULT_CATEGORIES: string[] = Array.from(
-  new Set(DEFAULT_GRADES.map((g) => g.category))
-);
-
 export interface MaterialGradeItem {
   id: string;
   category: string;

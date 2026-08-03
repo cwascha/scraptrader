@@ -9,10 +9,17 @@
 // replies go straight to the dealer's inbox. The From *address* cannot be
 // the dealer's own domain: Gmail rewrites unauthorized From addresses, and
 // the recipient's DMARC checks would junk cross-domain spoofing anyway.
-// (Per-dealer verified sending domains = future transactional-provider work.)
 //
-// Exception: sendUnreadNudgeEmail goes TO the dealer FROM the platform —
-// it's ScrapTrader talking to its user, so it's ScrapTrader-branded.
+// Exception: platform-to-dealer mail (sendNudgeDigestEmail,
+// sendPriceSheetResponseNotice) goes TO the dealer FROM the platform —
+// it's ScrapTrader talking to its user, so it's ScrapTrader-branded with
+// no dealer identity and no Reply-To games.
+//
+// Per-dealer verified sending domains were considered and REJECTED (see
+// ARCHITECTURE gap #39): scrap yards can't reliably add DNS records, and a
+// wrong one fails silently into spam. The plan is one sending subdomain we
+// control, with dealer identity carried by the display name and Reply-To
+// exactly as below.
 //
 // Required env:
 //   SMTP_USER  — full Workspace address, e.g. deals@thescraptrader.com
@@ -272,7 +279,10 @@ export interface PriceSheetEmailOptions {
   companyName: string;
   replyTo: string;
   sheetTitle: string;
-  headerNote: string | null; // e.g. "Comex $4.49"
+  // Pre-formatted ("Comex $6.35"), like every other price string here —
+  // the mailer renders, it doesn't format domain values.
+  comexBasisText: string | null;
+  headerNote: string | null; // anything else (terms, delivery note)
   effectiveDateText: string; // e.g. "September 2, 2025"
   // Grouped exactly as the sheet is laid out; `value` is already
   // formatted ("$4.09/lb" or "Need Pics").
@@ -297,6 +307,9 @@ export async function sendPriceSheetEmail(
   const companyName = escapeHtml(opts.companyName);
   const sheetTitle = escapeHtml(opts.sheetTitle);
   const headerNote = opts.headerNote ? escapeHtml(opts.headerNote) : null;
+  const basisText = opts.comexBasisText
+    ? escapeHtml(opts.comexBasisText)
+    : null;
   const effectiveDateText = escapeHtml(opts.effectiveDateText);
 
   // One block per category: a tinted label row, then name/price pairs.
@@ -322,7 +335,8 @@ export async function sendPriceSheetEmail(
             </p>
             <h2 style="margin:0 0 4px;color:#1e293b;font-size:18px;">${sheetTitle}</h2>
             <p style="margin:0 0 2px;color:#64748b;font-size:12px;">Effective ${effectiveDateText}</p>
-            ${headerNote ? `<p style="margin:0 0 16px;color:#64748b;font-size:12px;font-weight:600;">${headerNote}</p>` : `<div style="height:12px;"></div>`}
+            ${basisText ? `<p style="margin:0 0 2px;color:#1e293b;font-size:13px;font-weight:bold;">${basisText}</p>` : ""}
+            ${headerNote ? `<p style="margin:0 0 16px;color:#64748b;font-size:12px;">${headerNote}</p>` : `<div style="height:12px;"></div>`}
             <table cellpadding="0" cellspacing="0" style="width:100%;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:24px;">
               ${tableHtml}
             </table>
@@ -348,6 +362,7 @@ export async function sendPriceSheetEmail(
     ``,
     opts.sheetTitle,
     `Effective ${opts.effectiveDateText}`,
+    ...(opts.comexBasisText ? [opts.comexBasisText] : []),
     ...(opts.headerNote ? [opts.headerNote] : []),
     ``,
     ...opts.categories.flatMap((cat) => [
@@ -376,7 +391,6 @@ export interface PriceSheetResponseNoticeOptions {
   dealerName: string;
   contactName: string; // decrypted supplier name (dealer-side data)
   sheetTitle: string;
-  lineCount: number;
   totalWeightText: string; // e.g. "64,000 lbs across 3 grades"
   hasCounters: boolean; // did they ask above sheet price on any line?
   responseUrl: string; // /dashboard/prices/{id}
@@ -550,42 +564,69 @@ export async function sendPriceSheetOutcomeEmail(
   });
 }
 
-export interface UnreadNudgeEmailOptions {
-  to: string; // the DEALER's email
-  dealerName: string;
-  contactName: string; // decrypted buyer name (dealer-side data — this email goes to the dealer)
-  dealTitle: string;
-  count: number; // unread messages in this conversation
-  conversationUrl: string; // deep link: /dashboard/deals/{id}?conversation={rid}
+export interface NudgeDigestItem {
+  kind: "deal" | "price sheet";
+  contactName: string;
+  parentTitle: string;
+  count: number;
+  url: string;
 }
 
-// Tier-3 nudge: sent TO the dealer when a conversation has unread buyer
-// messages older than the nudge threshold (see lib/notify.ts). This is
-// platform-to-user mail, so it's ScrapTrader-branded — no dealer identity,
-// no Reply-To games.
-export async function sendUnreadNudgeEmail(
-  opts: UnreadNudgeEmailOptions
+export interface NudgeDigestOptions {
+  to: string;
+  dealerName: string;
+  items: NudgeDigestItem[];
+  inboxUrl: string;
+}
+
+// ONE digest per dealer per sweep, listing everything waiting on them.
+//
+// Replaces a per-conversation email. Ten unread threads used to mean ten
+// near-identical emails, which is both a volume problem (a shared
+// Workspace sending quota across all dealers) and an attention problem —
+// the tenth "you have unread messages" is noise, and noise gets filtered.
+// One email that says "3 things need you" is a to-do list.
+export async function sendNudgeDigestEmail(
+  opts: NudgeDigestOptions
 ): Promise<void> {
-  const brand = sanitizeBrand("#2d5f8a"); // ScrapTrader default
+  const brand = sanitizeBrand("#2d5f8a");
   const dealerName = escapeHtml(opts.dealerName);
-  const contactName = escapeHtml(opts.contactName);
-  const dealTitle = escapeHtml(opts.dealTitle);
-  const plural = opts.count === 1 ? "message" : "messages";
+  const n = opts.items.length;
+  const totalMessages = opts.items.reduce((s, i) => s + i.count, 0);
+
+  const rows = opts.items
+    .map(
+      (i, idx) => `
+        <tr style="background:${idx % 2 ? "#f8fafc" : "#ffffff"};">
+          <td style="padding:10px 12px;">
+            <a href="${i.url}" style="color:${brand};font-size:14px;font-weight:bold;text-decoration:none;">${escapeHtml(i.contactName)}</a>
+            <div style="color:#64748b;font-size:12px;margin-top:2px;">
+              ${escapeHtml(i.parentTitle)} · ${escapeHtml(i.kind)}
+            </div>
+          </td>
+          <td style="padding:10px 12px;color:#1e293b;font-size:13px;font-weight:bold;text-align:right;white-space:nowrap;">
+            ${i.count} new
+          </td>
+        </tr>`
+    )
+    .join("");
 
   const body = `
             <p style="margin:0 0 16px;color:#1e293b;font-size:14px;">Hi ${dealerName},</p>
-            <p style="margin:0 0 16px;color:#1e293b;font-size:14px;">
-              <strong>${contactName}</strong> sent ${opts.count} ${plural} on
-              <strong>${dealTitle}</strong> that ${opts.count === 1 ? "has" : "have"} been waiting for a reply.
+            <p style="margin:0 0 20px;color:#1e293b;font-size:14px;">
+              <strong>${n} conversation${n === 1 ? "" : "s"}</strong> ${n === 1 ? "is" : "are"} waiting on you.
             </p>
+            <table cellpadding="0" cellspacing="0" style="width:100%;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:24px;">
+              ${rows}
+            </table>
             <table cellpadding="0" cellspacing="0"><tr><td style="border-radius:8px;background:${brand};">
-              <a href="${opts.conversationUrl}" style="display:inline-block;padding:12px 28px;color:#ffffff;font-size:14px;font-weight:bold;text-decoration:none;">
-                Open Conversation
+              <a href="${opts.inboxUrl}" style="display:inline-block;padding:12px 28px;color:#ffffff;font-size:14px;font-weight:bold;text-decoration:none;">
+                Open Your Inbox
               </a>
             </td></tr></table>
             <p style="margin:20px 0 0;color:#94a3b8;font-size:12px;">
-              You're getting this because the conversation has been unread for over 5 minutes.
-              You won't be emailed about it again until new messages arrive after you've read it.
+              You'll only get one of these at a time, and not again for a few
+              hours — open a conversation to clear it.
             </p>`;
 
   const html = shell(headerHtml(null, "ScrapTrader", brand), body);
@@ -593,18 +634,23 @@ export async function sendUnreadNudgeEmail(
   const text = [
     `Hi ${opts.dealerName},`,
     ``,
-    `${opts.contactName} sent ${opts.count} ${plural} on "${opts.dealTitle}" that ${opts.count === 1 ? "is" : "are"} waiting for a reply.`,
+    `${n} conversation${n === 1 ? "" : "s"} ${n === 1 ? "is" : "are"} waiting on you:`,
     ``,
-    `Open the conversation: ${opts.conversationUrl}`,
+    ...opts.items.map(
+      (i) =>
+        `  ${i.contactName} — ${i.parentTitle} (${i.kind}) — ${i.count} new\n    ${i.url}`
+    ),
+    ``,
+    `Inbox: ${opts.inboxUrl}`,
   ].join("\n");
 
   await getTransporter().sendMail({
-    from: {
-      name: "ScrapTrader",
-      address: fromAddress(),
-    },
+    from: { name: "ScrapTrader", address: fromAddress() },
     to: opts.to,
-    subject: `New ${plural} from ${opts.contactName} — ${opts.dealTitle}`,
+    subject:
+      n === 1
+        ? `${opts.items[0].contactName} is waiting on you`
+        : `${n} conversations need you (${totalMessages} new messages)`,
     text,
     html,
   });

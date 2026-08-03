@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { encryptContact, decryptContact } from "@/lib/encryption";
+import { enforceBodyLimit, JSON_BODY_LIMIT } from "@/lib/body-limit";
 
 // Field length caps — consistent with the slicing used for group names,
 // addresses, etc. Contact fields are AUTHENTICATED input (a dealer can only
@@ -38,6 +39,7 @@ export async function GET() {
   const decrypted = contacts.map((c) => {
     let fields: {
       name: string;
+      company: string | null;
       email: string | null;
       phone: string | null;
       whatsapp: string | null;
@@ -47,6 +49,7 @@ export async function GET() {
     } catch {
       fields = {
         name: "(unreadable contact)",
+        company: null,
         email: null,
         phone: null,
         whatsapp: null,
@@ -68,12 +71,23 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const tooLarge = enforceBodyLimit(req, JSON_BODY_LIMIT);
+  if (tooLarge) return tooLarge;
+
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 }
+    );
+  }
 
   const name =
     typeof body.name === "string" ? body.name.trim().slice(0, NAME_MAX) : "";
@@ -84,10 +98,12 @@ export async function POST(req: NextRequest) {
   const email = cleanOptional(body.email);
   const phone = cleanOptional(body.phone);
   const whatsapp = cleanOptional(body.whatsapp);
+  const company = cleanOptional(body.company);
 
   const encrypted = encryptContact(
     {
       name,
+      company: company ?? undefined,
       email: email ?? undefined,
       phone: phone ?? undefined,
       whatsapp: whatsapp ?? undefined,
@@ -123,6 +139,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     id: contact.id,
     name,
+    company,
     email,
     phone,
     whatsapp,
@@ -131,13 +148,45 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const tooLarge = enforceBodyLimit(req, JSON_BODY_LIMIT);
+  if (tooLarge) return tooLarge;
+
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id } = await req.json();
-  await prisma.contact.deleteMany({ where: { id, userId: user.id } });
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 }
+    );
+  }
+
+  // ⚠ MUST be a non-empty string, and this is not merely hygiene.
+  // Prisma treats `undefined` in a WHERE as "no filter", so a request with
+  // an empty body would make this
+  //     deleteMany({ where: { userId: user.id } })
+  // — i.e. DELETE THE DEALER'S ENTIRE ADDRESS BOOK, silently, returning
+  // success. Guard the id before it reaches the query.
+  const id = typeof body.id === "string" ? body.id.trim() : "";
+  if (!id) {
+    return NextResponse.json(
+      { error: "Contact id is required" },
+      { status: 400 }
+    );
+  }
+
+  const result = await prisma.contact.deleteMany({
+    where: { id, userId: user.id },
+  });
+
+  if (result.count === 0) {
+    return NextResponse.json({ error: "Contact not found" }, { status: 404 });
+  }
 
   return NextResponse.json({ success: true });
 }

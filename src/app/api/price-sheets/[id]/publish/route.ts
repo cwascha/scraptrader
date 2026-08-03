@@ -2,21 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { decryptContact } from "@/lib/encryption";
-import { isEmailConfigured, sendPriceSheetEmail } from "@/lib/mailer";
-import {
-  isSmsConfigured,
-  isWhatsAppConfigured,
-  sendPriceSheetSms,
-  sendPriceSheetWhatsApp,
-} from "@/lib/sms";
+import { isEmailConfigured } from "@/lib/mailer";
+import { isSmsConfigured, isWhatsAppConfigured } from "@/lib/sms";
+import { kickSendQueue } from "@/lib/send-queue";
 import { enforceBodyLimit, JSON_BODY_LIMIT } from "@/lib/body-limit";
-import { formatPrice } from "@/lib/price-sheet-defaults";
 import { v4 as uuidv4 } from "uuid";
 
-// Publishing a price sheet LOCKS it (draft -> published) and sends the
-// shared public link to the selected contacts. Re-publishing an already
-// published sheet is allowed — it reaches new contacts without changing
-// the prices anyone already received.
+// Publishing a price sheet LOCKS it (draft -> published) and QUEUES each
+// selected contact their own tokenized link. Nothing is sent inline —
+// lib/send-queue.ts drains the queue in the background (gap #43b).
+//
+// Re-publishing an already published sheet is allowed: it reaches new
+// contacts without changing the prices anyone already received.
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -32,13 +29,24 @@ export async function POST(
   const { id } = await params;
   const sheet = await prisma.priceSheet.findFirst({
     where: { id, userId: user.id },
-    include: { items: { orderBy: { sortOrder: "asc" } } },
+    include: { items: { select: { id: true } } },
   });
 
   if (!sheet) {
     return NextResponse.json(
       { error: "Price sheet not found" },
       { status: 404 }
+    );
+  }
+
+  // A withdrawn sheet must not reach anyone new. Reactivate it first.
+  if (sheet.status === "deactivated") {
+    return NextResponse.json(
+      {
+        error:
+          "This sheet is deactivated — reactivate it before sending to more contacts.",
+      },
+      { status: 400 }
     );
   }
 
@@ -109,41 +117,14 @@ export async function POST(
     whatsapp: isWhatsAppConfigured(),
   };
 
-  const effectiveDateText = new Date(sheet.effectiveDate).toLocaleDateString(
-    "en-US",
-    { year: "numeric", month: "long", day: "numeric" }
-  );
-
-  // Group items for the email table, preserving sheet order for both the
-  // categories and the lines inside them.
-  const categories: { name: string; items: { name: string; value: string }[] }[] =
-    [];
-  for (const item of sheet.items) {
-    let cat = categories.find((c) => c.name === item.category);
-    if (!cat) {
-      cat = { name: item.category, items: [] };
-      categories.push(cat);
-    }
-    cat.items.push({
-      name: item.name,
-      value: formatPrice(item.price, item.priceNote, item.unit),
-    });
-  }
-
-  const logoAbsUrl = user.logoUrl ? `${baseUrl}${user.logoUrl}` : null;
-  const brandColor = user.themeBrand || "#2d5f8a";
-
-  // Explicitly typed: this array is read inside a .filter() callback
-  // below, where an evolving any[] can't be resolved.
   const results: {
     contactName: string;
     channel: string;
+    status: string;
     sheetLink: string;
-    sent: boolean;
-    sendError?: string;
   }[] = [];
-  let sentCount = 0;
-  let failedCount = 0;
+  let queuedCount = 0;
+  let manualCount = 0;
   let skipped = 0;
   let unreadable = 0;
 
@@ -173,69 +154,26 @@ export async function POST(
       // Per-recipient token: the supplier's reply has to be attributable,
       // and each of them edits their own copy of the response form.
       const accessToken = uuidv4();
-      let recipient = await prisma.priceSheetRecipient.create({
+      const willSend = enabled[channel];
+      const recipient = await prisma.priceSheetRecipient.create({
         data: {
           sheetId: id,
           contactId: contact.id,
           accessToken,
           channel,
-          status: "pending",
+          status: willSend ? "queued" : "pending",
         },
       });
       alreadySent.add(`${contact.id}:${channel}`);
 
-      const sheetLink = `${baseUrl}/prices/${accessToken}`;
-      let sent = false;
-      let sendError: string | undefined;
-
-      if (enabled[channel]) {
-        try {
-          if (channel === "email") {
-            await sendPriceSheetEmail({
-              to: target,
-              contactName: decrypted.name,
-              sellerName: user.name,
-              companyName: user.companyName,
-              replyTo: user.email,
-              sheetTitle: sheet.title,
-              headerNote: sheet.headerNote,
-              effectiveDateText,
-              categories,
-              sheetLink,
-              brandColor,
-              logoUrl: logoAbsUrl,
-            });
-          } else {
-            const text = {
-              to: target,
-              sellerName: user.name,
-              companyName: user.companyName,
-              sheetTitle: sheet.title,
-              effectiveDateText,
-              sheetLink,
-            };
-            if (channel === "sms") await sendPriceSheetSms(text);
-            else await sendPriceSheetWhatsApp(text);
-          }
-
-          recipient = await prisma.priceSheetRecipient.update({
-            where: { id: recipient.id },
-            data: { status: "sent", sentAt: new Date() },
-          });
-          sent = true;
-          sentCount++;
-        } catch (err) {
-          sendError = err instanceof Error ? err.message : "Send failed";
-          failedCount++;
-        }
-      }
+      if (willSend) queuedCount++;
+      else manualCount++;
 
       results.push({
         contactName: decrypted.name,
         channel,
-        sheetLink,
-        sent,
-        sendError,
+        status: recipient.status,
+        sheetLink: `${baseUrl}/prices/${accessToken}`,
       });
     }
   }
@@ -264,10 +202,13 @@ export async function POST(
     data: { status: "published", publishedAt: new Date() },
   });
 
+  if (queuedCount > 0) kickSendQueue();
+
   const parts = [`Price sheet sent to ${results.length} recipient(s).`];
-  if (sentCount > 0) parts.push(`${sentCount} message(s) sent automatically.`);
-  if (failedCount > 0) {
-    parts.push(`${failedCount} failed to send — share the link manually.`);
+  if (queuedCount > 0) {
+    parts.push(
+      `${queuedCount} message(s) sending now — this page updates as they go out.`
+    );
   }
   const unconfigured = [
     { key: "email", label: "Email (SMTP_USER/SMTP_PASS)" },
@@ -293,8 +234,8 @@ export async function POST(
   return NextResponse.json({
     success: true,
     recipients: results,
-    sent: sentCount,
-    failed: failedCount,
+    queued: queuedCount,
+    manual: manualCount,
     skipped,
     unreadable,
     message: parts.join(" "),

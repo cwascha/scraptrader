@@ -40,7 +40,15 @@ export async function POST(
     return NextResponse.json({ error: "Deal not found" }, { status: 404 });
   }
 
-  const body = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 }
+    );
+  }
   const messageId = typeof body.messageId === "string" ? body.messageId : "";
 
   const message = await prisma.message.findFirst({

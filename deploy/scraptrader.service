@@ -1,0 +1,73 @@
+# ScrapTrader — systemd unit
+#
+# Install to /etc/systemd/system/scraptrader.service
+#
+# WHY systemd RATHER THAN pm2/docker: the app is a single long-lived Node
+# process that owns in-memory state (rate-limit buckets, the Tier-3 nudge
+# sweeper). It must NOT be run as multiple workers or in a cluster — two
+# processes means two sweepers sending duplicate digests, and per-process
+# rate limits that count to N× the intended ceiling.
+#
+# THE IMPORTANT PART IS LoadCredential (see ENCRYPTION_MASTER_KEY below):
+# it keeps the contact-decryption key out of .env and off the app's own
+# filesystem, which is what makes envelope encryption meaningful
+# (ARCHITECTURE gap #29). A stolen database is useless without it.
+
+[Unit]
+Description=ScrapTrader
+Documentation=https://github.com/rossl/scraptrader
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=scraptrader
+Group=scraptrader
+WorkingDirectory=/srv/scraptrader/current
+
+# --- Secrets -------------------------------------------------------------
+# The master key is read by systemd as ROOT from a 0600 file, then exposed
+# to the process via $CREDENTIALS_DIRECTORY (a tmpfs the app user can read
+# but nobody else can). It never sits in .env, never lands in a droplet
+# snapshot alongside the database, and doesn't leak via `ps` or a stray
+# `cat .env`.
+LoadCredential=master_key:/etc/scraptrader/master_key
+
+# Everything else (DATABASE_URL, NEXTAUTH_*, SMTP_*, TWILIO_*) lives here.
+# Root-owned, 0640, group scraptrader.
+EnvironmentFile=/etc/scraptrader/env
+
+# Wrapper reads the credential into the env var, then execs Next. Kept as a
+# script because systemd can't interpolate a file's CONTENTS into an
+# Environment= line.
+ExecStart=/srv/scraptrader/current/deploy/start.sh
+
+Restart=always
+RestartSec=5
+# Give in-flight requests a chance to finish before SIGKILL.
+TimeoutStopSec=30
+
+# --- Hardening -----------------------------------------------------------
+# The app writes ONLY to the uploads directory; everything else is
+# read-only to it. If the process is ever compromised, this is the
+# difference between losing uploads and losing the box.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/scraptrader
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=false
+
+# Journal: `journalctl -u scraptrader -f`
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=scraptrader
+
+[Install]
+WantedBy=multi-user.target

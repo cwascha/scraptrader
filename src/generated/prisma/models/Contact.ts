@@ -31,6 +31,7 @@ export type ContactMinAggregateOutputType = {
   encryptedEmail: string | null
   encryptedPhone: string | null
   encryptedWhatsApp: string | null
+  encryptedCompany: string | null
   tags: string | null
   portalToken: string | null
   createdAt: Date | null
@@ -44,6 +45,7 @@ export type ContactMaxAggregateOutputType = {
   encryptedEmail: string | null
   encryptedPhone: string | null
   encryptedWhatsApp: string | null
+  encryptedCompany: string | null
   tags: string | null
   portalToken: string | null
   createdAt: Date | null
@@ -57,6 +59,7 @@ export type ContactCountAggregateOutputType = {
   encryptedEmail: number
   encryptedPhone: number
   encryptedWhatsApp: number
+  encryptedCompany: number
   tags: number
   portalToken: number
   createdAt: number
@@ -72,6 +75,7 @@ export type ContactMinAggregateInputType = {
   encryptedEmail?: true
   encryptedPhone?: true
   encryptedWhatsApp?: true
+  encryptedCompany?: true
   tags?: true
   portalToken?: true
   createdAt?: true
@@ -85,6 +89,7 @@ export type ContactMaxAggregateInputType = {
   encryptedEmail?: true
   encryptedPhone?: true
   encryptedWhatsApp?: true
+  encryptedCompany?: true
   tags?: true
   portalToken?: true
   createdAt?: true
@@ -98,6 +103,7 @@ export type ContactCountAggregateInputType = {
   encryptedEmail?: true
   encryptedPhone?: true
   encryptedWhatsApp?: true
+  encryptedCompany?: true
   tags?: true
   portalToken?: true
   createdAt?: true
@@ -184,6 +190,7 @@ export type ContactGroupByOutputType = {
   encryptedEmail: string | null
   encryptedPhone: string | null
   encryptedWhatsApp: string | null
+  encryptedCompany: string | null
   tags: string
   portalToken: string | null
   createdAt: Date
@@ -218,6 +225,7 @@ export type ContactWhereInput = {
   encryptedEmail?: Prisma.StringNullableFilter<"Contact"> | string | null
   encryptedPhone?: Prisma.StringNullableFilter<"Contact"> | string | null
   encryptedWhatsApp?: Prisma.StringNullableFilter<"Contact"> | string | null
+  encryptedCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
   tags?: Prisma.StringFilter<"Contact"> | string
   portalToken?: Prisma.StringNullableFilter<"Contact"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
@@ -235,6 +243,7 @@ export type ContactOrderByWithRelationInput = {
   encryptedEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   encryptedPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   encryptedWhatsApp?: Prisma.SortOrderInput | Prisma.SortOrder
+  encryptedCompany?: Prisma.SortOrderInput | Prisma.SortOrder
   tags?: Prisma.SortOrder
   portalToken?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -256,6 +265,7 @@ export type ContactWhereUniqueInput = Prisma.AtLeast<{
   encryptedEmail?: Prisma.StringNullableFilter<"Contact"> | string | null
   encryptedPhone?: Prisma.StringNullableFilter<"Contact"> | string | null
   encryptedWhatsApp?: Prisma.StringNullableFilter<"Contact"> | string | null
+  encryptedCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
   tags?: Prisma.StringFilter<"Contact"> | string
   createdAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
@@ -272,6 +282,7 @@ export type ContactOrderByWithAggregationInput = {
   encryptedEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   encryptedPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   encryptedWhatsApp?: Prisma.SortOrderInput | Prisma.SortOrder
+  encryptedCompany?: Prisma.SortOrderInput | Prisma.SortOrder
   tags?: Prisma.SortOrder
   portalToken?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -291,6 +302,7 @@ export type ContactScalarWhereWithAggregatesInput = {
   encryptedEmail?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
   encryptedPhone?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
   encryptedWhatsApp?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
+  encryptedCompany?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
   tags?: Prisma.StringWithAggregatesFilter<"Contact"> | string
   portalToken?: Prisma.StringNullableWithAggregatesFilter<"Contact"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Contact"> | Date | string
@@ -303,6 +315,7 @@ export type ContactCreateInput = {
   encryptedEmail?: string | null
   encryptedPhone?: string | null
   encryptedWhatsApp?: string | null
+  encryptedCompany?: string | null
   tags?: string
   portalToken?: string | null
   createdAt?: Date | string
@@ -320,6 +333,7 @@ export type ContactUncheckedCreateInput = {
   encryptedEmail?: string | null
   encryptedPhone?: string | null
   encryptedWhatsApp?: string | null
+  encryptedCompany?: string | null
   tags?: string
   portalToken?: string | null
   createdAt?: Date | string
@@ -335,6 +349,7 @@ export type ContactUpdateInput = {
   encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -352,6 +367,7 @@ export type ContactUncheckedUpdateInput = {
   encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -368,6 +384,7 @@ export type ContactCreateManyInput = {
   encryptedEmail?: string | null
   encryptedPhone?: string | null
   encryptedWhatsApp?: string | null
+  encryptedCompany?: string | null
   tags?: string
   portalToken?: string | null
   createdAt?: Date | string
@@ -380,6 +397,7 @@ export type ContactUpdateManyMutationInput = {
   encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -393,6 +411,7 @@ export type ContactUncheckedUpdateManyInput = {
   encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -416,6 +435,7 @@ export type ContactCountOrderByAggregateInput = {
   encryptedEmail?: Prisma.SortOrder
   encryptedPhone?: Prisma.SortOrder
   encryptedWhatsApp?: Prisma.SortOrder
+  encryptedCompany?: Prisma.SortOrder
   tags?: Prisma.SortOrder
   portalToken?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -429,6 +449,7 @@ export type ContactMaxOrderByAggregateInput = {
   encryptedEmail?: Prisma.SortOrder
   encryptedPhone?: Prisma.SortOrder
   encryptedWhatsApp?: Prisma.SortOrder
+  encryptedCompany?: Prisma.SortOrder
   tags?: Prisma.SortOrder
   portalToken?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -442,6 +463,7 @@ export type ContactMinOrderByAggregateInput = {
   encryptedEmail?: Prisma.SortOrder
   encryptedPhone?: Prisma.SortOrder
   encryptedWhatsApp?: Prisma.SortOrder
+  encryptedCompany?: Prisma.SortOrder
   tags?: Prisma.SortOrder
   portalToken?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -571,6 +593,7 @@ export type ContactCreateWithoutUserInput = {
   encryptedEmail?: string | null
   encryptedPhone?: string | null
   encryptedWhatsApp?: string | null
+  encryptedCompany?: string | null
   tags?: string
   portalToken?: string | null
   createdAt?: Date | string
@@ -586,6 +609,7 @@ export type ContactUncheckedCreateWithoutUserInput = {
   encryptedEmail?: string | null
   encryptedPhone?: string | null
   encryptedWhatsApp?: string | null
+  encryptedCompany?: string | null
   tags?: string
   portalToken?: string | null
   createdAt?: Date | string
@@ -630,6 +654,7 @@ export type ContactScalarWhereInput = {
   encryptedEmail?: Prisma.StringNullableFilter<"Contact"> | string | null
   encryptedPhone?: Prisma.StringNullableFilter<"Contact"> | string | null
   encryptedWhatsApp?: Prisma.StringNullableFilter<"Contact"> | string | null
+  encryptedCompany?: Prisma.StringNullableFilter<"Contact"> | string | null
   tags?: Prisma.StringFilter<"Contact"> | string
   portalToken?: Prisma.StringNullableFilter<"Contact"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
@@ -642,6 +667,7 @@ export type ContactCreateWithoutGroupsInput = {
   encryptedEmail?: string | null
   encryptedPhone?: string | null
   encryptedWhatsApp?: string | null
+  encryptedCompany?: string | null
   tags?: string
   portalToken?: string | null
   createdAt?: Date | string
@@ -658,6 +684,7 @@ export type ContactUncheckedCreateWithoutGroupsInput = {
   encryptedEmail?: string | null
   encryptedPhone?: string | null
   encryptedWhatsApp?: string | null
+  encryptedCompany?: string | null
   tags?: string
   portalToken?: string | null
   createdAt?: Date | string
@@ -693,6 +720,7 @@ export type ContactCreateWithoutDealRecipientsInput = {
   encryptedEmail?: string | null
   encryptedPhone?: string | null
   encryptedWhatsApp?: string | null
+  encryptedCompany?: string | null
   tags?: string
   portalToken?: string | null
   createdAt?: Date | string
@@ -709,6 +737,7 @@ export type ContactUncheckedCreateWithoutDealRecipientsInput = {
   encryptedEmail?: string | null
   encryptedPhone?: string | null
   encryptedWhatsApp?: string | null
+  encryptedCompany?: string | null
   tags?: string
   portalToken?: string | null
   createdAt?: Date | string
@@ -739,6 +768,7 @@ export type ContactUpdateWithoutDealRecipientsInput = {
   encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -755,6 +785,7 @@ export type ContactUncheckedUpdateWithoutDealRecipientsInput = {
   encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -769,6 +800,7 @@ export type ContactCreateWithoutPriceSheetRecipientsInput = {
   encryptedEmail?: string | null
   encryptedPhone?: string | null
   encryptedWhatsApp?: string | null
+  encryptedCompany?: string | null
   tags?: string
   portalToken?: string | null
   createdAt?: Date | string
@@ -785,6 +817,7 @@ export type ContactUncheckedCreateWithoutPriceSheetRecipientsInput = {
   encryptedEmail?: string | null
   encryptedPhone?: string | null
   encryptedWhatsApp?: string | null
+  encryptedCompany?: string | null
   tags?: string
   portalToken?: string | null
   createdAt?: Date | string
@@ -815,6 +848,7 @@ export type ContactUpdateWithoutPriceSheetRecipientsInput = {
   encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -831,6 +865,7 @@ export type ContactUncheckedUpdateWithoutPriceSheetRecipientsInput = {
   encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -845,6 +880,7 @@ export type ContactCreateManyUserInput = {
   encryptedEmail?: string | null
   encryptedPhone?: string | null
   encryptedWhatsApp?: string | null
+  encryptedCompany?: string | null
   tags?: string
   portalToken?: string | null
   createdAt?: Date | string
@@ -857,6 +893,7 @@ export type ContactUpdateWithoutUserInput = {
   encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -872,6 +909,7 @@ export type ContactUncheckedUpdateWithoutUserInput = {
   encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -887,6 +925,7 @@ export type ContactUncheckedUpdateManyWithoutUserInput = {
   encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -899,6 +938,7 @@ export type ContactUpdateWithoutGroupsInput = {
   encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -915,6 +955,7 @@ export type ContactUncheckedUpdateWithoutGroupsInput = {
   encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -930,6 +971,7 @@ export type ContactUncheckedUpdateManyWithoutGroupsInput = {
   encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedWhatsApp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedCompany?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tags?: Prisma.StringFieldUpdateOperationsInput | string
   portalToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -992,6 +1034,7 @@ export type ContactSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   encryptedEmail?: boolean
   encryptedPhone?: boolean
   encryptedWhatsApp?: boolean
+  encryptedCompany?: boolean
   tags?: boolean
   portalToken?: boolean
   createdAt?: boolean
@@ -1010,6 +1053,7 @@ export type ContactSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   encryptedEmail?: boolean
   encryptedPhone?: boolean
   encryptedWhatsApp?: boolean
+  encryptedCompany?: boolean
   tags?: boolean
   portalToken?: boolean
   createdAt?: boolean
@@ -1024,6 +1068,7 @@ export type ContactSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   encryptedEmail?: boolean
   encryptedPhone?: boolean
   encryptedWhatsApp?: boolean
+  encryptedCompany?: boolean
   tags?: boolean
   portalToken?: boolean
   createdAt?: boolean
@@ -1038,13 +1083,14 @@ export type ContactSelectScalar = {
   encryptedEmail?: boolean
   encryptedPhone?: boolean
   encryptedWhatsApp?: boolean
+  encryptedCompany?: boolean
   tags?: boolean
   portalToken?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "encryptedName" | "encryptedEmail" | "encryptedPhone" | "encryptedWhatsApp" | "tags" | "portalToken" | "createdAt" | "updatedAt", ExtArgs["result"]["contact"]>
+export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "encryptedName" | "encryptedEmail" | "encryptedPhone" | "encryptedWhatsApp" | "encryptedCompany" | "tags" | "portalToken" | "createdAt" | "updatedAt", ExtArgs["result"]["contact"]>
 export type ContactInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   dealRecipients?: boolean | Prisma.Contact$dealRecipientsArgs<ExtArgs>
@@ -1074,6 +1120,7 @@ export type $ContactPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     encryptedEmail: string | null
     encryptedPhone: string | null
     encryptedWhatsApp: string | null
+    encryptedCompany: string | null
     tags: string
     portalToken: string | null
     createdAt: Date
@@ -1511,6 +1558,7 @@ export interface ContactFieldRefs {
   readonly encryptedEmail: Prisma.FieldRef<"Contact", 'String'>
   readonly encryptedPhone: Prisma.FieldRef<"Contact", 'String'>
   readonly encryptedWhatsApp: Prisma.FieldRef<"Contact", 'String'>
+  readonly encryptedCompany: Prisma.FieldRef<"Contact", 'String'>
   readonly tags: Prisma.FieldRef<"Contact", 'String'>
   readonly portalToken: Prisma.FieldRef<"Contact", 'String'>
   readonly createdAt: Prisma.FieldRef<"Contact", 'DateTime'>

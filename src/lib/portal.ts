@@ -39,11 +39,14 @@ export async function ensurePortalToken(
 //
 // SCOPE, be precise about it: this invalidates the PORTAL link only. A
 // per-deal link (`/deal/{accessToken}`) the buyer already holds keeps
-// working — those are separate credentials on DealRecipient. Since deal
-// emails now carry only the portal link, rotating does cut off access
-// granted by a leaked email; it does not cut off a deal page the buyer
-// already opened and bookmarked. Full per-deal revocation is a separate
-// feature (rotate every DealRecipient.accessToken for the contact).
+// working — those are separate credentials on DealRecipient.
+//
+// NOTE WHAT THAT MEANS NOW: deal emails carry PER-DEAL links, and the deal
+// page links back to the portal. A leaked deal email is therefore NOT
+// contained by rotating: the recipient keeps that deal and only loses the
+// hub. Rotating contains a leaked PORTAL link. Containing a leaked deal
+// email needs per-deal revocation, which doesn't exist yet (rotate every
+// DealRecipient.accessToken for the contact, ARCHITECTURE gap #28).
 export async function rotatePortalToken(
   contactId: string
 ): Promise<string | null> {

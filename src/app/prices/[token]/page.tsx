@@ -6,6 +6,8 @@ import { fetchJson } from "@/lib/fetch-json";
 import {
   OFFER_WEIGHT_UNITS,
   formatUsd,
+  formatUnitPrice,
+  formatComexBasis,
   governingPrice,
   lineValue,
 } from "@/lib/price-sheet-defaults";
@@ -26,9 +28,11 @@ interface SheetItem {
 interface SheetData {
   sheet: {
     title: string;
+    comexBasis: number | null;
     headerNote: string | null;
     effectiveDate: string;
     expiresAt: string | null;
+    deactivated: boolean;
     expired: boolean;
     company: string;
     seller: string;
@@ -94,6 +98,20 @@ export default function PriceSheetOfferPage({
   const [messages, setMessages] = useState<ThreadMessage[]>([]);
   const [chatText, setChatText] = useState("");
   const [chatSending, setChatSending] = useState(false);
+  // Once an offer exists, the sheet collapses to just the grades they
+  // actually offered — 48 rows of empty inputs buries the handful that
+  // matter. Expandable, because "I forgot the brass" is a normal revision.
+  const [showAllGrades, setShowAllGrades] = useState(false);
+  // Collapsed categories, by name. Default OPEN: a supplier arriving cold
+  // needs to see what's on offer. Collapsing is for getting the six
+  // categories you don't deal in out of the way.
+  const [collapsedCats, setCollapsedCats] = useState<string[]>([]);
+
+  function toggleCat(name: string) {
+    setCollapsedCats((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+    );
+  }
 
   async function loadMessages() {
     try {
@@ -227,11 +245,13 @@ export default function PriceSheetOfferPage({
   }
 
   const { sheet, response, branding } = data;
+  const deactivated = sheet.deactivated;
   const expired = sheet.expired;
   const closed =
     response?.status === "accepted" ||
     response?.status === "declined" ||
-    expired;
+    expired ||
+    deactivated;
   const countered = response?.status === "countered";
 
   const themeStyle = branding.brand
@@ -269,6 +289,31 @@ export default function PriceSheetOfferPage({
   }
   const hasEstimate = valued > 0;
 
+  // A grade counts as "offered" if the SERVER has a weight for it, or the
+  // supplier has typed one since. Checking the server value too means
+  // clearing a field mid-edit doesn't make the row vanish underneath the
+  // cursor.
+  const isOffered = (item: SheetItem) =>
+    item.weight !== null || (entries[item.id]?.weight ?? "").trim() !== "";
+
+  const totalGrades = sheet.categories.reduce(
+    (n, c) => n + c.items.length,
+    0
+  );
+  const offeredGrades = sheet.categories.reduce(
+    (n, c) => n + c.items.filter(isOffered).length,
+    0
+  );
+
+  // Collapse only once they've actually submitted — before that they need
+  // the full list to choose from.
+  const collapsed = response !== null && !showAllGrades;
+  const visibleCategories = collapsed
+    ? sheet.categories
+        .map((c) => ({ ...c, items: c.items.filter(isOffered) }))
+        .filter((c) => c.items.length > 0)
+    : sheet.categories;
+
   return (
     <div className={`min-h-screen bg-slate-50${darkClass}`} style={themeStyle}>
       <header className="bg-white border-b border-slate-200 px-6 py-4">
@@ -293,15 +338,40 @@ export default function PriceSheetOfferPage({
           <p className="text-sm text-slate-500 mt-1">
             {sheet.company} &middot; effective {formatDate(sheet.effectiveDate)}
           </p>
-          {sheet.headerNote && (
-            <p className="data mt-2 inline-block px-2.5 py-1 bg-white border border-slate-200 rounded-md text-sm font-semibold text-slate-700">
-              {sheet.headerNote}
-            </p>
+          {(sheet.comexBasis !== null || sheet.headerNote) && (
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              {sheet.comexBasis !== null && (
+                <span className="data inline-block px-2.5 py-1 bg-white border border-slate-200 rounded-md text-sm font-semibold text-slate-800">
+                  {formatComexBasis(sheet.comexBasis)}
+                </span>
+              )}
+              {sheet.headerNote && (
+                <span className="inline-block px-2.5 py-1 bg-white border border-slate-200 rounded-md text-sm text-slate-600">
+                  {sheet.headerNote}
+                </span>
+              )}
+            </div>
           )}
         </div>
 
         {/* Status banners */}
-        {expired && (
+        {deactivated && (
+          <div className="mb-6 p-5 bg-white border border-slate-200 rounded-xl">
+            <p className="text-lg font-semibold text-slate-800">
+              These prices are no longer valid
+            </p>
+            <p className="text-slate-600 mt-1">
+              Please contact {sheet.seller} @ {sheet.company} for updated
+              prices.
+            </p>
+            <p className="text-xs text-slate-400 mt-2">
+              Any conversation you already have with them is still open
+              below.
+            </p>
+          </div>
+        )}
+
+        {expired && !deactivated && (
           <div className="mb-6 p-4 bg-slate-100 text-slate-700 rounded-xl text-sm">
             <p className="font-semibold">These prices have expired</p>
             <p className="mt-1 text-xs opacity-80">
@@ -314,7 +384,7 @@ export default function PriceSheetOfferPage({
           </div>
         )}
 
-        {closed && !expired && (
+        {closed && !expired && !deactivated && (
           <div
             className={`mb-6 p-4 rounded-xl text-sm ${
               response?.status === "accepted"
@@ -375,15 +445,69 @@ export default function PriceSheetOfferPage({
           </div>
         )}
 
+        {/* Prices and the offer form are withheld entirely when the sheet
+            is withdrawn — there is nothing here to quote against. */}
+        {!deactivated && (
+          <>
+        {/* Toggle between "what I offered" and the full sheet. Only
+            meaningful once something is hidden. */}
+        {response !== null && totalGrades > offeredGrades && (
+          <div className="flex items-baseline justify-between gap-3 mb-3">
+            <p className="text-sm text-slate-500">
+              {collapsed
+                ? `Showing the ${offeredGrades} grade${offeredGrades === 1 ? "" : "s"} you offered`
+                : `Showing all ${totalGrades} grades`}
+            </p>
+            {!closed && (
+              <button
+                type="button"
+                onClick={() => setShowAllGrades((v) => !v)}
+                className="text-sm text-brand hover:text-brand-dark font-medium whitespace-nowrap"
+              >
+                {collapsed ? "Add another grade" : "Show only mine"}
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="space-y-6">
-          {sheet.categories.map((cat) => (
+          {visibleCategories.map((cat) => {
+            const isCollapsed = collapsedCats.includes(cat.name);
+            // How many grades in this category the supplier has filled in
+            // — shown on the header so a collapsed category still tells
+            // you whether your numbers are in there.
+            const filled = cat.items.filter(
+              (i) => (entries[i.id]?.weight ?? "").trim() !== ""
+            ).length;
+            return (
             <section
               key={cat.name}
               className="bg-white rounded-xl border border-slate-200 overflow-hidden"
             >
-              <h2 className="px-4 py-2.5 text-[11px] uppercase tracking-[0.1em] font-semibold text-white bg-brand">
-                {cat.name}
-              </h2>
+              <button
+                type="button"
+                onClick={() => toggleCat(cat.name)}
+                aria-expanded={!isCollapsed}
+                className="w-full px-4 py-2.5 flex items-center gap-2 bg-brand text-white text-left hover:opacity-95 transition-opacity"
+              >
+                <span className="text-[10px] w-3 flex-shrink-0" aria-hidden="true">
+                  {isCollapsed ? "▶" : "▼"}
+                </span>
+                <span className="text-[11px] uppercase tracking-[0.1em] font-semibold flex-1 min-w-0">
+                  {cat.name}
+                </span>
+                <span className="flex items-center gap-2 flex-shrink-0">
+                  {filled > 0 && (
+                    <span className="data text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-white/25">
+                      {filled}
+                    </span>
+                  )}
+                  <span className="data text-[10px] opacity-75">
+                    {cat.items.length}
+                  </span>
+                </span>
+              </button>
+              {!isCollapsed && (
               <div className="divide-y divide-slate-100">
                 {cat.items.map((item) => {
                   const e = entries[item.id] ?? {
@@ -395,7 +519,17 @@ export default function PriceSheetOfferPage({
                   return (
                     <div
                       key={item.id}
-                      className={`px-4 py-3 ${active ? "bg-amber-50/40" : ""}`}
+                      // Active = they've entered a weight. Marked with the
+                      // accent rail from the design language plus the
+                      // REMAPPED bg-amber-50. Do not use an
+                      // opacity-modified variant here (bg-amber-50/40):
+                      // that's a different class, has no .theme-dark rule,
+                      // and washes out to grey on a dark card.
+                      className={`px-4 py-3 border-l-[3px] ${
+                        active
+                          ? "bg-amber-50 border-l-accent"
+                          : "border-l-transparent"
+                      }`}
                     >
                       <div className="flex items-baseline justify-between gap-3 mb-2">
                         <span className="text-sm font-medium text-slate-800">
@@ -408,14 +542,15 @@ export default function PriceSheetOfferPage({
 
                       {item.dealerPrice !== null && (
                         <p className="data text-xs text-amber-700 mb-2">
-                          {sheet.company} counters at $
-                          {item.dealerPrice.toFixed(2)}/{item.unit}
+                          {sheet.company} counters at{" "}
+                          {formatUnitPrice(item.dealerPrice)}/{item.unit}
                         </p>
                       )}
 
                       <div className="flex flex-wrap items-center gap-2">
                         <input
                           type="number"
+                          inputMode="decimal"
                           min={0}
                           step="any"
                           value={e.weight}
@@ -446,8 +581,9 @@ export default function PriceSheetOfferPage({
                           </span>
                           <input
                             type="number"
+                            inputMode="decimal"
                             min={0}
-                            step="0.01"
+                            step="0.001"
                             value={e.buyerPrice}
                             onChange={(ev) =>
                               update(item.id, { buyerPrice: ev.target.value })
@@ -465,8 +601,10 @@ export default function PriceSheetOfferPage({
                   );
                 })}
               </div>
+              )}
             </section>
-          ))}
+            );
+          })}
         </div>
 
         {/* Submit panel */}
@@ -523,6 +661,8 @@ export default function PriceSheetOfferPage({
             </>
           )}
         </div>
+          </>
+        )}
 
         {/* Message thread — for everything the numbers can't carry.
             Stays open even after the offer is settled so logistics can be

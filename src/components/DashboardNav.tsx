@@ -11,6 +11,7 @@ import {
   IconChat,
   IconSettings,
   IconPrices,
+  IconSignOut,
 } from "./icons";
 
 const navItems = [
@@ -120,9 +121,11 @@ export function DashboardNav({
   return (
     <nav className="bg-white border-b border-slate-200 px-3 sm:px-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between h-14 gap-2">
-        {/* Left: logo + tabs. min-w-0 lets this cluster shrink; tabs drop
-            their labels below md and become icon-only (badge stays). */}
-        <div className="flex items-center gap-2 sm:gap-6 h-full min-w-0">
+        {/* Left: logo + tabs. The tab strip SCROLLS on narrow screens
+            rather than pushing into the right-hand cluster — five tabs
+            plus a logo plus Sign out doesn't fit a phone, and a flex row
+            with nothing allowed to shrink overlaps instead of wrapping. */}
+        <div className="flex items-center gap-2 sm:gap-6 h-full min-w-0 flex-1">
           <Link href="/dashboard" className="flex items-center flex-shrink-0">
             {logoUrl ? (
               // Dealer's own logo (white-label branding from Settings)
@@ -130,13 +133,13 @@ export function DashboardNav({
               <img
                 src={logoUrl}
                 alt={companyName || "Logo"}
-                className="h-7 sm:h-8 w-auto max-w-[110px] sm:max-w-[180px] object-contain"
+                className="h-7 sm:h-8 w-auto max-w-[80px] sm:max-w-[180px] object-contain"
               />
             ) : (
               <Logo />
             )}
           </Link>
-          <div className="flex h-full">
+          <div className="flex h-full min-w-0 overflow-x-auto scrollbar-none">
             {navItems.map(({ href, label, Icon }) => {
               const isActive =
                 href === "/dashboard"
@@ -151,7 +154,7 @@ export function DashboardNav({
                   href={href}
                   title={label}
                   aria-label={label}
-                  className={`flex items-center gap-2 px-2.5 sm:px-4 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                  className={`flex items-center gap-2 px-2 sm:px-4 text-sm font-medium border-b-2 -mb-px transition-colors flex-shrink-0 ${
                     isActive
                       ? "text-brand border-brand"
                       : "text-slate-500 border-transparent hover:text-slate-700"
@@ -169,7 +172,7 @@ export function DashboardNav({
             })}
           </div>
         </div>
-        <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0 pl-2">
           {notifPerm === "default" && (
             <button
               onClick={enableAlerts}
@@ -191,7 +194,11 @@ export function DashboardNav({
             onClick={handleLogout}
             className="text-sm text-slate-500 hover:text-slate-700 whitespace-nowrap"
           >
-            Sign out
+            <span className="hidden sm:inline">Sign out</span>
+            <span className="sm:hidden" aria-hidden="true">
+              <IconSignOut size={18} />
+            </span>
+            <span className="sr-only sm:hidden">Sign out</span>
           </button>
         </div>
       </div>

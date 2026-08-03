@@ -55,6 +55,19 @@ body {
  * Known tradeoff: this is a palette remap, not a per-component dark
  * redesign. If a new slate utility gets used in components, add its
  * remap here.
+ *
+ * TWO TRAPS THIS HAS ALREADY SPRUNG — read before adding UI:
+ *
+ * 1. OPACITY-MODIFIED UTILITIES ARE DIFFERENT CLASSES. `bg-amber-50/40`
+ *    is not `bg-amber-50`, so the remap below does NOT apply to it and
+ *    the light original washes out to grey on a dark surface. Use the
+ *    base class (or add an explicit rule). Same for `/10`, `/20`, etc.
+ *
+ * 2. THE FORM-CONTROL RULES BELOW BEAT UTILITY VARIANTS. They live
+ *    outside @layer utilities, so `.theme-dark input { color }` overrides
+ *    `disabled:text-slate-500` — which, combined with an unremapped
+ *    `disabled:bg-slate-50`, rendered light-on-light. Disabled states are
+ *    now handled explicitly by element selector below.
  * ------------------------------------------------------------------------- */
 
 .theme-dark {
@@ -111,6 +124,101 @@ body {
 .theme-dark select,
 .theme-dark textarea {
   color: #e2e8f0;
+}
+
+/* DISABLED form controls — the bug this fixes:
+ * the rule above sets a LIGHT text color on every input and, living
+ * outside @layer utilities, it beats `disabled:text-slate-500`. Meanwhile
+ * `disabled:bg-slate-50` had no dark remap, so the background stayed
+ * near-white. Result: light text on a light field, effectively invisible
+ * (seen on a locked price sheet, 2026-07-30).
+ *
+ * Handled explicitly here rather than by remapping each `disabled:*`
+ * variant, so it covers every disabled control in the app including ones
+ * added later. Element selectors, so no component needs to know.
+ */
+.theme-dark input:disabled,
+.theme-dark select:disabled,
+.theme-dark textarea:disabled {
+  background-color: #172033;
+  color: #94a3b8;
+  -webkit-text-fill-color: #94a3b8;
+  border-color: #334155;
+}
+
+/* Safari and iOS apply their own washout to disabled controls, which
+ * survives an explicit `color`. Pin the fill and opacity so a disabled
+ * field stays legible on both platforms, in both themes. */
+input:disabled,
+select:disabled,
+textarea:disabled {
+  -webkit-text-fill-color: currentColor;
+  opacity: 1;
+}
+
+/* Hide scrollbars on horizontally-scrollable strips (the mobile nav tab
+ * row) — the affordance is the content being cut off, and a visible bar
+ * inside a 56px header looks broken. */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* -------------------------------------------------------------------------
+ * DESTRUCTIVE ACTIONS
+ *
+ * The problem this solves: brand colour is EXTRACTED FROM THE DEALER'S
+ * LOGO, so it can be anything — Ruby Recycling's is red. That put
+ * brand-coloured links ("Portal link") and destructive ones ("Remove")
+ * in the same colour, inches apart.
+ *
+ * So colour alone can't carry the meaning. Destructive actions get a
+ * SHAPE — a bordered, tinted chip — that reads as different from a plain
+ * text link whatever the brand happens to be. The red here is fixed and
+ * deliberately NOT a brand token: danger must not drift with theming.
+ * ------------------------------------------------------------------------- */
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-weight: 500;
+  line-height: 1.25;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.btn-danger:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.theme-dark .btn-danger {
+  border-color: rgba(248, 113, 113, 0.35);
+  background: rgba(248, 113, 113, 0.1);
+  color: #fca5a5;
+}
+
+.theme-dark .btn-danger:hover {
+  border-color: rgba(248, 113, 113, 0.55);
+  background: rgba(248, 113, 113, 0.18);
+  color: #fecaca;
 }
 .theme-dark input::placeholder,
 .theme-dark textarea::placeholder {

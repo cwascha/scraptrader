@@ -41,6 +41,9 @@ export default function SettingsPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [appIconUrl, setAppIconUrl] = useState<string | null>(null);
+  const [appIconFile, setAppIconFile] = useState<File | null>(null);
+  const [appIconPreview, setAppIconPreview] = useState<string | null>(null);
   const [colors, setColors] = useState(DEFAULT_THEME);
   const [mode, setMode] = useState<"light" | "dark">("light");
   const [extractNote, setExtractNote] = useState("");
@@ -57,6 +60,7 @@ export default function SettingsPage() {
         if (me?.preferredWeightUnit) setUnit(me.preferredWeightUnit);
         if (me) {
           setLogoUrl(me.logoUrl ?? null);
+          setAppIconUrl(me.appIconUrl ?? null);
           setMode(me.themeMode === "dark" ? "dark" : "light");
           if (me.themeBrand) {
             setHasBranding(true);
@@ -135,6 +139,21 @@ export default function SettingsPage() {
     }
   }
 
+  function handleAppIconChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setBrandError("");
+    setBrandSaved(false);
+    setAppIconFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setAppIconPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    // Deliberately does NOT run the theme extractor — the palette comes
+    // from the logo, and re-deriving it from a cropped mark would quietly
+    // change colours the dealer already approved.
+  }
+
   async function handleSaveBranding() {
     setBrandSaving(true);
     setBrandError("");
@@ -146,6 +165,7 @@ export default function SettingsPage() {
     formData.append("accent", colors.accent);
     formData.append("mode", mode);
     if (logoFile) formData.append("logo", logoFile);
+    if (appIconFile) formData.append("appIcon", appIconFile);
 
     const res = await fetch("/api/branding", {
       method: "POST",
@@ -163,6 +183,9 @@ export default function SettingsPage() {
     setLogoUrl(data.logoUrl ?? null);
     setLogoFile(null);
     setLogoPreview(null);
+    setAppIconUrl(data.appIconUrl ?? null);
+    setAppIconFile(null);
+    setAppIconPreview(null);
     setHasBranding(true);
     setBrandSaved(true);
     // Re-render the dashboard layout so the new theme applies immediately.
@@ -180,6 +203,9 @@ export default function SettingsPage() {
     setLogoUrl(null);
     setLogoFile(null);
     setLogoPreview(null);
+    setAppIconUrl(null);
+    setAppIconFile(null);
+    setAppIconPreview(null);
     setColors(DEFAULT_THEME);
     setMode("light");
     setHasBranding(false);
@@ -231,6 +257,7 @@ export default function SettingsPage() {
   }
 
   const shownLogo = logoPreview || logoUrl;
+  const shownIcon = appIconPreview || appIconUrl;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -342,6 +369,55 @@ export default function SettingsPage() {
             {extractNote && (
               <p className="text-xs text-brand mt-1">{extractNote}</p>
             )}
+          </div>
+        </div>
+
+        {/* App icon — a SEPARATE asset from the logo. The header wants a
+            horizontal wordmark; a home-screen icon is masked to a rounded
+            square at ~60px, where a wordmark is an unreadable smear. */}
+        <div className="flex items-start gap-5 mb-5 pt-5 border-t border-slate-100">
+          <div className="flex-shrink-0 text-center">
+            <div className="w-20 h-20 rounded-[18px] border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shadow-sm">
+              {shownIcon ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={shownIcon}
+                  alt="App icon"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-[10px] text-slate-400 px-2">
+                  No icon
+                </span>
+              )}
+            </div>
+            <p className="text-[10px] text-slate-400 mt-1.5">Home screen</p>
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              App Icon{" "}
+              <span className="font-normal text-slate-400">(optional)</span>
+            </label>
+            <label className="inline-block px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 cursor-pointer hover:bg-slate-50 transition-colors">
+              {shownIcon ? "Replace Icon" : "Upload Icon"}
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onChange={handleAppIconChange}
+                className="hidden"
+              />
+            </label>
+            <p className="text-xs text-slate-400 mt-2">
+              Shown when someone adds this app to their phone&apos;s home
+              screen. Use a <strong>square</strong> image at least 512×512 —
+              just your mark, not the full wordmark, since it&apos;s displayed
+              very small. Without one, the ScrapTrader icon is used.
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              iPhones save the icon when the app is added — changing it later
+              won&apos;t update an existing home-screen shortcut until
+              it&apos;s removed and re-added.
+            </p>
           </div>
         </div>
 
@@ -600,12 +676,13 @@ export default function SettingsPage() {
               </label>
               <input
                 type="text"
+                inputMode="numeric"
                 value={addrForm.zip}
                 onChange={(e) =>
                   setAddrForm({ ...addrForm, zip: e.target.value })
                 }
                 placeholder="13827"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+                className="data w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
                 required
               />
             </div>

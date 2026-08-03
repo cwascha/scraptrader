@@ -9,7 +9,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 Private CRM for scrap metal dealers. **Two outgoing communication types:**
 
 - **Deals — the dealer SELLS.** Publish a deal to an encrypted contact list via per-contact tokenized links; buyers negotiate in chat with USD bids; accepting the other side's latest bid closes it. Buyers reach their contact-level portal (`/portal/{portalToken}`, every deal sent to them grouped Open/Won/Closed) via the "All deals" link on any deal page.
-- **Buying price sheets — the dealer BUYS.** Publish what the yard will PAY per grade; each supplier gets their own link (`/prices/{accessToken}`), fills in the tonnage they have and optionally counters the price, and the yard counters / accepts / declines. **Direction is inverted from deals — `buyerPrice` on a response line is the SUPPLIER's ask, not a bid to buy.**
+- **Buying price sheets — the dealer BUYS.** Publish what the yard will PAY per grade; each supplier gets their own link (`/prices/{accessToken}`), fills in the tonnage they have and optionally counters the price, and the yard counters / accepts / declines — **notifying the supplier on their own channel each time**. Offers and yard actions are written as `Message` rows on the recipient thread, so the inbox badge and nudges work with no special-casing. **Direction is inverted from deals — `buyerPrice` on a response line is the SUPPLIER's ask, not a bid to buy.**
 
 No public marketplace. Email sends automatically when SMTP is configured; SMS/WhatsApp send via Twilio when configured, and otherwise degrade to manual link sharing.
 
@@ -21,6 +21,8 @@ No public marketplace. Email sends automatically when SMTP is configured; SMS/Wh
 - **Every authenticated API route** must call `getCurrentUser()` from `@/lib/auth` and scope every query by `userId` (e.g. `findFirst({ where: { id, userId: user.id } })`, `updateMany`/`deleteMany` with both). Follow the existing routes as templates.
 - **Contact PII never touches the DB in plaintext.** Use `encryptContact`/`decryptContact` from `@/lib/encryption` with `user.encryptionKey`. Decryption happens server-side only. **Always wrap `decryptContact` in try/catch** — it's AES-GCM, so a tampered or wrong-key row throws; degrade that row (`"(unreadable contact)"`) instead of failing the whole request.
 - **`user.encryptionKey` is stored WRAPPED** under `ENCRYPTION_MASTER_KEY` (`@/lib/master-key`). Pass it to `encryptContact`/`decryptContact` exactly as it comes off the row — they unwrap internally. Never persist a raw key: new accounts go through `wrapKey()`.
+- **`Message` is POLYMORPHIC** — `dealRecipientId` and `priceSheetRecipientId` are both nullable and exactly one is set. Never filter on a nullable FK that might be null (`where: { dealRecipientId: null }` matches every price-sheet message); key off the relation you've already proven non-null.
+- **Material grades are PER-USER rows**, not a static list. Validate with `isValidMaterial()` from `@/lib/materials-server` — `@/lib/materials` is client-safe and must stay free of Prisma. `Deal.material` stores the grade NAME as a snapshot, so grades can be deleted but never renamed.
 - **Public buyer routes** (`/api/public/deal/[token]/**`) authorize by recipient `accessToken` possession only — never expose owner data beyond the whitelisted deal projection (see `public/deal/[token]/route.ts`).
 - **Token helpers in `@/lib/portal` do NO authorization** — `ensurePortalToken`/`rotatePortalToken`/`revokePortalToken` take a contact id the caller has already scoped by `userId`. Prove ownership first, always.
 - **Cap request bodies** on public, auth, and upload POSTs: call `enforceBodyLimit(req, …)` from `@/lib/body-limit` BEFORE `req.json()`/`req.formData()`.
@@ -42,5 +44,7 @@ npm run dev
 npm run build        # runs prisma generate first
 npm run lint
 npm run backfill:keys [-- --dry]    # wrap account keys + normalize legacy ciphertext
+npm run clean:deals [-- --dry]      # delete deals whose material predates the yard-grade switch
+npm run set:company -- "Name"       # set the dealer's trading name
 npx prisma migrate dev --name <name>
 ```

@@ -3,13 +3,11 @@
 // this exists so the first sheet isn't 48 rows of typing. After that, the
 // normal path is duplicating the previous sheet and updating the numbers.
 //
-// ⚠ THESE PRICES ARE A LAYOUT, NOT A QUOTE. They are anchored to the
-// COMEX basis on the date below and go stale fast — copper has moved
-// substantially since. The editor warns when a sheet's implied basis
-// diverges from live COMEX (see impliedComexBasis below); that warning
-// exists specifically so nobody publishes this template unedited.
-export const STARTER_BASIS_COMEX_USD_PER_LB = 4.49;
-export const STARTER_BASIS_DATE = "2025-09-02";
+// ⚠ THESE PRICES ARE A LAYOUT, NOT A QUOTE. They come from a 2025-09-02
+// sheet written against a COMEX basis of $4.49, and copper has moved a
+// long way since. The staleness check below (`checkBasis`) compares a
+// sheet's implied basis against the one the DEALER ENTERED — it exists
+// specifically so nobody publishes this template unedited.
 
 // Note the two shapes a line can take: a numeric `price`, or a `priceNote`
 // for grades that can't be quoted sight-unseen ("Dirty Brass — Need Pics").
@@ -22,18 +20,6 @@ export interface StarterItem {
   price?: number;
   priceNote?: string;
 }
-
-// Category order = the order they appear on a sheet. The editor lets the
-// operator rename, reorder, add, and delete freely.
-export const PRICE_SHEET_CATEGORIES = [
-  "Bare Copper",
-  "Copper Wire",
-  "Misc Cu/Brass",
-  "Aluminum",
-  "Small Parts",
-  "Lead",
-  "Stainless",
-] as const;
 
 export const STARTER_ITEMS: StarterItem[] = [
   { category: "Bare Copper", name: "BB", price: 4.09 },
@@ -101,13 +87,19 @@ export const STARTER_ITEMS: StarterItem[] = [
 export const PRICE_UNITS = ["lb", "ton", "each"] as const;
 
 // Display helper shared by the dashboard, the public page, and email.
+//
+// THREE decimals: scrap grades are quoted in mils ("$0.885/lb"), and a
+// fixed width keeps the column aligned under `.data`'s tabular figures —
+// $4.090 and $0.885 line up, $4.09 and $0.885 don't.
+export const PRICE_DECIMALS = 3;
+
 export function formatPrice(
   price: number | null,
   priceNote: string | null,
   unit: string
 ): string {
   if (price !== null && Number.isFinite(price)) {
-    return `$${price.toFixed(2)}/${unit}`;
+    return `$${price.toFixed(PRICE_DECIMALS)}/${unit}`;
   }
   return priceNote?.trim() || "—";
 }
@@ -119,12 +111,17 @@ export function formatPrice(
 // error. Everything below converts to the LINE'S OWN basis before any
 // number is shown or summed.
 
+// Anchors match lib/bids.ts LBS_PER_UNIT exactly (1 lb = 0.45359237 kg).
+// They're separate tables because the two subsystems accept different unit
+// keys — bids allow "metric tons", supplier offers don't — but the shared
+// values MUST agree, or the same tonnage converts differently on a deal
+// than on a price sheet.
 const LBS_PER: Record<string, number> = {
   lbs: 1,
   lb: 1,
   tons: 2000,
   ton: 2000,
-  kg: 2.20462,
+  kg: 2.2046226218,
 };
 
 export const OFFER_WEIGHT_UNITS = ["lbs", "tons", "kg"] as const;
@@ -163,6 +160,8 @@ export function lineValue(
   return qty === null ? null : qty * price;
 }
 
+// Dollar TOTALS stay at two decimals — they're money, not a per-pound
+// quote, and mils on a five-figure sum are noise.
 export function formatUsd(n: number): string {
   return `$${n.toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -197,13 +196,60 @@ export function governingPrice(
 // Divide by that and you recover the basis the sheet was built on. Crude,
 // but it catches the case that matters (a sheet written at a very
 // different copper price) without any bookkeeping.
-export const BARE_COPPER_SHARE_OF_COMEX = 0.9;
+//
+// This is compared against the basis the DEALER STATED (`comexBasis`),
+// not a fetched number — so it works with no market-data feed, and it
+// also catches the reverse error: updating the basis line but forgetting
+// to reprice the grades under it.
+// Internal to the staleness check — not part of this module's API.
+const BARE_COPPER_SHARE_OF_COMEX = 0.9;
+
+// Plausible band for a COMEX copper basis in USD/lb. Anything outside is
+// a typo, not a quote.
+export const MIN_COMEX_BASIS = 0.5;
+export const MAX_COMEX_BASIS = 20;
+
+// Where a dealer can look the number up. Linked from the editor so the
+// lookup isn't a memory test. We LINK, never scrape — the site is not a
+// licensed redistributor and its layout is not a contract.
+export const COMEX_LOOKUP_URL = "https://comexlive.org/copper/";
+
+// Pull a dollar figure out of a free-text note ("Comex $4.49", "comex
+// 4.49", "Basis: $4.4900"). Covers sheets written BEFORE the dedicated
+// `comexBasis` field existed, and anyone who types the basis into the
+// note out of habit.
+export function parseComexFromNote(note: string | null): number | null {
+  if (!note) return null;
+  const m = note.match(/\$?\s*(\d+(?:\.\d+)?)/);
+  if (!m) return null;
+  const n = Number.parseFloat(m[1]);
+  return Number.isFinite(n) && n >= MIN_COMEX_BASIS && n <= MAX_COMEX_BASIS
+    ? n
+    : null;
+}
+
+// The basis actually in force: the dedicated field wins, falling back to
+// whatever was written in the note.
+export function effectiveComexBasis(
+  comexBasis: number | null,
+  headerNote: string | null
+): number | null {
+  if (
+    comexBasis !== null &&
+    Number.isFinite(comexBasis) &&
+    comexBasis >= MIN_COMEX_BASIS &&
+    comexBasis <= MAX_COMEX_BASIS
+  ) {
+    return comexBasis;
+  }
+  return parseComexFromNote(headerNote);
+}
 
 // Divergence past this triggers a warning. Wide enough not to nag over
 // normal spread variation between yards.
-export const BASIS_WARN_THRESHOLD = 0.15;
+const BASIS_WARN_THRESHOLD = 0.15;
 
-export function impliedComexBasis(
+function impliedComexBasis(
   items: { price: number | null; unit: string }[]
 ): number | null {
   const perLb = items
@@ -223,15 +269,44 @@ export interface BasisCheck {
 
 export function checkBasis(
   items: { price: number | null; unit: string }[],
-  liveComexUsdPerLb: number
+  statedComexUsdPerLb: number
 ): BasisCheck | null {
   const implied = impliedComexBasis(items);
-  if (implied === null || liveComexUsdPerLb <= 0) return null;
-  const drift = (implied - liveComexUsdPerLb) / liveComexUsdPerLb;
+  if (implied === null || statedComexUsdPerLb <= 0) return null;
+  const drift = (implied - statedComexUsdPerLb) / statedComexUsdPerLb;
   return {
     implied,
-    live: liveComexUsdPerLb,
+    live: statedComexUsdPerLb,
     drift,
     stale: Math.abs(drift) > BASIS_WARN_THRESHOLD,
   };
+}
+
+// "Comex $6.490" — the basis as shown on the sheet, in email, and on the
+// supplier's page. One renderer so they can't disagree.
+//
+// Note the exchange itself quotes copper to FOUR decimals (6.3480). Three
+// is used here for consistency with the grade column; bump PRICE_DECIMALS
+// if the extra digit ever matters.
+export function formatComexBasis(basis: number): string {
+  return `Comex $${basis.toFixed(PRICE_DECIMALS)}`;
+}
+
+// Per-unit price on its own (no unit suffix, no label) — for inline use
+// in summaries, counters, and email line detail.
+export function formatUnitPrice(price: number): string {
+  return `$${price.toFixed(PRICE_DECIMALS)}`;
+}
+
+// Round a per-unit price to the precision we DISPLAY at, before storing.
+//
+// Without this, a supplier who types 5.9875 gets "$5.988" on screen while
+// the total is computed from 5.9875 — so the document can't be checked by
+// hand, and 24,000 lbs × the printed price won't equal the printed total.
+// On a paper that both sides negotiate against, arithmetic that doesn't
+// reconcile costs more trust than the lost hundredth of a cent is worth.
+// `step="0.001"` on the inputs is advisory only — this is the guarantee.
+export function roundPrice(n: number): number {
+  const f = 10 ** PRICE_DECIMALS;
+  return Math.round(n * f) / f;
 }

@@ -1,21 +1,25 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { fetchJson } from "@/lib/fetch-json";
 import {
   PRICE_UNITS,
   formatPrice,
   formatUsd,
+  formatUnitPrice,
   governingPrice,
   lineValue,
   weightInPriceUnit,
   checkBasis,
+  effectiveComexBasis,
+  COMEX_LOOKUP_URL,
   type BasisCheck,
 } from "@/lib/price-sheet-defaults";
 import { formatMessageTime } from "@/lib/time";
 import { IconCopy, IconCheck } from "@/components/icons";
+import SendProgress from "@/components/SendProgress";
 
 interface Item {
   id: string;
@@ -73,6 +77,7 @@ interface SheetRecipient {
 interface Sheet {
   id: string;
   title: string;
+  comexBasis: number | null;
   headerNote: string | null;
   effectiveDate: string;
   expiresAt: string | null;
@@ -98,12 +103,12 @@ interface Group {
 
 interface PublishResult {
   message?: string;
+  queued: number;
   recipients: {
     contactName: string;
     channel: string;
+    status: string;
     sheetLink: string;
-    sent?: boolean;
-    sendError?: string;
   }[];
 }
 
@@ -128,20 +133,19 @@ export default function PriceSheetEditorPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  // Deep link from the Conversations inbox: ?thread={recipientId}
+  const searchParams = useSearchParams();
+  const deepLinkThread = searchParams.get("thread");
 
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [title, setTitle] = useState("");
+  const [comexBasis, setComexBasis] = useState("");
   const [headerNote, setHeaderNote] = useState("");
   const [effectiveDate, setEffectiveDate] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [openThread, setOpenThread] = useState<string | null>(null);
   const [chatText, setChatText] = useState("");
-  // Live COMEX copper, when a market-data key is configured. Powers both
-  // the basis prefill and the staleness warning.
-  const [copper, setCopper] = useState<number | null>(null);
-  const [copperBusy, setCopperBusy] = useState(false);
-  const [copperError, setCopperError] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -150,6 +154,16 @@ export default function PriceSheetEditorPage({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   // Per-line counter prices being typed, keyed by response line id.
   const [counters, setCounters] = useState<Record<string, string>>({});
+  // Collapsed categories in the price grid, by name. Default open —
+  // collapsing is for focusing on the two categories you're repricing
+  // today without scrolling past the other five.
+  const [collapsedCats, setCollapsedCats] = useState<string[]>([]);
+
+  function toggleCat(name: string) {
+    setCollapsedCats((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+    );
+  }
   const [dealerNote, setDealerNote] = useState("");
   const [acting, setActing] = useState(false);
 
@@ -172,6 +186,7 @@ export default function PriceSheetEditorPage({
         ]);
         setSheet(s);
         setTitle(s.title);
+        setComexBasis(s.comexBasis !== null ? String(s.comexBasis) : "");
         setHeaderNote(s.headerNote ?? "");
         setEffectiveDate(new Date(s.effectiveDate).toISOString().slice(0, 10));
         setExpiresAt(
@@ -200,6 +215,10 @@ export default function PriceSheetEditorPage({
   }, [id]);
 
   const isPublished = sheet?.status === "published";
+  const isDeactivated = sheet?.status === "deactivated";
+  // Locked = sent, so the prices are frozen. Deactivated sheets stay
+  // locked; withdrawing isn't editing.
+  const isLocked = isPublished || isDeactivated;
 
   const effectiveContactIds = Array.from(
     new Set([
@@ -250,6 +269,7 @@ export default function PriceSheetEditorPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
+          comexBasis: comexBasis.trim() === "" ? "" : comexBasis,
           headerNote,
           effectiveDate: new Date(effectiveDate).toISOString(),
           expiresAt: expiresAt ? new Date(expiresAt).toISOString() : "",
@@ -376,53 +396,6 @@ export default function PriceSheetEditorPage({
     }
   }
 
-  // Pull the current basis once on load so the staleness check can run
-  // without the dealer asking. Silent on failure — it's an enhancement,
-  // not a dependency.
-  useEffect(() => {
-    (async () => {
-      try {
-        const d = await fetchJson<{
-          configured: boolean;
-          quote: { usdPerLb: number } | null;
-        }>("/api/market/copper");
-        if (d.configured && d.quote) setCopper(d.quote.usdPerLb);
-      } catch {
-        // No market data — the feature just doesn't appear.
-      }
-    })();
-  }, []);
-
-  async function fetchBasis() {
-    setCopperBusy(true);
-    setCopperError("");
-    try {
-      const d = await fetchJson<{
-        configured: boolean;
-        quote: { usdPerLb: number } | null;
-      }>("/api/market/copper");
-      if (!d.configured) {
-        setCopperError("Market data isn't configured (COMMODITY_API_KEY).");
-        return;
-      }
-      if (!d.quote) {
-        setCopperError("Couldn't read a current price.");
-        return;
-      }
-      setCopper(d.quote.usdPerLb);
-      // Prefill, don't stamp: this becomes the dealer's own stated
-      // reference, editable before it goes anywhere.
-      setHeaderNote(`Comex $${d.quote.usdPerLb.toFixed(2)}`);
-      setSaved(false);
-    } catch (err) {
-      setCopperError(
-        err instanceof Error ? err.message : "Couldn't fetch the basis"
-      );
-    } finally {
-      setCopperBusy(false);
-    }
-  }
-
   // Reading a thread clears its unread — same rule as deals.
   async function openAndMarkRead(recipientId: string, unread: number) {
     const next = openThread === recipientId ? null : recipientId;
@@ -454,6 +427,43 @@ export default function PriceSheetEditorPage({
       setSheet(await fetchJson<Sheet>(`/api/price-sheets/${id}`));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send");
+    }
+  }
+
+  // Honor the inbox deep link once the sheet has loaded: open that thread
+  // and clear its unread, the same contract the deal page's
+  // ?conversation= link has.
+  useEffect(() => {
+    if (!sheet || !deepLinkThread) return;
+    const target = sheet.recipients.find((r) => r.id === deepLinkThread);
+    if (!target || openThread === deepLinkThread) return;
+    void openAndMarkRead(deepLinkThread, target.unreadCount);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheet, deepLinkThread]);
+
+  async function handleToggleActive() {
+    const deactivating = !isDeactivated;
+    if (
+      !confirm(
+        deactivating
+          ? "Deactivate this price sheet?\n\nSuppliers following their link will see \"these prices are no longer valid\" instead of your prices, and can't submit new offers. Conversations already under way stay open."
+          : "Reactivate this price sheet?\n\nYour prices become visible again and suppliers can submit offers against them."
+      )
+    )
+      return;
+
+    setError("");
+    try {
+      await fetchJson(`/api/price-sheets/${id}/status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: !deactivating }),
+      });
+      setSheet(await fetchJson<Sheet>(`/api/price-sheets/${id}`));
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to change the status"
+      );
     }
   }
 
@@ -519,9 +529,11 @@ export default function PriceSheetEditorPage({
         </h1>
         <span
           className={`px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] rounded ${
-            isPublished
-              ? "bg-green-100 text-green-700"
-              : "bg-slate-100 text-slate-700"
+            isDeactivated
+              ? "bg-slate-200 text-slate-700"
+              : isPublished
+                ? "bg-green-100 text-green-700"
+                : "bg-slate-100 text-slate-700"
           }`}
         >
           {sheet.status}
@@ -537,8 +549,62 @@ export default function PriceSheetEditorPage({
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {/* Header fields */}
-          <div className="bg-white rounded-lg border border-slate-200 p-6">
-            <div className="grid sm:grid-cols-2 gap-4">
+          {/* A published sheet is READ-ONLY FOREVER, so it renders as a
+              document rather than a form full of disabled inputs. Disabled
+              inputs imply "editable later", and their greyed styling is
+              near-illegible under the dark-mode slate remap (gap #11). */}
+          {isLocked ? (
+            <div className="bg-white rounded-lg border border-slate-200 p-6">
+              <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                <div>
+                  <dt className="text-[11px] uppercase tracking-[0.1em] font-semibold text-slate-500">
+                    Effective
+                  </dt>
+                  <dd className="data text-slate-800 mt-0.5">
+                    {new Date(sheet.effectiveDate).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase tracking-[0.1em] font-semibold text-slate-500">
+                    Expires
+                  </dt>
+                  <dd className="data text-slate-800 mt-0.5">
+                    {sheet.expiresAt
+                      ? new Date(sheet.expiresAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })
+                      : "\u2014"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase tracking-[0.1em] font-semibold text-slate-500">
+                    COMEX copper
+                  </dt>
+                  <dd className="data text-slate-800 mt-0.5">
+                    {sheet.comexBasis !== null
+                      ? `${formatUnitPrice(sheet.comexBasis)}/lb`
+                      : "\u2014"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase tracking-[0.1em] font-semibold text-slate-500">
+                    Note
+                  </dt>
+                  <dd className="text-slate-800 mt-0.5">
+                    {sheet.headerNote || "\u2014"}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg border border-slate-200 p-6">
+              <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Title
@@ -590,23 +656,51 @@ export default function PriceSheetEditorPage({
               <div className="sm:col-span-2">
                 <div className="flex items-baseline justify-between gap-2 mb-1">
                   <label className="block text-sm font-medium text-slate-700">
-                    Header note{" "}
+                    COMEX copper{" "}
                     <span className="font-normal text-slate-400">
-                      &mdash; market basis, shown under the title
+                      &mdash; $/lb this sheet is priced against
                     </span>
                   </label>
-                  {!isPublished && copper !== null && (
-                    <button
-                      type="button"
-                      onClick={fetchBasis}
-                      disabled={copperBusy}
-                      className="text-xs text-brand hover:text-brand-dark font-medium whitespace-nowrap disabled:opacity-50"
-                      title="Fill in the current COMEX copper price. You can edit it before sending — what you publish is your own stated reference."
-                    >
-                      {copperBusy ? "Fetching..." : "Use current Comex"}
-                    </button>
-                  )}
+                  <a
+                    href={COMEX_LOOKUP_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-brand hover:text-brand-dark font-medium whitespace-nowrap"
+                  >
+                    Look up COMEX ↗
+                  </a>
                 </div>
+                <div className="relative w-40">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    step="0.001"
+                    value={comexBasis}
+                    onChange={(e) => {
+                      setComexBasis(e.target.value);
+                      setSaved(false);
+                    }}
+                    disabled={isPublished}
+                    placeholder="6.350"
+                    className="data w-full pl-6 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand disabled:bg-slate-50 disabled:text-slate-500"
+                  />
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Shown on the sheet, and used to sanity-check your grade
+                  prices below.
+                </p>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Header note{" "}
+                  <span className="font-normal text-slate-400">
+                    &mdash; optional; terms or delivery info
+                  </span>
+                </label>
                 <input
                   value={headerNote}
                   onChange={(e) => {
@@ -614,58 +708,52 @@ export default function PriceSheetEditorPage({
                     setSaved(false);
                   }}
                   disabled={isPublished}
-                  placeholder="Comex $4.49"
+                  placeholder="Delivered to our yard"
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand disabled:bg-slate-50 disabled:text-slate-500"
                 />
-                {copperError && (
-                  <p className="text-xs text-red-500 mt-1">{copperError}</p>
-                )}
-                {copper !== null && (
-                  <p className="data text-[11px] text-slate-400 mt-1">
-                    Comex copper now ${copper.toFixed(2)}/lb (delayed)
-                  </p>
-                )}
+              </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Staleness check: a sheet duplicated from last month, or the
-              starter template published unedited, quotes against a basis
-              that has since moved. Inferred from the sheet's own top
-              per-lb line rather than tracked provenance. */}
-          {!isPublished &&
-            copper !== null &&
+          {/* Staleness check: compares the grade prices against the basis
+              the DEALER STATED, so it needs no market-data feed. Catches
+              both directions — a sheet duplicated without repricing, and a
+              basis updated without repricing the grades under it. */}
+          {!isLocked &&
             (() => {
+              const stated = effectiveComexBasis(
+                comexBasis.trim() === "" ? null : Number.parseFloat(comexBasis),
+                headerNote
+              );
+              if (stated === null) return null;
               const check: BasisCheck | null = checkBasis(
                 rows.map((r) => ({
                   price: r.price ? Number.parseFloat(r.price) : null,
                   unit: r.unit,
                 })),
-                copper
+                stated
               );
               if (!check || !check.stale) return null;
               const under = check.drift < 0;
               return (
                 <div className="p-3 bg-amber-50 text-amber-900 text-sm rounded-lg">
                   <p className="font-semibold">
-                    These prices look {under ? "below" : "above"} the current
-                    market
+                    These prices look {under ? "low" : "high"} for a Comex of{" "}
+                    {formatUnitPrice(check.live)}
                   </p>
                   <p className="mt-1 text-xs">
-                    Your top per-pound line implies a Comex basis around{" "}
+                    Your top per-pound line implies a basis around{" "}
                     <span className="data font-semibold">
-                      ${check.implied.toFixed(2)}
-                    </span>
-                    , but Comex copper is{" "}
-                    <span className="data font-semibold">
-                      ${check.live.toFixed(2)}
+                      {formatUnitPrice(check.implied)}
                     </span>{" "}
                     — about{" "}
                     <span className="data font-semibold">
                       {Math.abs(check.drift * 100).toFixed(0)}%
                     </span>{" "}
-                    {under ? "low" : "high"}. Worth re-checking the numbers
-                    before you send this.
+                    {under ? "below" : "above"} the Comex you entered. Either
+                    the grades or the basis needs updating before you send
+                    this.
                   </p>
                   <p className="mt-1 text-[11px] opacity-75">
                     Estimated from your highest per-lb grade, assuming bare
@@ -676,54 +764,112 @@ export default function PriceSheetEditorPage({
               );
             })()}
 
-          {isPublished && (
-            <div className="p-3 bg-blue-50 text-blue-800 text-sm rounded-lg">
-              This sheet is published and locked &mdash; buyers hold this
-              link, so the prices can&apos;t change.{" "}
-              <button
-                onClick={handleDuplicate}
-                className="font-semibold underline"
-              >
-                Duplicate it
-              </button>{" "}
-              to send new prices.
+          {isLocked && (
+            <div
+              className={`p-3 text-sm rounded-lg ${
+                isDeactivated
+                  ? "bg-slate-100 text-slate-700"
+                  : "bg-blue-50 text-blue-800"
+              }`}
+            >
+              {isDeactivated ? (
+                <>
+                  This sheet is <strong>deactivated</strong> &mdash; suppliers
+                  following their link see &ldquo;these prices are no longer
+                  valid&rdquo; instead of your prices, and can&apos;t submit
+                  new offers. Conversations already under way stay open.
+                </>
+              ) : (
+                <>
+                  This sheet is published and locked &mdash; suppliers hold
+                  this link, so the prices can&apos;t change.{" "}
+                  <button
+                    onClick={handleDuplicate}
+                    className="font-semibold underline"
+                  >
+                    Duplicate it
+                  </button>{" "}
+                  to send new prices.
+                </>
+              )}
             </div>
           )}
 
           {/* Price rows, grouped by category */}
-          {categories.map((cat) => (
+          {categories.map((cat) => {
+            const isCollapsed = collapsedCats.includes(cat);
+            const catRows = rows.filter((r) => r.category === cat);
+            return (
             <div
               key={cat}
               className="bg-white rounded-lg border border-slate-200 overflow-hidden"
             >
-              <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                <input
-                  value={cat}
-                  onChange={(e) => {
-                    const next = e.target.value;
-                    setRows((prev) =>
-                      prev.map((r) =>
-                        r.category === cat ? { ...r, category: next } : r
-                      )
-                    );
-                    setSaved(false);
-                  }}
-                  disabled={isPublished}
-                  className="text-[11px] uppercase tracking-[0.1em] font-semibold text-slate-600 bg-transparent border-none focus:outline-none focus:text-brand disabled:text-slate-500 flex-1 min-w-0"
-                />
-                {!isPublished && (
+              <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => toggleCat(cat)}
+                  aria-expanded={!isCollapsed}
+                  className="text-slate-400 hover:text-brand text-[10px] flex-shrink-0 w-4"
+                  title={isCollapsed ? "Expand" : "Collapse"}
+                >
+                  {isCollapsed ? "▶" : "▼"}
+                </button>
+                {isLocked ? (
+                  <span className="text-[11px] uppercase tracking-[0.1em] font-semibold text-slate-600 flex-1 min-w-0">
+                    {cat}
+                  </span>
+                ) : (
+                  <input
+                    value={cat}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setRows((prev) =>
+                        prev.map((r) =>
+                          r.category === cat ? { ...r, category: next } : r
+                        )
+                      );
+                      setSaved(false);
+                    }}
+                    className="text-[11px] uppercase tracking-[0.1em] font-semibold text-slate-600 bg-transparent border-none focus:outline-none focus:text-brand flex-1 min-w-0"
+                  />
+                )}
+                <span className="data text-[10px] text-slate-400 flex-shrink-0">
+                  {catRows.length}
+                </span>
+                {!isLocked && (
                   <button
                     onClick={() => addRow(cat)}
-                    className="text-xs text-brand hover:text-brand-dark font-medium whitespace-nowrap"
+                    className="text-xs text-brand hover:text-brand-dark font-medium whitespace-nowrap flex-shrink-0"
                   >
                     + Line
                   </button>
                 )}
               </div>
+              {!isCollapsed && (
               <div className="divide-y divide-slate-100">
                 {rows
                   .filter((r) => r.category === cat)
-                  .map((r) => (
+                  .map((r) =>
+                    isLocked ? (
+                      // Read-only line, rendered through the SAME formatter
+                      // the supplier's page and the email use — so what the
+                      // dealer reviews is literally what was sent.
+                      <div
+                        key={r.key}
+                        className="px-4 py-2 flex items-baseline justify-between gap-3"
+                      >
+                        <span className="text-sm text-slate-700">
+                          {r.name}
+                        </span>
+                        <span className="data text-sm font-semibold text-slate-800 whitespace-nowrap">
+                          {formatPrice(
+                            r.price ? Number.parseFloat(r.price) : null,
+                            r.priceNote || null,
+                            r.unit
+                          )}
+                        </span>
+                      </div>
+                    ) : (
                     <div
                       key={r.key}
                       className="px-4 py-2 flex items-center gap-2"
@@ -743,8 +889,9 @@ export default function PriceSheetEditorPage({
                         </span>
                         <input
                           type="number"
+                          inputMode="decimal"
                           min={0}
-                          step="0.01"
+                          step="0.001"
                           value={r.price}
                           onChange={(e) =>
                             updateRow(r.key, {
@@ -755,7 +902,7 @@ export default function PriceSheetEditorPage({
                             })
                           }
                           disabled={isPublished}
-                          placeholder="0.00"
+                          placeholder="0.000"
                           className="data w-full pl-5 pr-1 py-1.5 text-sm text-right border border-slate-200 rounded focus:outline-none focus:border-brand disabled:bg-slate-50"
                         />
                       </div>
@@ -784,27 +931,28 @@ export default function PriceSheetEditorPage({
                           className="w-28 flex-shrink-0 px-2 py-1.5 text-xs border border-slate-200 rounded focus:outline-none focus:border-brand disabled:bg-slate-50"
                         />
                       )}
-                      {!isPublished && (
-                        <button
-                          onClick={() => {
-                            setRows((prev) =>
-                              prev.filter((x) => x.key !== r.key)
-                            );
-                            setSaved(false);
-                          }}
-                          className="text-red-400 hover:text-red-600 text-sm px-1 flex-shrink-0"
-                          title="Remove line"
-                        >
-                          &times;
-                        </button>
-                      )}
+                      <button
+                        onClick={() => {
+                          setRows((prev) =>
+                            prev.filter((x) => x.key !== r.key)
+                          );
+                          setSaved(false);
+                        }}
+                        className="text-red-400 hover:text-red-600 text-sm px-1 flex-shrink-0"
+                        title="Remove line"
+                      >
+                        &times;
+                      </button>
                     </div>
-                  ))}
+                    )
+                  )}
               </div>
+              )}
             </div>
-          ))}
+            );
+          })}
 
-          {!isPublished && (
+          {!isLocked && (
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
@@ -837,7 +985,7 @@ export default function PriceSheetEditorPage({
               </button>
               <button
                 onClick={handleDelete}
-                className="text-sm text-red-500 hover:text-red-700 ml-auto"
+                className="btn-danger text-sm ml-auto"
               >
                 Delete
               </button>
@@ -847,6 +995,39 @@ export default function PriceSheetEditorPage({
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Sheet status — withdrawing live prices is a real action, so it
+              gets a real control rather than a link buried in a paragraph. */}
+          {isLocked && (
+            <div className="bg-white rounded-lg border border-slate-200 p-6">
+              <h3 className="text-sm font-semibold text-slate-800 mb-1">
+                {isDeactivated ? "Deactivated" : "Live"}
+              </h3>
+              <p className="text-xs text-slate-500 mb-3">
+                {isDeactivated
+                  ? "Suppliers see a \u201cno longer valid\u201d notice instead of your prices."
+                  : "Suppliers can view these prices and submit offers."}
+              </p>
+              {isDeactivated ? (
+                <button
+                  onClick={handleToggleActive}
+                  className="w-full py-2 bg-brand text-white text-sm font-medium rounded-lg hover:bg-brand-dark transition-colors"
+                >
+                  Reactivate sheet
+                </button>
+              ) : (
+                <button
+                  onClick={handleToggleActive}
+                  className="btn-danger w-full justify-center py-2 text-sm"
+                >
+                  Deactivate sheet
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Sending is withdrawn along with the prices — a deactivated
+              sheet shouldn't reach anyone new. */}
+          {!isDeactivated && (
           <div className="bg-white rounded-lg border border-slate-200 p-6">
             <h2 className="text-lg font-semibold text-slate-800 mb-4">
               {isPublished ? "Send to more contacts" : "Send Price Sheet"}
@@ -857,6 +1038,28 @@ export default function PriceSheetEditorPage({
                 <div className="p-3 bg-green-50 text-green-700 text-sm rounded-lg mb-4">
                   {result.message || "Price sheet sent."}
                 </div>
+
+                {/* Live send progress. Publishing is asynchronous, so this
+                    is where a failure actually surfaces — nowhere else
+                    reports it. Refreshes the sheet once draining ends so
+                    the Sent To list shows final statuses. */}
+                <div className="mb-4">
+                  <SendProgress
+                    endpoint={`/api/price-sheets/${id}/send-status`}
+                    onSettled={() => {
+                      void (async () => {
+                        try {
+                          setSheet(
+                            await fetchJson<Sheet>(`/api/price-sheets/${id}`)
+                          );
+                        } catch {
+                          // Non-fatal — the page still shows progress.
+                        }
+                      })();
+                    }}
+                  />
+                </div>
+
                 <div className="space-y-2 mb-4">
                   {result.recipients.map((r, i) => (
                     <div key={i} className="p-2 bg-slate-50 rounded text-sm">
@@ -864,36 +1067,22 @@ export default function PriceSheetEditorPage({
                         <span className="font-medium text-slate-800">
                           {r.contactName}
                         </span>
-                        <span
-                          className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${
-                            r.sent
-                              ? "text-green-600 bg-green-50"
-                              : r.sendError
-                                ? "text-red-600 bg-red-50"
-                                : "text-slate-500 bg-slate-100"
-                          }`}
-                        >
-                          {r.sent
-                            ? "\u2713 Sent"
-                            : r.sendError
-                              ? "Failed"
-                              : "Manual"}
+                        <span className="text-xs text-slate-400 flex-shrink-0">
+                          {r.channel}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500">via {r.channel}</p>
-                      {r.sendError && (
-                        <p className="text-xs text-red-500 mt-0.5">
-                          {r.sendError}
-                        </p>
+                      {/* Only manual recipients need their link copied —
+                          the rest are being emailed. */}
+                      {r.status !== "queued" && (
+                        <input
+                          readOnly
+                          value={r.sheetLink}
+                          onClick={(e) =>
+                            (e.target as HTMLInputElement).select()
+                          }
+                          className="data w-full mt-1 px-2 py-1 bg-white border border-slate-200 rounded text-[11px]"
+                        />
                       )}
-                      <input
-                        readOnly
-                        value={r.sheetLink}
-                        onClick={(e) =>
-                          (e.target as HTMLInputElement).select()
-                        }
-                        className="data w-full mt-1 px-2 py-1 bg-white border border-slate-200 rounded text-[11px]"
-                      />
                     </div>
                   ))}
                 </div>
@@ -1071,6 +1260,7 @@ export default function PriceSheetEditorPage({
               </div>
             )}
           </div>
+          )}
 
           {/* Offers — supplier replies awaiting the yard's move */}
           {sheet.recipients.some((r) => r.response) && (
@@ -1158,14 +1348,14 @@ export default function PriceSheetEditorPage({
                                   <span className="text-slate-400">
                                     sheet{" "}
                                     {l.sheetPrice !== null
-                                      ? `$${l.sheetPrice.toFixed(2)}`
+                                      ? formatUnitPrice(l.sheetPrice)
                                       : "\u2014"}
                                   </span>
                                   <span
                                     className={`data ${l.buyerPrice !== null ? "text-amber-700 font-semibold" : "text-slate-400"}`}
                                   >
                                     {l.buyerPrice !== null
-                                      ? `asks $${l.buyerPrice.toFixed(2)}`
+                                      ? `asks ${formatUnitPrice(l.buyerPrice)}`
                                       : "accepts quoted"}
                                   </span>
                                 </div>
@@ -1181,8 +1371,9 @@ export default function PriceSheetEditorPage({
                                     </span>
                                     <input
                                       type="number"
+                                      inputMode="decimal"
                                       min={0}
-                                      step="0.01"
+                                      step="0.001"
                                       value={
                                         counters[l.id] ??
                                         (l.dealerPrice !== null
@@ -1280,7 +1471,7 @@ export default function PriceSheetEditorPage({
                               <button
                                 onClick={() => handleRespond(resp.id, "decline")}
                                 disabled={acting}
-                                className="px-2 py-1.5 text-red-500 hover:text-red-700 text-xs disabled:opacity-50"
+                                className="btn-danger px-2 py-1.5 text-xs"
                               >
                                 Decline
                               </button>

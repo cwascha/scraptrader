@@ -14,7 +14,9 @@ import {
   governingPrice,
   lineValue,
   formatUsd,
+  formatUnitPrice,
   formatWeightWithUnit,
+  roundPrice,
   weightInPriceUnit,
 } from "@/lib/price-sheet-defaults";
 
@@ -124,7 +126,9 @@ export async function PATCH(
           );
         }
         // Clearing a counter (empty field) withdraws to the sheet price.
-        counters.set(lineId, hasPrice ? rawPrice : null);
+        // Rounded to display precision so the counter the supplier reads
+        // is exactly the counter the totals are computed from.
+        counters.set(lineId, hasPrice ? roundPrice(rawPrice) : null);
       }
     }
 
@@ -179,7 +183,10 @@ export async function PATCH(
     action === "counter"
       ? `Countered: ${resolved
           .filter((l) => l.dealerPrice !== null)
-          .map((l) => `${l.name} $${(l.dealerPrice as number).toFixed(2)}/${l.unit}`)
+          .map(
+            (l) =>
+              `${l.name} ${formatUnitPrice(l.dealerPrice as number)}/${l.unit}`
+          )
           .join(", ")}`
       : action === "accept"
         ? `Accepted the offer${totalText ? ` — ${totalText}` : ""}.`
@@ -236,7 +243,7 @@ export async function PATCH(
         name: l.name,
         detail:
           l.price !== null
-            ? `${formatWeightWithUnit(l.weight, l.weightUnit)} @ $${l.price.toFixed(2)}/${l.unit}${
+            ? `${formatWeightWithUnit(l.weight, l.weightUnit)} @ ${formatUnitPrice(l.price)}/${l.unit}${
                 l.value !== null ? ` = ${formatUsd(l.value)}` : ""
               }`
             : formatWeightWithUnit(l.weight, l.weightUnit),
