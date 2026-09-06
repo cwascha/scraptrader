@@ -1,46 +1,266 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  PACKAGING_OPTIONS,
+  SHIPPING_TYPES,
+  WEIGHT_UNITS,
+  buildDealTitle,
+} from "@/lib/deal-fields";
+import { US_STATES } from "@/lib/us-states";
+import MaterialSelect from "@/components/MaterialSelect";
 
-const metalTypes = [
-  "Copper",
-  "Aluminum",
-  "Brass",
-  "Stainless Steel",
-  "Insulated Wire",
-  "Lead",
-  "Zinc",
-  "Nickel",
-  "Titanium",
-  "Mixed Nonferrous",
-  "Other",
-];
+// Keep in sync with /api/deals/[id]/images/route.ts (the server is authoritative).
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_IMAGES = 10;
 
-const units = ["lbs", "tons", "metric tons", "kg"];
-const priceUnits = ["per lb", "per ton", "per metric ton", "per kg", "total"];
+interface YardAddress {
+  id: string;
+  name: string;
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+}
+
+type AddressFields = {
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+};
+
+const emptyAddressFields: AddressFields = {
+  street: "",
+  city: "",
+  state: "",
+  zip: "",
+};
+
+function isPartialAddress(a: AddressFields): boolean {
+  const filled = [a.street, a.city, a.state, a.zip]
+    .map((v) => v.trim())
+    .filter(Boolean).length;
+  return filled > 0 && filled < 4;
+}
+
+// One reusable address block: autofill dropdown (from the shared Yard & Port
+// list) plus manually editable fields.
+function AddressBlock({
+  title,
+  value,
+  onChange,
+  savedAddresses,
+}: {
+  title: string;
+  value: AddressFields;
+  onChange: (v: AddressFields) => void;
+  savedAddresses: YardAddress[];
+}) {
+  return (
+    <div className="p-4 bg-slate-50 rounded-lg space-y-3">
+      <label className="block text-sm font-medium text-slate-700">
+        {title}{" "}
+        <span className="font-normal text-slate-400">(optional)</span>
+      </label>
+
+      {savedAddresses.length > 0 ? (
+        <select
+          value=""
+          onChange={(e) => {
+            const addr = savedAddresses.find((a) => a.id === e.target.value);
+            if (addr) {
+              onChange({
+                street: addr.street,
+                city: addr.city,
+                state: addr.state,
+                zip: addr.zip,
+              });
+            }
+          }}
+          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+        >
+          <option value="">Autofill from a saved address...</option>
+          {savedAddresses.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.name} — {a.street}, {a.city}, {a.state}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <p className="text-xs text-slate-500">
+          No saved addresses yet — add yards and ports in{" "}
+          <Link href="/dashboard/settings" className="text-brand font-medium">
+            Settings
+          </Link>{" "}
+          to autofill, or enter the address below.
+        </p>
+      )}
+
+      <div>
+        <label className="block text-xs font-medium text-slate-500 mb-1">
+          Street
+        </label>
+        <input
+          type="text"
+          value={value.street}
+          onChange={(e) => onChange({ ...value, street: e.target.value })}
+          placeholder="1200 Industrial Pkwy"
+          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+        />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1">
+            City
+          </label>
+          <input
+            type="text"
+            value={value.city}
+            onChange={(e) => onChange({ ...value, city: e.target.value })}
+            placeholder="Owego"
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1">
+            State
+          </label>
+          <select
+            value={value.state}
+            onChange={(e) => onChange({ ...value, state: e.target.value })}
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+          >
+            <option value="">State...</option>
+            {US_STATES.map((s) => (
+              <option key={s.code} value={s.code}>
+                {s.code} — {s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1">
+            Zip
+          </label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={value.zip}
+            onChange={(e) => onChange({ ...value, zip: e.target.value })}
+            placeholder="13827"
+            className="data w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function NewDealPage() {
   const router = useRouter();
   const [form, setForm] = useState({
-    title: "",
-    metalType: "",
-    description: "",
-    quantity: "",
-    unit: "lbs",
-    askingPrice: "",
-    priceUnit: "per lb",
-    location: "",
+    material: "",
+    numLoads: "",
+    weightPerLoad: "",
+    weightUnit: "lbs",
+    notes: "",
   });
+  const [packaging, setPackaging] = useState<string[]>([]);
+  const [shippingTypes, setShippingTypes] = useState<string[]>([]);
+  const [pickup, setPickup] = useState<AddressFields>(emptyAddressFields);
+  const [port, setPort] = useState<AddressFields>(emptyAddressFields);
+  const [yardAddresses, setYardAddresses] = useState<YardAddress[]>([]);
   const [images, setImages] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [photoError, setPhotoError] = useState("");
+  // Set once the deal record exists, so a failed photo upload can be retried
+  // without creating a duplicate deal.
+  const [createdDealId, setCreatedDealId] = useState<string | null>(null);
+
+  // Preload the user's preferred weight unit and saved yard/port addresses.
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((me) => {
+        if (me?.preferredWeightUnit) {
+          setForm((f) => ({ ...f, weightUnit: me.preferredWeightUnit }));
+        }
+      })
+      .catch(() => {});
+
+    fetch("/api/yard-addresses")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((addrs) => setYardAddresses(Array.isArray(addrs) ? addrs : []))
+      .catch(() => {});
+  }, []);
+
+  function toggle(
+    value: string,
+    list: string[],
+    setList: (v: string[]) => void
+  ) {
+    if (list.includes(value)) {
+      setList(list.filter((v) => v !== value));
+    } else {
+      setList([...list, value]);
+    }
+  }
+
+  const isDomestic = shippingTypes.includes("Domestic");
+  const isExport = shippingTypes.includes("Export");
+
+  const numLoadsNum = Number.parseInt(form.numLoads, 10);
+  const weightNum = Number.parseFloat(form.weightPerLoad);
+  const titlePreview =
+    form.material && Number.isInteger(numLoadsNum) && numLoadsNum > 0 && weightNum > 0
+      ? buildDealTitle({
+          material: form.material,
+          numLoads: numLoadsNum,
+          weightPerLoad: weightNum,
+          weightUnit: form.weightUnit,
+          packaging,
+        })
+      : null;
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
-    setImages((prev) => [...prev, ...files]);
-    files.forEach((file) => {
+    e.target.value = ""; // allow re-selecting the same file after removal
+
+    const problems: string[] = [];
+    const accepted: File[] = [];
+
+    for (const file of files) {
+      if (!ACCEPTED_TYPES.includes(file.type)) {
+        problems.push(
+          `${file.name}: unsupported type (use JPG, PNG, WebP, or GIF)`
+        );
+      } else if (file.size > MAX_FILE_SIZE) {
+        problems.push(`${file.name}: over 10 MB`);
+      } else {
+        accepted.push(file);
+      }
+    }
+
+    const room = MAX_IMAGES - images.length;
+    if (accepted.length > room) {
+      problems.push(
+        `Deals are limited to ${MAX_IMAGES} photos — ${
+          accepted.length - Math.max(room, 0)
+        } file(s) skipped`
+      );
+      accepted.length = Math.max(room, 0);
+    }
+
+    setPhotoError(problems.join(". "));
+
+    setImages((prev) => [...prev, ...accepted]);
+    accepted.forEach((file) => {
       const reader = new FileReader();
       reader.onload = (ev) => {
         setPreviews((prev) => [...prev, ev.target?.result as string]);
@@ -52,38 +272,109 @@ export default function NewDealPage() {
   function removeImage(index: number) {
     setImages((prev) => prev.filter((_, i) => i !== index));
     setPreviews((prev) => prev.filter((_, i) => i !== index));
+    setPhotoError("");
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setLoading(true);
 
-    const res = await fetch("/api/deals", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-
-    if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || "Failed to create deal");
-      setLoading(false);
+    // MaterialSelect and checkbox groups can't use HTML `required` — validate here.
+    if (!form.material) {
+      setError("Select a material.");
+      return;
+    }
+    if (packaging.length === 0) {
+      setError("Select at least one packaging type.");
+      return;
+    }
+    if (shippingTypes.length === 0) {
+      setError("Select at least one shipping type.");
+      return;
+    }
+    // Each address block: all four fields or none (mirrors the server rule).
+    if (isDomestic && isPartialAddress(pickup)) {
+      setError(
+        "Pickup address must be complete (street, city, state, and zip) or left entirely blank."
+      );
+      return;
+    }
+    if (isExport && isPartialAddress(port)) {
+      setError(
+        "Port address must be complete (street, city, state, and zip) or left entirely blank."
+      );
       return;
     }
 
-    const deal = await res.json();
+    setLoading(true);
+
+    let dealId = createdDealId;
+
+    // Only create the deal if a previous attempt didn't already succeed.
+    if (!dealId) {
+      const res = await fetch("/api/deals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          material: form.material,
+          packaging,
+          numLoads: form.numLoads,
+          weightPerLoad: form.weightPerLoad,
+          weightUnit: form.weightUnit,
+          shippingTypes,
+          notes: form.notes,
+          ...(isDomestic
+            ? {
+                pickupStreet: pickup.street,
+                pickupCity: pickup.city,
+                pickupState: pickup.state,
+                pickupZip: pickup.zip,
+              }
+            : {}),
+          ...(isExport
+            ? {
+                portStreet: port.street,
+                portCity: port.city,
+                portState: port.state,
+                portZip: port.zip,
+              }
+            : {}),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Failed to create deal");
+        setLoading(false);
+        return;
+      }
+
+      const deal = await res.json();
+      dealId = deal.id;
+      setCreatedDealId(deal.id);
+    }
 
     if (images.length > 0) {
       const formData = new FormData();
       images.forEach((img) => formData.append("images", img));
-      await fetch(`/api/deals/${deal.id}/images`, {
+      const uploadRes = await fetch(`/api/deals/${dealId}/images`, {
         method: "POST",
         body: formData,
       });
+
+      if (!uploadRes.ok) {
+        const data = await uploadRes.json().catch(() => ({}));
+        setError(
+          `${
+            data.error || "Photo upload failed."
+          } The deal itself was saved — remove the problem photo(s) and press the button again to retry without duplicating the deal.`
+        );
+        setLoading(false);
+        return;
+      }
     }
 
-    router.push(`/dashboard/deals/${deal.id}`);
+    router.push(`/dashboard/deals/${dealId}`);
   }
 
   return (
@@ -94,7 +385,7 @@ export default function NewDealPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-xl border border-slate-200 p-6 space-y-5"
+        className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 space-y-5"
       >
         {error && (
           <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg">
@@ -104,138 +395,169 @@ export default function NewDealPage() {
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
-            Deal Title *
+            Material *
+          </label>
+          <MaterialSelect
+            value={form.material}
+            onChange={(v) => setForm({ ...form, material: v })}
+          />
+          <p className="text-xs text-slate-400 mt-1">
+            Your yard&apos;s grades, grouped by type. Pick a category for a
+            mixed load, or expand it for a specific grade — you can add your
+            own from the list.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Packaging *
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {PACKAGING_OPTIONS.map((p) => (
+              <label
+                key={p}
+                className={`flex items-center gap-2 px-3 py-2.5 border rounded-lg cursor-pointer transition-colors ${
+                  packaging.includes(p)
+                    ? "border-brand bg-brand/5"
+                    : "border-slate-300 hover:bg-slate-50"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={packaging.includes(p)}
+                  onChange={() => toggle(p, packaging, setPackaging)}
+                  className="rounded border-slate-300"
+                />
+                <span className="text-sm text-slate-700">{p}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Number of Loads *
           </label>
           <input
-            type="text"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            placeholder="e.g., #1 Bare Bright Copper Wire - 40,000 lbs"
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            step={1}
+            value={form.numLoads}
+            onChange={(e) => setForm({ ...form, numLoads: e.target.value })}
+            placeholder="4"
+            className="data w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
             required
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
-            Metal Type *
+            Weight per Load *
           </label>
-          <select
-            value={form.metalType}
-            onChange={(e) => setForm({ ...form, metalType: e.target.value })}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
-            required
-          >
-            <option value="">Select metal type...</option>
-            {metalTypes.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Description *
-          </label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            placeholder="Describe the material condition, grade, any contaminants, preparation details..."
-            rows={4}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand resize-none"
-            required
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Quantity *
-            </label>
+          <div className="flex gap-3">
             <input
-              type="text"
-              value={form.quantity}
-              onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-              placeholder="40,000"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              step="any"
+              value={form.weightPerLoad}
+              onChange={(e) =>
+                setForm({ ...form, weightPerLoad: e.target.value })
+              }
+              placeholder="42000"
+              className="data flex-1 min-w-0 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
               required
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Unit
-            </label>
-            <select
-              value={form.unit}
-              onChange={(e) => setForm({ ...form, unit: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
-            >
-              {units.map((u) => (
-                <option key={u} value={u}>
-                  {u}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Asking Price
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                $
-              </span>
-              <input
-                type="number"
-                step="0.01"
-                value={form.askingPrice}
+            {/* appearance-none + our own caret: iOS draws a native
+                stepper-style control on <select> that ignores the width
+                and spills out of the row. min-w-0 on the input above lets
+                it actually shrink — a flex child defaults to min-width
+                auto, which is what forces the overflow. */}
+            <div className="relative w-24 sm:w-40 flex-shrink-0">
+              <select
+                value={form.weightUnit}
                 onChange={(e) =>
-                  setForm({ ...form, askingPrice: e.target.value })
+                  setForm({ ...form, weightUnit: e.target.value })
                 }
-                placeholder="3.85"
-                className="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
-              />
+                className="w-full appearance-none bg-white px-3 pr-8 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+              >
+                {WEIGHT_UNITS.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]">
+                ▼
+              </span>
             </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Price Unit
-            </label>
-            <select
-              value={form.priceUnit}
-              onChange={(e) => setForm({ ...form, priceUnit: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
-            >
-              {priceUnits.map((u) => (
-                <option key={u} value={u}>
-                  {u}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Location
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Shipping Types *
           </label>
-          <input
-            type="text"
-            value={form.location}
-            onChange={(e) => setForm({ ...form, location: e.target.value })}
-            placeholder="Owego, NY"
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand"
+          <div className="grid grid-cols-2 gap-2">
+            {SHIPPING_TYPES.map((s) => (
+              <label
+                key={s}
+                className={`flex items-center gap-2 px-3 py-2.5 border rounded-lg cursor-pointer transition-colors ${
+                  shippingTypes.includes(s)
+                    ? "border-brand bg-brand/5"
+                    : "border-slate-300 hover:bg-slate-50"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={shippingTypes.includes(s)}
+                  onChange={() => toggle(s, shippingTypes, setShippingTypes)}
+                  className="rounded border-slate-300"
+                />
+                <span className="text-sm text-slate-700">{s}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {isDomestic && (
+          <AddressBlock
+            title="Pickup Address (Yard)"
+            value={pickup}
+            onChange={setPickup}
+            savedAddresses={yardAddresses}
+          />
+        )}
+
+        {isExport && (
+          <AddressBlock
+            title="Port Address (Export)"
+            value={port}
+            onChange={setPort}
+            savedAddresses={yardAddresses}
+          />
+        )}
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Notes
+          </label>
+          <textarea
+            value={form.notes}
+            onChange={(e) => setForm({ ...form, notes: e.target.value })}
+            placeholder="Material condition, grade, contaminants, preparation details, timing..."
+            rows={4}
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand resize-none"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            Photos
+            Photos{" "}
+            <span className="font-normal text-slate-400">
+              (JPG, PNG, WebP, or GIF · max 10 MB each · up to {MAX_IMAGES})
+            </span>
           </label>
           <div className="flex flex-wrap gap-3">
             {previews.map((preview, i) => (
@@ -254,21 +576,35 @@ export default function NewDealPage() {
                 </button>
               </div>
             ))}
-            <label className="w-24 h-24 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-brand hover:bg-brand/5 transition-colors">
-              <div className="text-center">
-                <div className="text-2xl text-slate-400">+</div>
-                <div className="text-xs text-slate-400">Add</div>
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageChange}
-                className="hidden"
-              />
-            </label>
+            {images.length < MAX_IMAGES && (
+              <label className="w-24 h-24 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-brand hover:bg-brand/5 transition-colors">
+                <div className="text-center">
+                  <div className="text-2xl text-slate-400">+</div>
+                  <div className="text-xs text-slate-400">Add</div>
+                </div>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  multiple
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+              </label>
+            )}
           </div>
+          {photoError && (
+            <p className="text-xs text-red-600 mt-2">{photoError}</p>
+          )}
         </div>
+
+        {titlePreview && (
+          <div className="p-3 bg-slate-50 rounded-lg text-sm">
+            <span className="text-slate-500">
+              Your deal will be titled:{" "}
+            </span>
+            <span className="font-medium text-slate-800">{titlePreview}</span>
+          </div>
+        )}
 
         <div className="flex gap-3 pt-4 border-t border-slate-100">
           <button
@@ -276,7 +612,11 @@ export default function NewDealPage() {
             disabled={loading}
             className="px-6 py-2.5 bg-brand text-white font-medium rounded-lg hover:bg-brand-dark transition-colors disabled:opacity-50"
           >
-            {loading ? "Creating..." : "Create Deal"}
+            {loading
+              ? "Saving..."
+              : createdDealId
+              ? "Retry Photo Upload"
+              : "Create Deal"}
           </button>
           <button
             type="button"

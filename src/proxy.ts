@@ -6,7 +6,7 @@ const SECRET = new TextEncoder().encode(
   process.env.NEXTAUTH_SECRET || "dev-secret"
 );
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/dashboard")) {

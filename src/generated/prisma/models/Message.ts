@@ -20,63 +20,105 @@ export type MessageModel = runtime.Types.Result.DefaultSelection<Prisma.$Message
 
 export type AggregateMessage = {
   _count: MessageCountAggregateOutputType | null
+  _avg: MessageAvgAggregateOutputType | null
+  _sum: MessageSumAggregateOutputType | null
   _min: MessageMinAggregateOutputType | null
   _max: MessageMaxAggregateOutputType | null
+}
+
+export type MessageAvgAggregateOutputType = {
+  bidAmount: number | null
+}
+
+export type MessageSumAggregateOutputType = {
+  bidAmount: number | null
 }
 
 export type MessageMinAggregateOutputType = {
   id: string | null
   dealRecipientId: string | null
+  priceSheetRecipientId: string | null
   senderType: string | null
   senderName: string | null
+  type: string | null
   content: string | null
+  bidAmount: number | null
+  bidUnit: string | null
   createdAt: Date | null
 }
 
 export type MessageMaxAggregateOutputType = {
   id: string | null
   dealRecipientId: string | null
+  priceSheetRecipientId: string | null
   senderType: string | null
   senderName: string | null
+  type: string | null
   content: string | null
+  bidAmount: number | null
+  bidUnit: string | null
   createdAt: Date | null
 }
 
 export type MessageCountAggregateOutputType = {
   id: number
   dealRecipientId: number
+  priceSheetRecipientId: number
   senderType: number
   senderName: number
+  type: number
   content: number
+  bidAmount: number
+  bidUnit: number
   createdAt: number
   _all: number
 }
 
 
+export type MessageAvgAggregateInputType = {
+  bidAmount?: true
+}
+
+export type MessageSumAggregateInputType = {
+  bidAmount?: true
+}
+
 export type MessageMinAggregateInputType = {
   id?: true
   dealRecipientId?: true
+  priceSheetRecipientId?: true
   senderType?: true
   senderName?: true
+  type?: true
   content?: true
+  bidAmount?: true
+  bidUnit?: true
   createdAt?: true
 }
 
 export type MessageMaxAggregateInputType = {
   id?: true
   dealRecipientId?: true
+  priceSheetRecipientId?: true
   senderType?: true
   senderName?: true
+  type?: true
   content?: true
+  bidAmount?: true
+  bidUnit?: true
   createdAt?: true
 }
 
 export type MessageCountAggregateInputType = {
   id?: true
   dealRecipientId?: true
+  priceSheetRecipientId?: true
   senderType?: true
   senderName?: true
+  type?: true
   content?: true
+  bidAmount?: true
+  bidUnit?: true
   createdAt?: true
   _all?: true
 }
@@ -119,6 +161,18 @@ export type MessageAggregateArgs<ExtArgs extends runtime.Types.Extensions.Intern
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: MessageAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: MessageSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: MessageMinAggregateInputType
@@ -149,18 +203,26 @@ export type MessageGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   _count?: MessageCountAggregateInputType | true
+  _avg?: MessageAvgAggregateInputType
+  _sum?: MessageSumAggregateInputType
   _min?: MessageMinAggregateInputType
   _max?: MessageMaxAggregateInputType
 }
 
 export type MessageGroupByOutputType = {
   id: string
-  dealRecipientId: string
+  dealRecipientId: string | null
+  priceSheetRecipientId: string | null
   senderType: string
   senderName: string
+  type: string
   content: string
+  bidAmount: number | null
+  bidUnit: string | null
   createdAt: Date
   _count: MessageCountAggregateOutputType | null
+  _avg: MessageAvgAggregateOutputType | null
+  _sum: MessageSumAggregateOutputType | null
   _min: MessageMinAggregateOutputType | null
   _max: MessageMaxAggregateOutputType | null
 }
@@ -185,22 +247,32 @@ export type MessageWhereInput = {
   OR?: Prisma.MessageWhereInput[]
   NOT?: Prisma.MessageWhereInput | Prisma.MessageWhereInput[]
   id?: Prisma.StringFilter<"Message"> | string
-  dealRecipientId?: Prisma.StringFilter<"Message"> | string
+  dealRecipientId?: Prisma.StringNullableFilter<"Message"> | string | null
+  priceSheetRecipientId?: Prisma.StringNullableFilter<"Message"> | string | null
   senderType?: Prisma.StringFilter<"Message"> | string
   senderName?: Prisma.StringFilter<"Message"> | string
+  type?: Prisma.StringFilter<"Message"> | string
   content?: Prisma.StringFilter<"Message"> | string
+  bidAmount?: Prisma.FloatNullableFilter<"Message"> | number | null
+  bidUnit?: Prisma.StringNullableFilter<"Message"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Message"> | Date | string
-  dealRecipient?: Prisma.XOR<Prisma.DealRecipientScalarRelationFilter, Prisma.DealRecipientWhereInput>
+  dealRecipient?: Prisma.XOR<Prisma.DealRecipientNullableScalarRelationFilter, Prisma.DealRecipientWhereInput> | null
+  priceSheetRecipient?: Prisma.XOR<Prisma.PriceSheetRecipientNullableScalarRelationFilter, Prisma.PriceSheetRecipientWhereInput> | null
 }
 
 export type MessageOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  dealRecipientId?: Prisma.SortOrder
+  dealRecipientId?: Prisma.SortOrderInput | Prisma.SortOrder
+  priceSheetRecipientId?: Prisma.SortOrderInput | Prisma.SortOrder
   senderType?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  bidAmount?: Prisma.SortOrderInput | Prisma.SortOrder
+  bidUnit?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   dealRecipient?: Prisma.DealRecipientOrderByWithRelationInput
+  priceSheetRecipient?: Prisma.PriceSheetRecipientOrderByWithRelationInput
 }
 
 export type MessageWhereUniqueInput = Prisma.AtLeast<{
@@ -208,24 +280,35 @@ export type MessageWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.MessageWhereInput | Prisma.MessageWhereInput[]
   OR?: Prisma.MessageWhereInput[]
   NOT?: Prisma.MessageWhereInput | Prisma.MessageWhereInput[]
-  dealRecipientId?: Prisma.StringFilter<"Message"> | string
+  dealRecipientId?: Prisma.StringNullableFilter<"Message"> | string | null
+  priceSheetRecipientId?: Prisma.StringNullableFilter<"Message"> | string | null
   senderType?: Prisma.StringFilter<"Message"> | string
   senderName?: Prisma.StringFilter<"Message"> | string
+  type?: Prisma.StringFilter<"Message"> | string
   content?: Prisma.StringFilter<"Message"> | string
+  bidAmount?: Prisma.FloatNullableFilter<"Message"> | number | null
+  bidUnit?: Prisma.StringNullableFilter<"Message"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Message"> | Date | string
-  dealRecipient?: Prisma.XOR<Prisma.DealRecipientScalarRelationFilter, Prisma.DealRecipientWhereInput>
+  dealRecipient?: Prisma.XOR<Prisma.DealRecipientNullableScalarRelationFilter, Prisma.DealRecipientWhereInput> | null
+  priceSheetRecipient?: Prisma.XOR<Prisma.PriceSheetRecipientNullableScalarRelationFilter, Prisma.PriceSheetRecipientWhereInput> | null
 }, "id">
 
 export type MessageOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  dealRecipientId?: Prisma.SortOrder
+  dealRecipientId?: Prisma.SortOrderInput | Prisma.SortOrder
+  priceSheetRecipientId?: Prisma.SortOrderInput | Prisma.SortOrder
   senderType?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  bidAmount?: Prisma.SortOrderInput | Prisma.SortOrder
+  bidUnit?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.MessageCountOrderByAggregateInput
+  _avg?: Prisma.MessageAvgOrderByAggregateInput
   _max?: Prisma.MessageMaxOrderByAggregateInput
   _min?: Prisma.MessageMinOrderByAggregateInput
+  _sum?: Prisma.MessageSumOrderByAggregateInput
 }
 
 export type MessageScalarWhereWithAggregatesInput = {
@@ -233,10 +316,14 @@ export type MessageScalarWhereWithAggregatesInput = {
   OR?: Prisma.MessageScalarWhereWithAggregatesInput[]
   NOT?: Prisma.MessageScalarWhereWithAggregatesInput | Prisma.MessageScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Message"> | string
-  dealRecipientId?: Prisma.StringWithAggregatesFilter<"Message"> | string
+  dealRecipientId?: Prisma.StringNullableWithAggregatesFilter<"Message"> | string | null
+  priceSheetRecipientId?: Prisma.StringNullableWithAggregatesFilter<"Message"> | string | null
   senderType?: Prisma.StringWithAggregatesFilter<"Message"> | string
   senderName?: Prisma.StringWithAggregatesFilter<"Message"> | string
+  type?: Prisma.StringWithAggregatesFilter<"Message"> | string
   content?: Prisma.StringWithAggregatesFilter<"Message"> | string
+  bidAmount?: Prisma.FloatNullableWithAggregatesFilter<"Message"> | number | null
+  bidUnit?: Prisma.StringNullableWithAggregatesFilter<"Message"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Message"> | Date | string
 }
 
@@ -244,17 +331,25 @@ export type MessageCreateInput = {
   id?: string
   senderType: string
   senderName: string
+  type?: string
   content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
   createdAt?: Date | string
-  dealRecipient: Prisma.DealRecipientCreateNestedOneWithoutMessagesInput
+  dealRecipient?: Prisma.DealRecipientCreateNestedOneWithoutMessagesInput
+  priceSheetRecipient?: Prisma.PriceSheetRecipientCreateNestedOneWithoutMessagesInput
 }
 
 export type MessageUncheckedCreateInput = {
   id?: string
-  dealRecipientId: string
+  dealRecipientId?: string | null
+  priceSheetRecipientId?: string | null
   senderType: string
   senderName: string
+  type?: string
   content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
   createdAt?: Date | string
 }
 
@@ -262,26 +357,38 @@ export type MessageUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   senderType?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  dealRecipient?: Prisma.DealRecipientUpdateOneRequiredWithoutMessagesNestedInput
+  dealRecipient?: Prisma.DealRecipientUpdateOneWithoutMessagesNestedInput
+  priceSheetRecipient?: Prisma.PriceSheetRecipientUpdateOneWithoutMessagesNestedInput
 }
 
 export type MessageUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  dealRecipientId?: Prisma.StringFieldUpdateOperationsInput | string
+  dealRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceSheetRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderType?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type MessageCreateManyInput = {
   id?: string
-  dealRecipientId: string
+  dealRecipientId?: string | null
+  priceSheetRecipientId?: string | null
   senderType: string
   senderName: string
+  type?: string
   content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
   createdAt?: Date | string
 }
 
@@ -289,16 +396,23 @@ export type MessageUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   senderType?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type MessageUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  dealRecipientId?: Prisma.StringFieldUpdateOperationsInput | string
+  dealRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceSheetRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderType?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -315,28 +429,48 @@ export type MessageOrderByRelationAggregateInput = {
 export type MessageCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   dealRecipientId?: Prisma.SortOrder
+  priceSheetRecipientId?: Prisma.SortOrder
   senderType?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  bidAmount?: Prisma.SortOrder
+  bidUnit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+}
+
+export type MessageAvgOrderByAggregateInput = {
+  bidAmount?: Prisma.SortOrder
 }
 
 export type MessageMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   dealRecipientId?: Prisma.SortOrder
+  priceSheetRecipientId?: Prisma.SortOrder
   senderType?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  bidAmount?: Prisma.SortOrder
+  bidUnit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type MessageMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   dealRecipientId?: Prisma.SortOrder
+  priceSheetRecipientId?: Prisma.SortOrder
   senderType?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  bidAmount?: Prisma.SortOrder
+  bidUnit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+}
+
+export type MessageSumOrderByAggregateInput = {
+  bidAmount?: Prisma.SortOrder
 }
 
 export type MessageCreateNestedManyWithoutDealRecipientInput = {
@@ -381,19 +515,69 @@ export type MessageUncheckedUpdateManyWithoutDealRecipientNestedInput = {
   deleteMany?: Prisma.MessageScalarWhereInput | Prisma.MessageScalarWhereInput[]
 }
 
+export type MessageCreateNestedManyWithoutPriceSheetRecipientInput = {
+  create?: Prisma.XOR<Prisma.MessageCreateWithoutPriceSheetRecipientInput, Prisma.MessageUncheckedCreateWithoutPriceSheetRecipientInput> | Prisma.MessageCreateWithoutPriceSheetRecipientInput[] | Prisma.MessageUncheckedCreateWithoutPriceSheetRecipientInput[]
+  connectOrCreate?: Prisma.MessageCreateOrConnectWithoutPriceSheetRecipientInput | Prisma.MessageCreateOrConnectWithoutPriceSheetRecipientInput[]
+  createMany?: Prisma.MessageCreateManyPriceSheetRecipientInputEnvelope
+  connect?: Prisma.MessageWhereUniqueInput | Prisma.MessageWhereUniqueInput[]
+}
+
+export type MessageUncheckedCreateNestedManyWithoutPriceSheetRecipientInput = {
+  create?: Prisma.XOR<Prisma.MessageCreateWithoutPriceSheetRecipientInput, Prisma.MessageUncheckedCreateWithoutPriceSheetRecipientInput> | Prisma.MessageCreateWithoutPriceSheetRecipientInput[] | Prisma.MessageUncheckedCreateWithoutPriceSheetRecipientInput[]
+  connectOrCreate?: Prisma.MessageCreateOrConnectWithoutPriceSheetRecipientInput | Prisma.MessageCreateOrConnectWithoutPriceSheetRecipientInput[]
+  createMany?: Prisma.MessageCreateManyPriceSheetRecipientInputEnvelope
+  connect?: Prisma.MessageWhereUniqueInput | Prisma.MessageWhereUniqueInput[]
+}
+
+export type MessageUpdateManyWithoutPriceSheetRecipientNestedInput = {
+  create?: Prisma.XOR<Prisma.MessageCreateWithoutPriceSheetRecipientInput, Prisma.MessageUncheckedCreateWithoutPriceSheetRecipientInput> | Prisma.MessageCreateWithoutPriceSheetRecipientInput[] | Prisma.MessageUncheckedCreateWithoutPriceSheetRecipientInput[]
+  connectOrCreate?: Prisma.MessageCreateOrConnectWithoutPriceSheetRecipientInput | Prisma.MessageCreateOrConnectWithoutPriceSheetRecipientInput[]
+  upsert?: Prisma.MessageUpsertWithWhereUniqueWithoutPriceSheetRecipientInput | Prisma.MessageUpsertWithWhereUniqueWithoutPriceSheetRecipientInput[]
+  createMany?: Prisma.MessageCreateManyPriceSheetRecipientInputEnvelope
+  set?: Prisma.MessageWhereUniqueInput | Prisma.MessageWhereUniqueInput[]
+  disconnect?: Prisma.MessageWhereUniqueInput | Prisma.MessageWhereUniqueInput[]
+  delete?: Prisma.MessageWhereUniqueInput | Prisma.MessageWhereUniqueInput[]
+  connect?: Prisma.MessageWhereUniqueInput | Prisma.MessageWhereUniqueInput[]
+  update?: Prisma.MessageUpdateWithWhereUniqueWithoutPriceSheetRecipientInput | Prisma.MessageUpdateWithWhereUniqueWithoutPriceSheetRecipientInput[]
+  updateMany?: Prisma.MessageUpdateManyWithWhereWithoutPriceSheetRecipientInput | Prisma.MessageUpdateManyWithWhereWithoutPriceSheetRecipientInput[]
+  deleteMany?: Prisma.MessageScalarWhereInput | Prisma.MessageScalarWhereInput[]
+}
+
+export type MessageUncheckedUpdateManyWithoutPriceSheetRecipientNestedInput = {
+  create?: Prisma.XOR<Prisma.MessageCreateWithoutPriceSheetRecipientInput, Prisma.MessageUncheckedCreateWithoutPriceSheetRecipientInput> | Prisma.MessageCreateWithoutPriceSheetRecipientInput[] | Prisma.MessageUncheckedCreateWithoutPriceSheetRecipientInput[]
+  connectOrCreate?: Prisma.MessageCreateOrConnectWithoutPriceSheetRecipientInput | Prisma.MessageCreateOrConnectWithoutPriceSheetRecipientInput[]
+  upsert?: Prisma.MessageUpsertWithWhereUniqueWithoutPriceSheetRecipientInput | Prisma.MessageUpsertWithWhereUniqueWithoutPriceSheetRecipientInput[]
+  createMany?: Prisma.MessageCreateManyPriceSheetRecipientInputEnvelope
+  set?: Prisma.MessageWhereUniqueInput | Prisma.MessageWhereUniqueInput[]
+  disconnect?: Prisma.MessageWhereUniqueInput | Prisma.MessageWhereUniqueInput[]
+  delete?: Prisma.MessageWhereUniqueInput | Prisma.MessageWhereUniqueInput[]
+  connect?: Prisma.MessageWhereUniqueInput | Prisma.MessageWhereUniqueInput[]
+  update?: Prisma.MessageUpdateWithWhereUniqueWithoutPriceSheetRecipientInput | Prisma.MessageUpdateWithWhereUniqueWithoutPriceSheetRecipientInput[]
+  updateMany?: Prisma.MessageUpdateManyWithWhereWithoutPriceSheetRecipientInput | Prisma.MessageUpdateManyWithWhereWithoutPriceSheetRecipientInput[]
+  deleteMany?: Prisma.MessageScalarWhereInput | Prisma.MessageScalarWhereInput[]
+}
+
 export type MessageCreateWithoutDealRecipientInput = {
   id?: string
   senderType: string
   senderName: string
+  type?: string
   content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
   createdAt?: Date | string
+  priceSheetRecipient?: Prisma.PriceSheetRecipientCreateNestedOneWithoutMessagesInput
 }
 
 export type MessageUncheckedCreateWithoutDealRecipientInput = {
   id?: string
+  priceSheetRecipientId?: string | null
   senderType: string
   senderName: string
+  type?: string
   content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
   createdAt?: Date | string
 }
 
@@ -427,18 +611,75 @@ export type MessageScalarWhereInput = {
   OR?: Prisma.MessageScalarWhereInput[]
   NOT?: Prisma.MessageScalarWhereInput | Prisma.MessageScalarWhereInput[]
   id?: Prisma.StringFilter<"Message"> | string
-  dealRecipientId?: Prisma.StringFilter<"Message"> | string
+  dealRecipientId?: Prisma.StringNullableFilter<"Message"> | string | null
+  priceSheetRecipientId?: Prisma.StringNullableFilter<"Message"> | string | null
   senderType?: Prisma.StringFilter<"Message"> | string
   senderName?: Prisma.StringFilter<"Message"> | string
+  type?: Prisma.StringFilter<"Message"> | string
   content?: Prisma.StringFilter<"Message"> | string
+  bidAmount?: Prisma.FloatNullableFilter<"Message"> | number | null
+  bidUnit?: Prisma.StringNullableFilter<"Message"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Message"> | Date | string
+}
+
+export type MessageCreateWithoutPriceSheetRecipientInput = {
+  id?: string
+  senderType: string
+  senderName: string
+  type?: string
+  content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
+  createdAt?: Date | string
+  dealRecipient?: Prisma.DealRecipientCreateNestedOneWithoutMessagesInput
+}
+
+export type MessageUncheckedCreateWithoutPriceSheetRecipientInput = {
+  id?: string
+  dealRecipientId?: string | null
+  senderType: string
+  senderName: string
+  type?: string
+  content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
+  createdAt?: Date | string
+}
+
+export type MessageCreateOrConnectWithoutPriceSheetRecipientInput = {
+  where: Prisma.MessageWhereUniqueInput
+  create: Prisma.XOR<Prisma.MessageCreateWithoutPriceSheetRecipientInput, Prisma.MessageUncheckedCreateWithoutPriceSheetRecipientInput>
+}
+
+export type MessageCreateManyPriceSheetRecipientInputEnvelope = {
+  data: Prisma.MessageCreateManyPriceSheetRecipientInput | Prisma.MessageCreateManyPriceSheetRecipientInput[]
+}
+
+export type MessageUpsertWithWhereUniqueWithoutPriceSheetRecipientInput = {
+  where: Prisma.MessageWhereUniqueInput
+  update: Prisma.XOR<Prisma.MessageUpdateWithoutPriceSheetRecipientInput, Prisma.MessageUncheckedUpdateWithoutPriceSheetRecipientInput>
+  create: Prisma.XOR<Prisma.MessageCreateWithoutPriceSheetRecipientInput, Prisma.MessageUncheckedCreateWithoutPriceSheetRecipientInput>
+}
+
+export type MessageUpdateWithWhereUniqueWithoutPriceSheetRecipientInput = {
+  where: Prisma.MessageWhereUniqueInput
+  data: Prisma.XOR<Prisma.MessageUpdateWithoutPriceSheetRecipientInput, Prisma.MessageUncheckedUpdateWithoutPriceSheetRecipientInput>
+}
+
+export type MessageUpdateManyWithWhereWithoutPriceSheetRecipientInput = {
+  where: Prisma.MessageScalarWhereInput
+  data: Prisma.XOR<Prisma.MessageUpdateManyMutationInput, Prisma.MessageUncheckedUpdateManyWithoutPriceSheetRecipientInput>
 }
 
 export type MessageCreateManyDealRecipientInput = {
   id?: string
+  priceSheetRecipientId?: string | null
   senderType: string
   senderName: string
+  type?: string
   content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
   createdAt?: Date | string
 }
 
@@ -446,23 +687,83 @@ export type MessageUpdateWithoutDealRecipientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   senderType?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  priceSheetRecipient?: Prisma.PriceSheetRecipientUpdateOneWithoutMessagesNestedInput
 }
 
 export type MessageUncheckedUpdateWithoutDealRecipientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  priceSheetRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderType?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type MessageUncheckedUpdateManyWithoutDealRecipientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  priceSheetRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderType?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type MessageCreateManyPriceSheetRecipientInput = {
+  id?: string
+  dealRecipientId?: string | null
+  senderType: string
+  senderName: string
+  type?: string
+  content: string
+  bidAmount?: number | null
+  bidUnit?: string | null
+  createdAt?: Date | string
+}
+
+export type MessageUpdateWithoutPriceSheetRecipientInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  senderType?: Prisma.StringFieldUpdateOperationsInput | string
+  senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  dealRecipient?: Prisma.DealRecipientUpdateOneWithoutMessagesNestedInput
+}
+
+export type MessageUncheckedUpdateWithoutPriceSheetRecipientInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  dealRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderType?: Prisma.StringFieldUpdateOperationsInput | string
+  senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type MessageUncheckedUpdateManyWithoutPriceSheetRecipientInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  dealRecipientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderType?: Prisma.StringFieldUpdateOperationsInput | string
+  senderName?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  bidAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  bidUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -471,64 +772,91 @@ export type MessageUncheckedUpdateManyWithoutDealRecipientInput = {
 export type MessageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   dealRecipientId?: boolean
+  priceSheetRecipientId?: boolean
   senderType?: boolean
   senderName?: boolean
+  type?: boolean
   content?: boolean
+  bidAmount?: boolean
+  bidUnit?: boolean
   createdAt?: boolean
-  dealRecipient?: boolean | Prisma.DealRecipientDefaultArgs<ExtArgs>
+  dealRecipient?: boolean | Prisma.Message$dealRecipientArgs<ExtArgs>
+  priceSheetRecipient?: boolean | Prisma.Message$priceSheetRecipientArgs<ExtArgs>
 }, ExtArgs["result"]["message"]>
 
 export type MessageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   dealRecipientId?: boolean
+  priceSheetRecipientId?: boolean
   senderType?: boolean
   senderName?: boolean
+  type?: boolean
   content?: boolean
+  bidAmount?: boolean
+  bidUnit?: boolean
   createdAt?: boolean
-  dealRecipient?: boolean | Prisma.DealRecipientDefaultArgs<ExtArgs>
+  dealRecipient?: boolean | Prisma.Message$dealRecipientArgs<ExtArgs>
+  priceSheetRecipient?: boolean | Prisma.Message$priceSheetRecipientArgs<ExtArgs>
 }, ExtArgs["result"]["message"]>
 
 export type MessageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   dealRecipientId?: boolean
+  priceSheetRecipientId?: boolean
   senderType?: boolean
   senderName?: boolean
+  type?: boolean
   content?: boolean
+  bidAmount?: boolean
+  bidUnit?: boolean
   createdAt?: boolean
-  dealRecipient?: boolean | Prisma.DealRecipientDefaultArgs<ExtArgs>
+  dealRecipient?: boolean | Prisma.Message$dealRecipientArgs<ExtArgs>
+  priceSheetRecipient?: boolean | Prisma.Message$priceSheetRecipientArgs<ExtArgs>
 }, ExtArgs["result"]["message"]>
 
 export type MessageSelectScalar = {
   id?: boolean
   dealRecipientId?: boolean
+  priceSheetRecipientId?: boolean
   senderType?: boolean
   senderName?: boolean
+  type?: boolean
   content?: boolean
+  bidAmount?: boolean
+  bidUnit?: boolean
   createdAt?: boolean
 }
 
-export type MessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "dealRecipientId" | "senderType" | "senderName" | "content" | "createdAt", ExtArgs["result"]["message"]>
+export type MessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "dealRecipientId" | "priceSheetRecipientId" | "senderType" | "senderName" | "type" | "content" | "bidAmount" | "bidUnit" | "createdAt", ExtArgs["result"]["message"]>
 export type MessageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  dealRecipient?: boolean | Prisma.DealRecipientDefaultArgs<ExtArgs>
+  dealRecipient?: boolean | Prisma.Message$dealRecipientArgs<ExtArgs>
+  priceSheetRecipient?: boolean | Prisma.Message$priceSheetRecipientArgs<ExtArgs>
 }
 export type MessageIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  dealRecipient?: boolean | Prisma.DealRecipientDefaultArgs<ExtArgs>
+  dealRecipient?: boolean | Prisma.Message$dealRecipientArgs<ExtArgs>
+  priceSheetRecipient?: boolean | Prisma.Message$priceSheetRecipientArgs<ExtArgs>
 }
 export type MessageIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  dealRecipient?: boolean | Prisma.DealRecipientDefaultArgs<ExtArgs>
+  dealRecipient?: boolean | Prisma.Message$dealRecipientArgs<ExtArgs>
+  priceSheetRecipient?: boolean | Prisma.Message$priceSheetRecipientArgs<ExtArgs>
 }
 
 export type $MessagePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Message"
   objects: {
-    dealRecipient: Prisma.$DealRecipientPayload<ExtArgs>
+    dealRecipient: Prisma.$DealRecipientPayload<ExtArgs> | null
+    priceSheetRecipient: Prisma.$PriceSheetRecipientPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    dealRecipientId: string
+    dealRecipientId: string | null
+    priceSheetRecipientId: string | null
     senderType: string
     senderName: string
+    type: string
     content: string
+    bidAmount: number | null
+    bidUnit: string | null
     createdAt: Date
   }, ExtArgs["result"]["message"]>
   composites: {}
@@ -924,7 +1252,8 @@ readonly fields: MessageFieldRefs;
  */
 export interface Prisma__MessageClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  dealRecipient<T extends Prisma.DealRecipientDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DealRecipientDefaultArgs<ExtArgs>>): Prisma.Prisma__DealRecipientClient<runtime.Types.Result.GetResult<Prisma.$DealRecipientPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  dealRecipient<T extends Prisma.Message$dealRecipientArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Message$dealRecipientArgs<ExtArgs>>): Prisma.Prisma__DealRecipientClient<runtime.Types.Result.GetResult<Prisma.$DealRecipientPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  priceSheetRecipient<T extends Prisma.Message$priceSheetRecipientArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Message$priceSheetRecipientArgs<ExtArgs>>): Prisma.Prisma__PriceSheetRecipientClient<runtime.Types.Result.GetResult<Prisma.$PriceSheetRecipientPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -956,9 +1285,13 @@ export interface Prisma__MessageClient<T, Null = never, ExtArgs extends runtime.
 export interface MessageFieldRefs {
   readonly id: Prisma.FieldRef<"Message", 'String'>
   readonly dealRecipientId: Prisma.FieldRef<"Message", 'String'>
+  readonly priceSheetRecipientId: Prisma.FieldRef<"Message", 'String'>
   readonly senderType: Prisma.FieldRef<"Message", 'String'>
   readonly senderName: Prisma.FieldRef<"Message", 'String'>
+  readonly type: Prisma.FieldRef<"Message", 'String'>
   readonly content: Prisma.FieldRef<"Message", 'String'>
+  readonly bidAmount: Prisma.FieldRef<"Message", 'Float'>
+  readonly bidUnit: Prisma.FieldRef<"Message", 'String'>
   readonly createdAt: Prisma.FieldRef<"Message", 'DateTime'>
 }
     
@@ -1356,6 +1689,44 @@ export type MessageDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Limit how many Messages to delete.
    */
   limit?: number
+}
+
+/**
+ * Message.dealRecipient
+ */
+export type Message$dealRecipientArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DealRecipient
+   */
+  select?: Prisma.DealRecipientSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DealRecipient
+   */
+  omit?: Prisma.DealRecipientOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DealRecipientInclude<ExtArgs> | null
+  where?: Prisma.DealRecipientWhereInput
+}
+
+/**
+ * Message.priceSheetRecipient
+ */
+export type Message$priceSheetRecipientArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PriceSheetRecipient
+   */
+  select?: Prisma.PriceSheetRecipientSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PriceSheetRecipient
+   */
+  omit?: Prisma.PriceSheetRecipientOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PriceSheetRecipientInclude<ExtArgs> | null
+  where?: Prisma.PriceSheetRecipientWhereInput
 }
 
 /**

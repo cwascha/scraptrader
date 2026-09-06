@@ -52,11 +52,19 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  MaterialGrade: 'MaterialGrade',
   Contact: 'Contact',
+  ContactGroup: 'ContactGroup',
+  YardAddress: 'YardAddress',
   Deal: 'Deal',
   DealImage: 'DealImage',
   DealRecipient: 'DealRecipient',
-  Message: 'Message'
+  Message: 'Message',
+  PriceSheet: 'PriceSheet',
+  PriceSheetItem: 'PriceSheetItem',
+  PriceSheetRecipient: 'PriceSheetRecipient',
+  PriceSheetResponse: 'PriceSheetResponse',
+  PriceSheetResponseLine: 'PriceSheetResponseLine'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -79,11 +87,30 @@ export const UserScalarFieldEnum = {
   companyName: 'companyName',
   passwordHash: 'passwordHash',
   encryptionKey: 'encryptionKey',
+  preferredWeightUnit: 'preferredWeightUnit',
+  logoUrl: 'logoUrl',
+  appIconUrl: 'appIconUrl',
+  themeBrand: 'themeBrand',
+  themeBrandDark: 'themeBrandDark',
+  themeAccent: 'themeAccent',
+  themeMode: 'themeMode',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const MaterialGradeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  category: 'category',
+  name: 'name',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt'
+} as const
+
+export type MaterialGradeScalarFieldEnum = (typeof MaterialGradeScalarFieldEnum)[keyof typeof MaterialGradeScalarFieldEnum]
 
 
 export const ContactScalarFieldEnum = {
@@ -93,7 +120,9 @@ export const ContactScalarFieldEnum = {
   encryptedEmail: 'encryptedEmail',
   encryptedPhone: 'encryptedPhone',
   encryptedWhatsApp: 'encryptedWhatsApp',
+  encryptedCompany: 'encryptedCompany',
   tags: 'tags',
+  portalToken: 'portalToken',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -101,18 +130,59 @@ export const ContactScalarFieldEnum = {
 export type ContactScalarFieldEnum = (typeof ContactScalarFieldEnum)[keyof typeof ContactScalarFieldEnum]
 
 
+export const ContactGroupScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ContactGroupScalarFieldEnum = (typeof ContactGroupScalarFieldEnum)[keyof typeof ContactGroupScalarFieldEnum]
+
+
+export const YardAddressScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  street: 'street',
+  city: 'city',
+  state: 'state',
+  zip: 'zip',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type YardAddressScalarFieldEnum = (typeof YardAddressScalarFieldEnum)[keyof typeof YardAddressScalarFieldEnum]
+
+
 export const DealScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   title: 'title',
-  metalType: 'metalType',
-  description: 'description',
-  quantity: 'quantity',
-  unit: 'unit',
+  material: 'material',
+  packaging: 'packaging',
+  numLoads: 'numLoads',
+  weightPerLoad: 'weightPerLoad',
+  weightUnit: 'weightUnit',
+  shippingTypes: 'shippingTypes',
+  notes: 'notes',
+  pickupStreet: 'pickupStreet',
+  pickupCity: 'pickupCity',
+  pickupState: 'pickupState',
+  pickupZip: 'pickupZip',
+  portStreet: 'portStreet',
+  portCity: 'portCity',
+  portState: 'portState',
+  portZip: 'portZip',
   askingPrice: 'askingPrice',
   priceUnit: 'priceUnit',
   location: 'location',
   status: 'status',
+  acceptedPrice: 'acceptedPrice',
+  acceptedUnit: 'acceptedUnit',
+  acceptedRecipientId: 'acceptedRecipientId',
+  acceptedAt: 'acceptedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   expiresAt: 'expiresAt'
@@ -142,6 +212,10 @@ export const DealRecipientScalarFieldEnum = {
   sentAt: 'sentAt',
   viewedAt: 'viewedAt',
   status: 'status',
+  sendError: 'sendError',
+  sendAttempts: 'sendAttempts',
+  ownerLastReadAt: 'ownerLastReadAt',
+  lastNudgeAt: 'lastNudgeAt',
   createdAt: 'createdAt'
 } as const
 
@@ -151,13 +225,95 @@ export type DealRecipientScalarFieldEnum = (typeof DealRecipientScalarFieldEnum)
 export const MessageScalarFieldEnum = {
   id: 'id',
   dealRecipientId: 'dealRecipientId',
+  priceSheetRecipientId: 'priceSheetRecipientId',
   senderType: 'senderType',
   senderName: 'senderName',
+  type: 'type',
   content: 'content',
+  bidAmount: 'bidAmount',
+  bidUnit: 'bidUnit',
   createdAt: 'createdAt'
 } as const
 
 export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
+
+
+export const PriceSheetScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  title: 'title',
+  comexBasis: 'comexBasis',
+  headerNote: 'headerNote',
+  effectiveDate: 'effectiveDate',
+  expiresAt: 'expiresAt',
+  status: 'status',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PriceSheetScalarFieldEnum = (typeof PriceSheetScalarFieldEnum)[keyof typeof PriceSheetScalarFieldEnum]
+
+
+export const PriceSheetItemScalarFieldEnum = {
+  id: 'id',
+  sheetId: 'sheetId',
+  category: 'category',
+  name: 'name',
+  price: 'price',
+  priceNote: 'priceNote',
+  unit: 'unit',
+  sortOrder: 'sortOrder'
+} as const
+
+export type PriceSheetItemScalarFieldEnum = (typeof PriceSheetItemScalarFieldEnum)[keyof typeof PriceSheetItemScalarFieldEnum]
+
+
+export const PriceSheetRecipientScalarFieldEnum = {
+  id: 'id',
+  sheetId: 'sheetId',
+  contactId: 'contactId',
+  accessToken: 'accessToken',
+  channel: 'channel',
+  status: 'status',
+  sentAt: 'sentAt',
+  viewedAt: 'viewedAt',
+  sendError: 'sendError',
+  sendAttempts: 'sendAttempts',
+  ownerLastReadAt: 'ownerLastReadAt',
+  lastNudgeAt: 'lastNudgeAt',
+  createdAt: 'createdAt'
+} as const
+
+export type PriceSheetRecipientScalarFieldEnum = (typeof PriceSheetRecipientScalarFieldEnum)[keyof typeof PriceSheetRecipientScalarFieldEnum]
+
+
+export const PriceSheetResponseScalarFieldEnum = {
+  id: 'id',
+  recipientId: 'recipientId',
+  status: 'status',
+  buyerNote: 'buyerNote',
+  dealerNote: 'dealerNote',
+  agreedTotal: 'agreedTotal',
+  submittedAt: 'submittedAt',
+  respondedAt: 'respondedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PriceSheetResponseScalarFieldEnum = (typeof PriceSheetResponseScalarFieldEnum)[keyof typeof PriceSheetResponseScalarFieldEnum]
+
+
+export const PriceSheetResponseLineScalarFieldEnum = {
+  id: 'id',
+  responseId: 'responseId',
+  itemId: 'itemId',
+  weight: 'weight',
+  weightUnit: 'weightUnit',
+  buyerPrice: 'buyerPrice',
+  dealerPrice: 'dealerPrice'
+} as const
+
+export type PriceSheetResponseLineScalarFieldEnum = (typeof PriceSheetResponseLineScalarFieldEnum)[keyof typeof PriceSheetResponseLineScalarFieldEnum]
 
 
 export const SortOrder = {

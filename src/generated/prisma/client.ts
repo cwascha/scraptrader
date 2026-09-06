@@ -47,10 +47,25 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model MaterialGrade
+ * 
+ */
+export type MaterialGrade = Prisma.MaterialGradeModel
+/**
  * Model Contact
  * 
  */
 export type Contact = Prisma.ContactModel
+/**
+ * Model ContactGroup
+ * 
+ */
+export type ContactGroup = Prisma.ContactGroupModel
+/**
+ * Model YardAddress
+ * 
+ */
+export type YardAddress = Prisma.YardAddressModel
 /**
  * Model Deal
  * 
@@ -71,3 +86,28 @@ export type DealRecipient = Prisma.DealRecipientModel
  * 
  */
 export type Message = Prisma.MessageModel
+/**
+ * Model PriceSheet
+ * 
+ */
+export type PriceSheet = Prisma.PriceSheetModel
+/**
+ * Model PriceSheetItem
+ * 
+ */
+export type PriceSheetItem = Prisma.PriceSheetItemModel
+/**
+ * Model PriceSheetRecipient
+ * 
+ */
+export type PriceSheetRecipient = Prisma.PriceSheetRecipientModel
+/**
+ * Model PriceSheetResponse
+ * 
+ */
+export type PriceSheetResponse = Prisma.PriceSheetResponseModel
+/**
+ * Model PriceSheetResponseLine
+ * 
+ */
+export type PriceSheetResponseLine = Prisma.PriceSheetResponseLineModel

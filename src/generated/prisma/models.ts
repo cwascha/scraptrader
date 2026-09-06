@@ -9,9 +9,17 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User'
+export type * from './models/MaterialGrade'
 export type * from './models/Contact'
+export type * from './models/ContactGroup'
+export type * from './models/YardAddress'
 export type * from './models/Deal'
 export type * from './models/DealImage'
 export type * from './models/DealRecipient'
 export type * from './models/Message'
+export type * from './models/PriceSheet'
+export type * from './models/PriceSheetItem'
+export type * from './models/PriceSheetRecipient'
+export type * from './models/PriceSheetResponse'
+export type * from './models/PriceSheetResponseLine'
 export type * from './commonInputTypes'
